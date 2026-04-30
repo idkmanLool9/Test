@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="nl"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob:; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"><meta name="referrer" content="strict-origin-when-cross-origin"><meta name="robots" content="noindex,nofollow"><title>Mor Ephrem Klooster · Reserveringen</title><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet"><script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script><style>
+<!DOCTYPE html><html lang="nl"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob:; connect-src 'self' https://*.supabase.co wss://*.supabase.co; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"><meta name="referrer" content="strict-origin-when-cross-origin"><meta name="robots" content="noindex,nofollow"><title>Mor Ephrem Klooster · Reserveringen</title><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet"><script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script>window.SUPA_CONFIG={url:'https://hdezdfanhbqgfklfbcws.supabase.co',key:'sb_publishable_49qwZygGdY8cil-KO5wsTQ_Yk8O-LNu'};</script><style>
 :root{--bg:#fff;--bg-alt:#f7f8fa;--bg-muted:#eef0f3;--bg-soft:#fafbfc;--ink:#0f172a;--ink-soft:#475569;--ink-muted:#64748b;--line:#e2e8f0;--line-strong:#cbd5e1;--accent:#1f4788;--accent-hover:#163461;--accent-soft:#eef2fb;--accent-soft-2:#dde6f4;--success-bg:#ecfdf5;--success-bg-strong:#d1fae5;--success-ink:#065f46;--warn-bg:#fffbeb;--warn-bg-strong:#fef3c7;--warn-ink:#92400e;--danger-bg:#fef2f2;--danger-ink:#991b1b;--info-bg:#eff6ff;--info-ink:#1e40af;--font:'IBM Plex Sans',-apple-system,sans-serif;--font-mono:'IBM Plex Mono',monospace;--r:6px;--rl:8px;--rxl:10px;--sh:0 1px 3px rgba(15,23,42,.08);--shl:0 4px 12px rgba(15,23,42,.08)}
 *{box-sizing:border-box;margin:0;padding:0}
 *:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
@@ -641,10 +641,10 @@ body.editing [data-edit]::before{content:'\270E';position:absolute;top:-10px;rig
   <div class="login-card">
     <h2>Beheerderslogin</h2>
     <p>Toegang tot het beheerpaneel is uitsluitend voor het secretariaat.</p>
-    <div class="field" style="margin-bottom:10px;"><label>Gebruikersnaam</label><input type="text" id="login-user" placeholder="bv. secretariaat"></div>
-    <div class="field" style="margin-bottom:14px;"><label>Wachtwoord</label><input type="password" id="login-password"></div>
+    <div class="field" style="margin-bottom:10px;"><label>E-mailadres</label><input type="email" id="login-user" autocomplete="email" placeholder="naam@parochie.nl"></div>
+    <div class="field" style="margin-bottom:14px;"><label>Wachtwoord</label><input type="password" id="login-password" autocomplete="current-password"></div>
     <div style="display:flex;gap:8px;"><button class="btn" id="login-submit" style="flex:1;">Inloggen</button><button class="btn btn-ghost" id="login-cancel">Annuleer</button></div>
-    <p style="margin-top:14px;font-size:12px;">Standaard: <span class="kbd">admin</span> / <span class="kbd">admin</span></p>
+    <p style="margin-top:14px;font-size:12px;"><a href="#" id="login-forgot" style="color:var(--accent);">Wachtwoord vergeten?</a></p>
   </div>
 </div>
 <div class="drawer-backdrop" id="drawer-backdrop"></div>
@@ -715,7 +715,7 @@ const state={
   adminViewYear:today.getFullYear(),adminViewMonth:today.getMonth(),
   bookings:[],blocked:[],waitlist:[],audit:[],
   parishes:[],currentParishId:'glane',lang:'nl',
-  registers:{baptism:[],marriage:[],family:[]},registerSearch:'',
+  registers:{baptism:[],marriage:[],family:[]},registerSearch:'',profiles:[],
   settings:JSON.parse(JSON.stringify(defaultSettings)),
   lastBookingRef:null,charts:{},modalCallback:null
 };
@@ -749,7 +749,7 @@ function hasPerm(p){if(!state.currentUser)return false;return state.currentUser.
 function loadAll(){try{const r=localStorage.getItem(STORAGE_KEY);if(r){const d=JSON.parse(r);state.bookings=d.bookings||[];state.blocked=d.blocked||[];state.waitlist=d.waitlist||[];state.audit=d.audit||[];state.parishes=d.parishes&&d.parishes.length?d.parishes:JSON.parse(JSON.stringify(defaultParishes));state.currentParishId=d.currentParishId||'glane';state.lang=d.lang||'nl';state.registers=d.registers||{baptism:[],marriage:[],family:[]};if(!state.registers.baptism)state.registers.baptism=[];if(!state.registers.marriage)state.registers.marriage=[];if(!state.registers.family)state.registers.family=[];state.settings=mergeSettings(d.settings||{});if(state.bookings.length===0)seedDemo();if(state.registers.baptism.length===0)seedRegisterDemo();}else{state.parishes=JSON.parse(JSON.stringify(defaultParishes));seedDemo();seedRegisterDemo();}}catch(e){console.error(e);state.parishes=JSON.parse(JSON.stringify(defaultParishes));seedDemo();seedRegisterDemo();}}
 function mergeSettings(s){const m=JSON.parse(JSON.stringify(defaultSettings));if(s.org)Object.assign(m.org,s.org);if(s.types)m.types=s.types;if(s.locations)m.locations=s.locations;if(s.celebrants)m.celebrants=s.celebrants;if(s.users)m.users=s.users.map(u=>({...u,perms:u.perms||ALL_PERMS.slice()}));if(s.templates){Object.keys(s.templates).forEach(k=>{if(m.templates[k])Object.assign(m.templates[k],s.templates[k]);else m.templates[k]=s.templates[k];});}if(s.depositPct!=null)m.depositPct=s.depositPct;if(s.emails)Object.assign(m.emails,s.emails);return m;}
 function saveAll(){try{localStorage.setItem(STORAGE_KEY,JSON.stringify({bookings:state.bookings,blocked:state.blocked,waitlist:state.waitlist,audit:state.audit,parishes:state.parishes,currentParishId:state.currentParishId,lang:state.lang,registers:state.registers,settings:state.settings}));}catch(e){console.error(e);}}
-function logAudit(action,detail){state.audit.unshift({ts:new Date().toISOString(),who:state.currentUser?state.currentUser.name:'systeem',action,detail:detail||''});if(state.audit.length>500)state.audit=state.audit.slice(0,500);saveAll();}
+function logAudit(action,detail){const entry={ts:new Date().toISOString(),who:state.currentUser?state.currentUser.name:'systeem',action,detail:detail||''};state.audit.unshift(entry);if(state.audit.length>500)state.audit=state.audit.slice(0,500);saveAll();if(supa&&state.currentUser){supa.from('audit_log').insert({user_id:state.currentUser.id,parish_id:state.currentUser.parish_id||state.currentParishId,who_name:state.currentUser.name,action,detail:detail||null}).then(({error})=>{if(error)console.warn('audit write failed',error);});}}
 
 function makeBooking(o){const ref=o.ref||genRef();const t=getType(o.type);const price=o.total!=null?o.total:(t.price||0);const deposit=Math.round(price*(state.settings.depositPct/100));return{ref,parishId:o.parishId||state.currentParishId,date:o.date,type:o.type,location:o.location,firstname:o.firstname||'',lastname:o.lastname||'',name:((o.firstname||'')+' '+(o.lastname||'')).trim(),email:o.email||'',phone:o.phone||'',address:o.address||'',postcode:o.postcode||'',city:o.city||'',guests:o.guests||0,celebrant:o.celebrant||'',notes:o.notes||'',status:o.status||'pending',paid:o.paid||'unpaid',method:o.method||'overschrijving',total:price,deposit,flagged:o.flagged||false,internalNotes:o.internalNotes||[],history:o.history||[{ts:new Date().toISOString(),text:'Reservering aangemaakt',who:'systeem'}],createdAt:o.createdAt||new Date().toISOString()};}
 
@@ -785,81 +785,101 @@ function setupNav(){
   $('login-password').addEventListener('keydown',e=>{if(e.key==='Enter')tryLogin();});
   $('login-user').addEventListener('keydown',e=>{if(e.key==='Enter')$('login-password').focus();});
   $('login-cancel').addEventListener('click',()=>{$('login-screen').classList.remove('show');$('login-password').value='';$('login-user').value='';});
+  const fg=$('login-forgot');if(fg)fg.addEventListener('click',e=>{e.preventDefault();sendPasswordReset($('login-user').value.trim());});
 }
-// --- Web Crypto: PBKDF2-SHA256 password hashing ---
-const PBKDF2_ITER=200000;
-function _b64enc(buf){return btoa(String.fromCharCode(...new Uint8Array(buf)));}
-function _b64dec(s){return Uint8Array.from(atob(s),c=>c.charCodeAt(0));}
-async function hashPassword(password,saltB64){
-  const salt=saltB64?_b64dec(saltB64):crypto.getRandomValues(new Uint8Array(16));
-  const km=await crypto.subtle.importKey('raw',new TextEncoder().encode(password),'PBKDF2',false,['deriveBits']);
-  const bits=await crypto.subtle.deriveBits({name:'PBKDF2',salt,iterations:PBKDF2_ITER,hash:'SHA-256'},km,256);
-  return{salt:_b64enc(salt),hash:_b64enc(bits),iter:PBKDF2_ITER,algo:'PBKDF2-SHA256'};
+// --- Supabase client (auth + cloud data) ---
+const supa=(window.SUPA_CONFIG&&window.supabase)?window.supabase.createClient(window.SUPA_CONFIG.url,window.SUPA_CONFIG.key,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}}):null;
+window._supa=supa;
+
+async function fetchProfile(userId){
+  if(!supa)return null;
+  const{data,error}=await supa.from('profiles').select('*').eq('id',userId).maybeSingle();
+  if(error){console.error('profile fetch failed',error);return null;}
+  return data;
 }
-async function verifyPassword(password,stored){
-  if(!stored||!stored.salt||!stored.hash)return false;
-  const c=await hashPassword(password,stored.salt);
-  if(c.hash.length!==stored.hash.length)return false;
-  let r=0;for(let i=0;i<c.hash.length;i++)r|=c.hash.charCodeAt(i)^stored.hash.charCodeAt(i);
-  return r===0;
+function profileToCurrentUser(p,authUser){
+  return{
+    id:p.id,
+    username:p.email||authUser.email,
+    name:p.full_name||p.email||authUser.email,
+    email:p.email||authUser.email,
+    parish_id:p.parish_id,
+    role:p.role,
+    perms:p.perms||[],
+    active:p.active!==false
+  };
 }
-async function migratePasswords(){
-  if(!state.settings||!state.settings.users)return;
-  let changed=false;
-  for(const u of state.settings.users){
-    if(u.password!=null&&!u.passwordHash){
-      u.passwordHash=await hashPassword(u.password);
-      delete u.password;changed=true;
-    }
+
+async function applyAuthSession(session){
+  if(!session||!session.user){
+    state.adminAuth=false;state.currentUser=null;return false;
   }
-  if(changed)saveAll();
-}
-function _getLoginLock(){try{return JSON.parse(sessionStorage.getItem('login_lock')||'{"count":0,"until":0}');}catch(e){return{count:0,until:0};}}
-function _setLoginLock(v){try{sessionStorage.setItem('login_lock',JSON.stringify(v));}catch(e){}}
-async function tryLogin(){
-  const u=$('login-user').value.trim();const p=$('login-password').value;
-  const lock=_getLoginLock();
-  if(lock.until>Date.now()){
-    showToast('Te veel pogingen — wacht '+Math.ceil((lock.until-Date.now())/1000)+'s','error');return;
+  const profile=await fetchProfile(session.user.id);
+  if(!profile){
+    showToast('Geen profiel gevonden — neem contact op met de beheerder','error');
+    if(supa)await supa.auth.signOut();
+    return false;
   }
-  const user=state.settings.users.find(x=>x.username===u);
-  let ok=false;
-  if(user){
-    if(user.passwordHash){
-      ok=await verifyPassword(p,user.passwordHash);
-    }else if(user.password!=null){
-      ok=(user.password===p);
-      if(ok){user.passwordHash=await hashPassword(p);delete user.password;saveAll();}
-    }
+  if(profile.active===false){
+    showToast('Account is gedeactiveerd','error');
+    if(supa)await supa.auth.signOut();
+    return false;
   }
-  if(!ok){
-    const c=lock.count+1;
-    const next=c>=5?Date.now()+30000:0;
-    _setLoginLock({count:c>=5?0:c,until:next});
-    showToast(c>=5?'Te veel pogingen — 30s wachten':'Onjuiste gegevens','error');
-    return;
-  }
-  _setLoginLock({count:0,until:0});
-  state.adminAuth=true;state.currentUser=user;
+  state.adminAuth=true;
+  state.currentUser=profileToCurrentUser(profile,session.user);
+  if(profile.parish_id)state.currentParishId=profile.parish_id;
   _touchActivity();
-  $('login-screen').classList.remove('show');
-  $('login-password').value='';$('login-user').value='';
+  loadProfiles();
+  supa.from('profiles').update({last_login:new Date().toISOString()}).eq('id',profile.id).then(()=>{});
+  return true;
+}
+
+async function tryLogin(){
+  if(!supa){showToast('Supabase is niet geconfigureerd','error');return;}
+  const email=$('login-user').value.trim();const password=$('login-password').value;
+  if(!email||!password){showToast('Vul e-mail en wachtwoord in','error');return;}
+  const btn=$('login-submit');btn.disabled=true;const orig=btn.textContent;btn.textContent='Bezig...';
+  try{
+    const{data,error}=await supa.auth.signInWithPassword({email,password});
+    if(error){showToast(error.message==='Invalid login credentials'?'Onjuiste gegevens':error.message,'error');return;}
+    const ok=await applyAuthSession(data.session);
+    if(!ok)return;
+    $('login-screen').classList.remove('show');
+    $('login-password').value='';$('login-user').value='';
+    $$('.nav-tab').forEach(t=>t.classList.remove('active'));
+    $('admin-tab-btn').classList.add('active');
+    $$('.page').forEach(x=>x.classList.remove('active'));
+    $('page-admin').classList.add('active');
+    applyPermissions();applyParish();
+    await logAudit('Ingelogd');
+    let firstTab='dashboard';
+    for(const it of $$('.sidebar-item[data-perm]')){if(hasPerm(it.dataset.perm)){firstTab=it.dataset.subtab;break;}}
+    state.adminSubtab=firstTab;
+    $$('.sidebar-item').forEach(x=>x.classList.remove('active'));
+    const sit=document.querySelector('.sidebar-item[data-subtab="'+firstTab+'"]');if(sit)sit.classList.add('active');
+    renderAdmin();
+    showToast('Welkom '+state.currentUser.name,'success');
+  }catch(e){console.error(e);showToast('Inloggen mislukt: '+(e.message||e),'error');}
+  finally{btn.disabled=false;btn.textContent=orig;}
+}
+
+async function doLogout(){
+  try{await logAudit('Uitgelogd');}catch(e){}
+  if(supa){try{await supa.auth.signOut();}catch(e){console.error(e);}}
+  state.adminAuth=false;state.currentUser=null;
   $$('.nav-tab').forEach(t=>t.classList.remove('active'));
-  $('admin-tab-btn').classList.add('active');
-  $$('.page').forEach(x=>x.classList.remove('active'));
-  $('page-admin').classList.add('active');
-  applyPermissions();
-  logAudit('Ingelogd');
-  let firstTab='dashboard';
-  for(const it of $$('.sidebar-item[data-perm]')){if(hasPerm(it.dataset.perm)){firstTab=it.dataset.subtab;break;}}
-  state.adminSubtab=firstTab;
-  $$('.sidebar-item').forEach(x=>x.classList.remove('active'));
-  document.querySelector('.sidebar-item[data-subtab="'+firstTab+'"]').classList.add('active');
-  renderAdmin();
-  showToast('Welkom '+user.name,'success');
-  if(p==='admin'&&user.username==='admin'){
-    setTimeout(()=>showToast('Wijzig het standaardwachtwoord direct via Beheer → Gebruikers','warn'),1500);
-  }
+  const bk=document.querySelector('[data-page="booking"]');if(bk)bk.classList.add('active');
+  $$('.page').forEach(p=>p.classList.remove('active'));
+  $('page-booking').classList.add('active');
+  showToast('Uitgelogd');
+}
+
+async function sendPasswordReset(email){
+  if(!supa)return;
+  if(!email){showToast('Vul eerst je e-mailadres in','error');return;}
+  const{error}=await supa.auth.resetPasswordForEmail(email,{redirectTo:window.location.origin+window.location.pathname});
+  if(error){showToast(error.message,'error');return;}
+  showToast('Reset-link verstuurd naar '+email,'success');
 }
 function applyPermissions(){
   const u=state.currentUser;if(!u)return;
@@ -965,7 +985,7 @@ function setupAdmin(){
       renderAdminSubpage();
     });
   });
-  $('logout-btn').addEventListener('click',()=>{logAudit('Uitgelogd');state.adminAuth=false;state.currentUser=null;$$('.nav-tab').forEach(t=>t.classList.remove('active'));document.querySelector('[data-page="booking"]').classList.add('active');$$('.page').forEach(p=>p.classList.remove('active'));$('page-booking').classList.add('active');showToast('Uitgelogd');});
+  $('logout-btn').addEventListener('click',doLogout);
   $('drawer-close').addEventListener('click',closeDrawer);
   $('drawer-backdrop').addEventListener('click',closeDrawer);
   $$('.drawer-tab').forEach(t=>{t.addEventListener('click',()=>{$$('.drawer-tab').forEach(x=>x.classList.remove('active'));t.classList.add('active');state.drawerTab=t.dataset.dtab;const b=state.bookings.find(x=>x.ref===state.drawerRef);if(b)renderDrawerBody(b);});});
@@ -1326,7 +1346,27 @@ function renderSettings(){
 function renderTypesList(){const list=$('types-list');list.innerHTML=state.settings.types.map((t,i)=>'<div class="list-item"><div class="list-item-info"><strong>'+escapeHtml(t.label)+'</strong> · € '+t.price+' <span style="color:var(--ink-muted);">('+escapeHtml(t.key)+')</span></div><div style="display:flex;gap:4px;"><button class="icon-btn" data-edit-type="'+i+'">Bewerk</button><button class="icon-btn danger" data-del-type="'+i+'">Verwijder</button></div></div>').join('')||'<p style="font-size:12px;color:var(--ink-muted);">Geen types ingesteld.</p>';}
 function renderLocsList(){const list=$('locs-list');list.innerHTML=state.settings.locations.map((l,i)=>'<div class="list-item"><div class="list-item-info"><strong>'+escapeHtml(l.label)+'</strong> · '+(l.capacity||'?')+' personen <span style="color:var(--ink-muted);">('+escapeHtml(l.key)+')</span></div><div style="display:flex;gap:4px;"><button class="icon-btn" data-edit-loc="'+i+'">Bewerk</button><button class="icon-btn danger" data-del-loc="'+i+'">Verwijder</button></div></div>').join('')||'<p style="font-size:12px;color:var(--ink-muted);">Geen locaties ingesteld.</p>';}
 function renderCelsList(){const list=$('cels-list');list.innerHTML=state.settings.celebrants.map((c,i)=>'<div class="list-item"><div class="list-item-info"><strong>'+escapeHtml(c)+'</strong></div><div style="display:flex;gap:4px;"><button class="icon-btn" data-edit-cel="'+i+'">Bewerk</button><button class="icon-btn danger" data-del-cel="'+i+'">Verwijder</button></div></div>').join('')||'<p style="font-size:12px;color:var(--ink-muted);">Geen celebranten ingesteld.</p>';}
-function renderUsersList(){const list=$('users-list');list.innerHTML=state.settings.users.map((u,i)=>{const permLabels=(u.perms||[]).map(p=>PERM_LABELS[p]||p).join(', ')||'Geen rechten';return'<div class="list-item"><div class="list-item-info"><strong>'+escapeHtml(u.name)+'</strong> <span style="color:var(--ink-muted);">('+escapeHtml(u.username)+')</span><div style="font-size:11px;color:var(--ink-muted);margin-top:2px;">Toegang: '+escapeHtml(permLabels)+'</div></div><div style="display:flex;gap:4px;"><button class="icon-btn" data-edit-user="'+i+'">Bewerk</button>'+(state.settings.users.length>1?'<button class="icon-btn danger" data-del-user="'+i+'">Verwijder</button>':'')+'</div></div>';}).join('');}
+async function loadProfiles(){
+  if(!supa)return;
+  const{data,error}=await supa.from('profiles').select('id,email,full_name,parish_id,role,perms,active,last_login').order('full_name',{nullsFirst:false});
+  if(error){console.error('profiles fetch',error);return;}
+  state.profiles=data||[];
+}
+function renderUsersList(){
+  const list=$('users-list');if(!list)return;
+  if(!supa){list.innerHTML='<p style="font-size:13px;color:var(--ink-muted);padding:8px;">Supabase is niet geconfigureerd.</p>';return;}
+  if(!state.profiles.length){
+    list.innerHTML='<p style="font-size:13px;color:var(--ink-muted);padding:8px;">Profielen worden geladen...</p>';
+    loadProfiles().then(()=>renderUsersList());return;
+  }
+  const roleLabel={bisdom:'Bisdom',admin:'Beheerder',secretariaat:'Secretariaat',priester:'Priester'};
+  list.innerHTML=state.profiles.map(p=>{
+    const permLabels=(p.perms||[]).map(x=>PERM_LABELS[x]||x).join(', ')||'Geen rechten';
+    const par=p.parish_id?(state.parishes.find(q=>q.id===p.parish_id)||{}).name||p.parish_id:'Bisdom (alle parochies)';
+    const inactive=p.active===false?' <span class="badge badge-cancelled">Inactief</span>':'';
+    return'<div class="list-item"><div class="list-item-info"><strong>'+escapeHtml(p.full_name||p.email)+'</strong> <span style="color:var(--ink-muted);">('+escapeHtml(p.email)+')</span>'+inactive+'<div style="font-size:11px;color:var(--ink-muted);margin-top:2px;">'+escapeHtml(roleLabel[p.role]||p.role)+' · '+escapeHtml(par)+' · '+escapeHtml(permLabels)+'</div></div><div style="display:flex;gap:4px;"><button class="icon-btn" data-edit-profile="'+escapeHtml(p.id)+'">Bewerk</button><button class="icon-btn" data-reset-pw="'+escapeHtml(p.email)+'">Reset wachtwoord</button></div></div>';
+  }).join('');
+}
 
 function setupSettingsEvents(){
   $('save-org').addEventListener('click',()=>{state.settings.org.name=$('set-name').value.trim();state.settings.org.shortMark=$('set-mark').value.trim()||state.settings.org.name.slice(0,2).toUpperCase();state.settings.org.address=$('set-address').value.trim();state.settings.org.phone=$('set-phone').value.trim();state.settings.org.email=$('set-email').value.trim();state.settings.org.iban=$('set-iban').value.trim();state.settings.org.hours=$('set-hours').value.trim();saveAll();applyOrg();logAudit('Klooster gegevens gewijzigd');showToast('Opgeslagen','success');});
@@ -1342,8 +1382,16 @@ function setupSettingsEvents(){
   $('add-cel').addEventListener('click',()=>editCelModal(-1));
   $('cels-list').onclick=function(e){const ed=e.target.closest('[data-edit-cel]');if(ed){editCelModal(parseInt(ed.dataset.editCel));return;}const dl=e.target.closest('[data-del-cel]');if(dl){const i=parseInt(dl.dataset.delCel);const c=state.settings.celebrants[i];showModal('Celebrant verwijderen','"'+c+'" verwijderen?',()=>{state.settings.celebrants.splice(i,1);saveAll();logAudit('Celebrant verwijderd',c);closeModal();renderCelsList();renderCelebrants();showToast('Verwijderd');});}};
 
-  $('add-user').addEventListener('click',()=>editUserModal(-1));
-  $('users-list').onclick=function(e){const ed=e.target.closest('[data-edit-user]');if(ed){editUserModal(parseInt(ed.dataset.editUser));return;}const dl=e.target.closest('[data-del-user]');if(dl){const i=parseInt(dl.dataset.delUser);const u=state.settings.users[i];if(u.username===state.currentUser.username){showToast('Kunt uw eigen account niet verwijderen','error');return;}showModal('Gebruiker verwijderen','"'+u.name+'" verwijderen?',()=>{state.settings.users.splice(i,1);saveAll();logAudit('Gebruiker verwijderd',u.username);closeModal();renderUsersList();showToast('Verwijderd');});}};
+  $('add-user').addEventListener('click',()=>{
+    showModal('Nieuwe gebruiker uitnodigen','<div style="font-size:13px;line-height:1.6;"><p>Maak nieuwe gebruikers aan via:</p><ol style="margin:10px 0 10px 20px;"><li>Open <strong>Supabase Dashboard → Authentication → Users → Add user</strong></li><li>Vul e-mailadres en een tijdelijk wachtwoord in (<em>Auto Confirm User</em> aanvinken)</li><li>Zodra de gebruiker is aangemaakt verschijnt deze hier in de lijst</li><li>Klik dan op <strong>Bewerk</strong> om de juiste rol, parochie en rechten in te stellen</li></ol><p style="color:var(--ink-muted);">Tip: stuur de gebruiker daarna een wachtwoord-reset zodat ze zelf hun wachtwoord kiezen.</p></div>',null,true);
+  });
+  $('users-list').onclick=function(e){
+    const ed=e.target.closest('[data-edit-profile]');if(ed){editProfileModal(ed.dataset.editProfile);return;}
+    const rs=e.target.closest('[data-reset-pw]');if(rs){
+      const em=rs.dataset.resetPw;
+      showModal('Wachtwoord-reset versturen','Reset-link sturen naar '+em+'?',async()=>{await sendPasswordReset(em);closeModal();});
+    }
+  };
 
   $('backup-download').addEventListener('click',()=>{const data=JSON.stringify({bookings:state.bookings,blocked:state.blocked,waitlist:state.waitlist,audit:state.audit,settings:state.settings,exportedAt:new Date().toISOString()},null,2);const blob=new Blob([data],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='backup-'+fmtDateKey(today.getFullYear(),today.getMonth(),today.getDate())+'.json';a.click();logAudit('Backup gedownload');showToast('Backup gedownload','success');});
   $('backup-upload-btn').addEventListener('click',()=>$('backup-file').click());
@@ -1358,7 +1406,40 @@ function editLocModal(idx){const isNew=idx<0;const l=isNew?{key:'',label:'',capa
 
 function editCelModal(idx){const isNew=idx<0;const c=isNew?'':state.settings.celebrants[idx];showModal(isNew?'Nieuwe celebrant':'Celebrant bewerken','<div class="field"><label>Naam (bv. "Pater Saït")</label><input type="text" id="c-name" value="'+escapeHtml(c)+'"></div>',()=>{const n=$('c-name').value.trim();if(!n){showToast('Naam vereist','error');return;}if(isNew)state.settings.celebrants.push(n);else state.settings.celebrants[idx]=n;saveAll();logAudit(isNew?'Celebrant toegevoegd':'Celebrant bewerkt',n);closeModal();renderCelsList();renderCelebrants();showToast('Opgeslagen','success');},true);}
 
-function editUserModal(idx){const isNew=idx<0;const u=isNew?{username:'',name:'',perms:ALL_PERMS.slice()}:state.settings.users[idx];const permsHtml=ALL_PERMS.map(p=>'<div class="perm-item"><input type="checkbox" id="u-perm-'+p+'" '+((u.perms||[]).includes(p)?'checked':'')+'><label for="u-perm-'+p+'" style="margin:0;font-weight:400;">'+PERM_LABELS[p]+'</label></div>').join('');showModal(isNew?'Nieuwe gebruiker':'Gebruiker bewerken','<div class="form-row"><div class="field"><label>Volledige naam</label><input type="text" id="u-name" value="'+escapeHtml(u.name)+'" placeholder="bv. Maria Yacoub"></div><div class="field"><label>Gebruikersnaam</label><input type="text" id="u-user" value="'+escapeHtml(u.username)+'"'+(isNew?'':' disabled')+'></div></div><div class="field" style="margin-bottom:14px;"><label>Wachtwoord '+(isNew?'':'(leeg laten = niet wijzigen)')+'</label><input type="password" id="u-pass" autocomplete="new-password" placeholder="'+(isNew?'minimum 8 tekens':'••••••')+'"></div><label style="font-size:13px;font-weight:500;display:block;margin-bottom:6px;">Toegangsrechten</label><div class="perm-grid">'+permsHtml+'</div><p style="font-size:11px;color:var(--ink-muted);margin-top:6px;">Vink aan welke onderdelen deze persoon mag bekijken en bewerken.</p>',async()=>{const name=$('u-name').value.trim();const user=$('u-user').value.trim();const pass=$('u-pass').value;if(!name||!user){showToast('Naam en gebruikersnaam vereist','error');return;}if(isNew&&(!pass||pass.length<8)){showToast('Wachtwoord min. 8 tekens','error');return;}if(pass&&pass.length>0&&pass.length<8){showToast('Wachtwoord min. 8 tekens','error');return;}const perms=ALL_PERMS.filter(p=>$('u-perm-'+p).checked);if(!perms.length){showToast('Selecteer ten minste 1 recht','error');return;}if(isNew){if(state.settings.users.some(x=>x.username===user)){showToast('Gebruikersnaam bestaat al','error');return;}const passwordHash=await hashPassword(pass);state.settings.users.push({username:user,passwordHash,name,perms});}else{state.settings.users[idx].name=name;if(pass){state.settings.users[idx].passwordHash=await hashPassword(pass);delete state.settings.users[idx].password;}state.settings.users[idx].perms=perms;if(state.currentUser&&state.currentUser.username===user)state.currentUser=state.settings.users[idx];}saveAll();logAudit(isNew?'Gebruiker toegevoegd':'Gebruiker bewerkt',user);closeModal();renderUsersList();applyPermissions();showToast('Opgeslagen','success');},true);}
+function editProfileModal(profileId){
+  const p=state.profiles.find(x=>x.id===profileId);if(!p){showToast('Profiel niet gevonden','error');return;}
+  const permsHtml=ALL_PERMS.map(perm=>'<div class="perm-item"><input type="checkbox" id="p-perm-'+perm+'" '+((p.perms||[]).includes(perm)?'checked':'')+'><label for="p-perm-'+perm+'" style="margin:0;font-weight:400;">'+PERM_LABELS[perm]+'</label></div>').join('');
+  const parishOpts=state.parishes.map(par=>'<option value="'+escapeHtml(par.id)+'"'+(p.parish_id===par.id?' selected':'')+'>'+escapeHtml(par.name)+'</option>').join('');
+  const roleOpts=[['bisdom','Bisdom (alle parochies)'],['admin','Beheerder'],['secretariaat','Secretariaat'],['priester','Priester']].map(([v,l])=>'<option value="'+v+'"'+(p.role===v?' selected':'')+'>'+l+'</option>').join('');
+  showModal('Profiel bewerken',
+    '<div class="form-row"><div class="field"><label>Volledige naam</label><input type="text" id="p-name" value="'+escapeHtml(p.full_name||'')+'" placeholder="bv. Maria Yacoub"></div><div class="field"><label>E-mail</label><input type="email" value="'+escapeHtml(p.email)+'" disabled></div></div>'+
+    '<div class="form-row"><div class="field"><label>Rol</label><select id="p-role">'+roleOpts+'</select></div><div class="field"><label>Parochie</label><select id="p-parish"><option value="">— Bisdom (alle parochies) —</option>'+parishOpts+'</select></div></div>'+
+    '<div class="checkbox-row"><input type="checkbox" id="p-active" '+(p.active!==false?'checked':'')+'><label for="p-active">Account actief (uitvinken om tijdelijk uit te schakelen)</label></div>'+
+    '<label style="font-size:13px;font-weight:500;display:block;margin-bottom:6px;">Toegangsrechten</label><div class="perm-grid">'+permsHtml+'</div>'+
+    '<p style="font-size:11px;color:var(--ink-muted);margin-top:8px;">Wachtwoord wijzigen kan via de "Reset wachtwoord"-knop in de lijst.</p>',
+    async()=>{
+      const updates={
+        full_name:$('p-name').value.trim()||null,
+        role:$('p-role').value,
+        parish_id:$('p-parish').value||null,
+        active:$('p-active').checked,
+        perms:ALL_PERMS.filter(perm=>$('p-perm-'+perm).checked)
+      };
+      if(!updates.perms.length){showToast('Selecteer ten minste 1 recht','error');return;}
+      const{error}=await supa.from('profiles').update(updates).eq('id',profileId);
+      if(error){showToast('Opslaan mislukt: '+error.message,'error');return;}
+      Object.assign(p,updates);
+      if(state.currentUser&&state.currentUser.id===profileId){
+        state.currentUser.parish_id=updates.parish_id;
+        state.currentUser.role=updates.role;
+        state.currentUser.perms=updates.perms;
+        state.currentUser.name=updates.full_name||state.currentUser.email;
+        if(updates.parish_id)state.currentParishId=updates.parish_id;
+      }
+      logAudit('Profiel gewijzigd',(updates.full_name||'')+' ('+p.email+')');
+      closeModal();renderUsersList();applyPermissions();applyParish();showToast('Opgeslagen','success');
+    },true);
+}
 
 // --- Idle auto-logout (30 min) ---
 const IDLE_TIMEOUT_MS=30*60*1000;
@@ -1378,7 +1459,32 @@ function _startIdleWatch(){
     }
   },60*1000);
 }
-function init(){loadAll();applyParish();applyOrg();renderEventGrid();renderCelebrants();setupNav();setupBookingWizard();setupAdmin();setupParishSwitcher();setupLangSwitcher();setupRegister();renderCalendar();if(state.lang!=='nl'){document.querySelectorAll('.lang-btn').forEach(b=>b.classList.toggle('active',b.dataset.lang===state.lang));applyI18n();}else applyI18n();migratePasswords();_startIdleWatch();}
+async function restoreSession(){
+  if(!supa)return;
+  try{
+    const{data}=await supa.auth.getSession();
+    if(data&&data.session){
+      const ok=await applyAuthSession(data.session);
+      if(ok){applyPermissions();applyParish();}
+    }
+    supa.auth.onAuthStateChange((event,session)=>{
+      if(event==='SIGNED_OUT'){
+        state.adminAuth=false;state.currentUser=null;
+      }else if(event==='TOKEN_REFRESHED'&&session){
+        // session refreshed, nothing extra to do
+      }
+    });
+  }catch(e){console.error('restoreSession',e);}
+}
+async function init(){
+  loadAll();applyParish();applyOrg();
+  renderEventGrid();renderCelebrants();
+  setupNav();setupBookingWizard();setupAdmin();setupParishSwitcher();setupLangSwitcher();setupRegister();
+  renderCalendar();
+  if(state.lang!=='nl'){document.querySelectorAll('.lang-btn').forEach(b=>b.classList.toggle('active',b.dataset.lang===state.lang));applyI18n();}else applyI18n();
+  _startIdleWatch();
+  await restoreSession();
+}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
 })();
 </script></body></html>

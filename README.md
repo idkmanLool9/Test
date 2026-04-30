@@ -17,7 +17,7 @@ Online reserveringssysteem en kerkelijk register voor de Syrisch-Orthodoxe gemee
 
 Open `index.html` in je browser, of hosting via GitHub Pages / Netlify (zie hieronder).
 
-**Eerste login:** gebruikersnaam `admin`, wachtwoord `admin` — wijzig dit direct na de eerste keer inloggen via **Beheer → Gebruikers**.
+**Login:** via e-mailadres + wachtwoord. Het eerste account moet je zelf aanmaken in Supabase — zie [Supabase opzetten](#supabase-opzetten-fase-1) hieronder.
 
 ## Online zetten
 
@@ -42,23 +42,77 @@ Vergelijkbaar met Netlify, gekoppeld aan GitHub.
 
 **Bruikbaar voor één parochie / één computer per parochie.** Geschikt als digitale werkkopie naast een papieren register, of voor één secretariaat-pc. Voor multi-parochie productiegebruik met gedeelde database, echte betalingen en automatische e-mails is een server nodig — zie [TECHNISCH-PLAN.md](TECHNISCH-PLAN.md).
 
-## Belangrijk bij eerste gebruik
+## Supabase opzetten (Fase 1)
 
-1. Open de site en ga naar **Beheer** → log in met `admin` / `admin`
-2. Ga direct naar **Beheer → Gebruikers** en wijzig het wachtwoord van het `admin`-account
-3. Maak voor elke medewerker een eigen account met alleen de rechten die ze nodig hebben
-4. Maak regelmatig een backup via **Beheer → Backup** — dit is een JSON-bestand met alle data
+De huidige versie gebruikt **Supabase** voor authenticatie en het audit-logboek. De project-URL en publishable-key staan al in `index.html`. Wat je éénmalig moet doen:
 
-## Beperkingen op GitHub Pages
+### Stap 1: schema in Supabase laden
 
-GitHub Pages is statische hosting — er is geen server, dus:
+1. Open [Supabase Dashboard](https://app.supabase.com) → jouw project
+2. Ga naar **SQL Editor** → **New query**
+3. Open `supabase/schema.sql` uit deze repo en plak de hele inhoud
+4. Klik **Run**. Bij succes zie je `Success. No rows returned`. Het schema is veilig om opnieuw te draaien (idempotent).
 
-- **Data staat alleen in de browser** (localStorage). Wie het systeem op een andere computer of in een andere browser opent, ziet zijn eigen lege kopie. Gebruik backup/restore om data over te zetten.
+Wat dit aanmaakt: tabellen `parishes`, `profiles`, `bookings`, `baptisms`, `marriages`, `families`, `blocked_dates`, `waitlist`, `audit_log`, `parish_settings`, plus alle Row Level Security-regels en de drie standaard parochies (Glane, Enschede, Hengelo).
+
+### Stap 2: eerste beheerder aanmaken
+
+1. Supabase Dashboard → **Authentication → Users → Add user → Create new user**
+2. Vul je e-mailadres en een sterk wachtwoord in. Vink **Auto Confirm User** aan zodat je niet eerst hoeft te bevestigen.
+3. Klik **Create user**.
+
+### Stap 3: jezelf bisdom-rechten geven
+
+Standaard krijgt een nieuwe gebruiker rol `secretariaat` zonder parochie. Voor de eerste login moet je jezelf bisdom-rechten geven:
+
+1. Supabase Dashboard → **SQL Editor → New query**
+2. Plak (vervang het e-mailadres):
+   ```sql
+   update public.profiles
+      set role = 'bisdom',
+          full_name = 'Jouw Naam',
+          parish_id = null
+    where email = 'jouw@adres.nl';
+   ```
+3. Klik **Run**.
+
+### Stap 4: testen
+
+Open de site, klik op **Beheer**, log in met je e-mail en wachtwoord. Je komt dan in het beheerpaneel. Vanaf hier kun je via **Instellingen → Gebruikers** andere medewerkers toevoegen (zie de instructies in de modal).
+
+## Hoe weet ik of Supabase werkt?
+
+In de browser:
+
+1. Open de site, open **DevTools → Console** (F12)
+2. Tik in: `_supa` en druk Enter — moet een object teruggeven, geen `null`
+3. Probeer in te loggen met je Supabase-account
+4. Open in Supabase Dashboard → **Table Editor → `audit_log`** — daar moet een regel "Ingelogd" verschijnen
+5. Open Supabase Dashboard → **Authentication → Users** — bij jouw gebruiker moet `last_sign_in_at` zojuist zijn bijgewerkt
+
+Foutmeldingen die je kunt zien:
+- *"Invalid login credentials"* → e-mail of wachtwoord klopt niet
+- *"Geen profiel gevonden"* → de SQL is niet (helemaal) gelopen, of je hebt de gebruiker handmatig aangemaakt vóór het schema. Run `supabase/schema.sql` opnieuw.
+- *Niets gebeurt na "Inloggen"-knop* → check de browser console op rode errors. Vaak een CSP-probleem of verkeerde URL/key.
+
+## Wat zit waar (Fase 1)
+
+| Onderdeel | Opslag |
+|---|---|
+| Authenticatie (login, sessie, wachtwoorden) | **Supabase Auth** (server-side bcrypt) |
+| Profielen, rollen, rechten | **Supabase** tabel `profiles` |
+| Audit-logboek | **Supabase** tabel `audit_log` (gespiegeld naar localStorage als cache) |
+| Reserveringen, registers, blokkades, instellingen | localStorage (Fase 2 verhuist dit naar Supabase) |
+| Frontend code | Statisch op GitHub Pages |
+
+## Beperkingen huidige fase
+
+- **Reserveringen en registers staan nog lokaal** — daarom geldt voor die data nog steeds: één computer = één kopie. Fase 2 verhuist alles naar Supabase met Row Level Security per parochie.
 - **Geen echte iDEAL/Mollie betalingen** — betaalstatus is handmatig in te vullen door beheerder.
-- **Geen automatische e-mails** — sjablonen openen je eigen mailprogramma met ingevulde tekst.
-- **Wachtwoorden** worden gehashed (PBKDF2-SHA256, 200.000 rondes) en zo opgeslagen, niet meer in plaintext. Een sessie wordt automatisch beëindigd na 30 minuten inactiviteit. Na 5 mislukte login-pogingen wordt verder proberen 30s geblokkeerd.
+- **Geen automatische e-mails** — sjablonen openen je eigen mailprogramma met ingevulde tekst. Wachtwoord-reset werkt wel automatisch via Supabase.
+- **Sessie verloopt** automatisch na 30 minuten inactiviteit.
 
-Voor een echt multi-parochie systeem met gedeelde database, echte betalingen en automatische e-mails: zie [TECHNISCH-PLAN.md](TECHNISCH-PLAN.md).
+Voor het volledige productieplan: zie [TECHNISCH-PLAN.md](TECHNISCH-PLAN.md).
 
 ## Techniek
 
