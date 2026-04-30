@@ -1496,6 +1496,43 @@ async function ensureCropper(){
   await loadStylesheet(CROPPER_CSS);
   await loadScript(CROPPER_JS);
 }
+
+// --- Auto-detect ID-kaart via OpenCV.js + jscanify (lazy-loaded) ---
+const OPENCV_JS='https://cdn.jsdelivr.net/npm/@techstark/opencv-js@4.10.0-release.1/dist/opencv.js';
+const JSCANIFY_JS='https://cdn.jsdelivr.net/npm/jscanify@1.1.0/src/jscanify.min.js';
+async function ensureCardScanner(onProgress){
+  if(window.jscanify&&window.cv&&window.cv.Mat&&typeof window.cv.Mat==='function')return;
+  if(!window.cv){
+    onProgress&&onProgress('OpenCV downloaden (~9 MB, eerste keer)...');
+    await loadScript(OPENCV_JS);
+  }
+  // Wacht tot OpenCV runtime klaar is
+  let tries=0;while((!window.cv||typeof window.cv.Mat!=='function')&&tries<150){await new Promise(r=>setTimeout(r,100));tries++;}
+  if(!window.cv||typeof window.cv.Mat!=='function')throw new Error('OpenCV initialisatie mislukt');
+  if(!window.jscanify){
+    onProgress&&onProgress('Document-detector laden...');
+    await loadScript(JSCANIFY_JS);
+  }
+}
+async function autoExtractIdCard(rawDataUrl,onProgress){
+  await ensureCardScanner(onProgress);
+  onProgress&&onProgress('ID-kaart zoeken in foto...');
+  // Laad afbeelding als HTMLImageElement
+  const img=await new Promise((res,rej)=>{const im=new Image();im.onload=()=>res(im);im.onerror=()=>rej(new Error('Kon afbeelding niet laden'));im.src=rawDataUrl;});
+  // Teken op canvas dat jscanify aankan
+  const src=document.createElement('canvas');src.width=img.naturalWidth;src.height=img.naturalHeight;
+  src.getContext('2d').drawImage(img,0,0);
+  const scanner=new window.jscanify();
+  // Probeer eerst contour te vinden — als er geen kaart te zien is wijken we af
+  let corners=null;try{corners=scanner.findPaperContour(window.cv.imread(src));}catch(e){corners=null;}
+  if(!corners)return null;
+  // ID-kaart standaard 85.6 × 53.98 mm → schaal naar bv. 1700×1072 pixels
+  const W=1700,H=Math.round(W/(85.6/53.98));
+  let outCanvas=null;
+  try{outCanvas=scanner.extractPaper(src,W,H);}catch(e){return null;}
+  if(!outCanvas)return null;
+  return outCanvas;
+}
 function enhanceCanvas(canvas,opts){
   opts=opts||{};const contrast=opts.contrast!=null?opts.contrast:1.18;const brightness=opts.brightness!=null?opts.brightness:6;const sat=opts.sat!=null?opts.sat:0.92;
   const ctx=canvas.getContext('2d');
@@ -1992,11 +2029,28 @@ async function scanIdCardInto(opts){
     try{
       // 1. Lees raw foto in
       const rawDataUrl=await new Promise((res,rej)=>{const r=new FileReader();r.onload=e=>res(e.target.result);r.onerror=()=>rej(new Error('Kon bestand niet lezen'));r.readAsDataURL(f);});
-      if(status)status.textContent='Crop-tool laden...';
-      // 2. Crop + verbeter via UI
-      const cropResult=await showCropModal(rawDataUrl);
+      // 2. Probeer automatische detectie
+      let cropResult=null;
+      try{
+        const autoCanvas=await autoExtractIdCard(rawDataUrl,m=>{if(status)status.textContent=m;});
+        if(autoCanvas){
+          enhanceCanvas(autoCanvas);
+          const fullDataUrl=autoCanvas.toDataURL('image/jpeg',0.92);
+          const small=document.createElement('canvas');
+          const ratio=Math.min(1600/autoCanvas.width,1600/autoCanvas.height,1);
+          small.width=Math.round(autoCanvas.width*ratio);small.height=Math.round(autoCanvas.height*ratio);
+          small.getContext('2d').drawImage(autoCanvas,0,0,small.width,small.height);
+          cropResult={ocr:fullDataUrl,stored:small.toDataURL('image/jpeg',0.85)};
+          showToast('ID-kaart automatisch herkend','success');
+        }
+      }catch(e){console.warn('Auto-detect mislukt:',e);}
+      // 3. Bij falen: handmatig bijsnijden
+      if(!cropResult){
+        if(status)status.textContent='Geen kaart gedetecteerd, snij handmatig bij...';
+        cropResult=await showCropModal(rawDataUrl);
+      }
       if(!cropResult){if(status)status.textContent='';if(btn)btn.disabled=false;return;}
-      // 3. Sla bijgesneden versie op
+      // 4. Sla bijgesneden versie op
       if(opts.scanKey){
         opts.target[opts.scanKey]=cropResult.stored;
         if(opts.scanPreviewId){
