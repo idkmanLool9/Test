@@ -1,0 +1,1315 @@
+<!DOCTYPE html><html lang="nl"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Mor Ephrem Klooster · Reserveringen</title><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet"><script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script><style>
+:root{--bg:#fff;--bg-alt:#f7f8fa;--bg-muted:#eef0f3;--bg-soft:#fafbfc;--ink:#0f172a;--ink-soft:#475569;--ink-muted:#64748b;--line:#e2e8f0;--line-strong:#cbd5e1;--accent:#1f4788;--accent-hover:#163461;--accent-soft:#eef2fb;--accent-soft-2:#dde6f4;--success-bg:#ecfdf5;--success-bg-strong:#d1fae5;--success-ink:#065f46;--warn-bg:#fffbeb;--warn-bg-strong:#fef3c7;--warn-ink:#92400e;--danger-bg:#fef2f2;--danger-ink:#991b1b;--info-bg:#eff6ff;--info-ink:#1e40af;--font:'IBM Plex Sans',-apple-system,sans-serif;--font-mono:'IBM Plex Mono',monospace;--r:6px;--rl:8px;--rxl:10px;--sh:0 1px 3px rgba(15,23,42,.08);--shl:0 4px 12px rgba(15,23,42,.08)}
+*{box-sizing:border-box;margin:0;padding:0}
+*:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+html,body{background:var(--bg-alt);color:var(--ink);font-family:var(--font);font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased;min-height:100vh}
+.site-header{border-bottom:1px solid var(--line);background:var(--bg);position:sticky;top:0;z-index:100}
+.site-header-inner{max-width:1320px;margin:0 auto;padding:14px 28px;display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:12px}
+.brand-mark{width:38px;height:38px;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;border-radius:var(--r);font-weight:600;font-size:13px;overflow:hidden}
+.brand-mark img{width:100%;height:100%;object-fit:cover}
+.brand-text h1{font-size:15px;font-weight:600;line-height:1.2}
+.brand-text small{font-size:12px;color:var(--ink-muted);display:block}
+.nav-tabs{display:flex;gap:2px}
+.nav-tab{padding:8px 14px;font-size:13px;background:none;border:none;color:var(--ink-muted);cursor:pointer;font-family:var(--font);font-weight:500;border-radius:var(--r);transition:all .15s}
+.nav-tab:hover{color:var(--ink);background:var(--bg-alt)}
+.nav-tab.active{color:var(--accent);background:var(--accent-soft)}
+.admin-login{position:fixed;inset:0;background:var(--bg-alt);display:none;align-items:center;justify-content:center;z-index:300;padding:20px}
+.admin-login.show{display:flex}
+.login-card{background:var(--bg);border:1px solid var(--line);border-radius:var(--rxl);padding:32px;max-width:400px;width:100%;box-shadow:var(--shl)}
+.login-card h2{font-size:20px;font-weight:600;margin-bottom:8px}
+.login-card p{font-size:14px;color:var(--ink-muted);margin-bottom:20px}
+main{max-width:1320px;margin:0 auto;padding:32px 28px 64px}
+.page{display:none}
+.page.active{display:block}
+.page-header{margin-bottom:28px;display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap}
+.page-header h2{font-size:24px;font-weight:600;margin-bottom:4px;letter-spacing:-.01em}
+.page-header p{font-size:14px;color:var(--ink-soft);max-width:640px}
+.steps{display:flex;margin-bottom:28px;background:var(--bg);border:1px solid var(--line);border-radius:var(--rl);overflow:hidden}
+.step{flex:1;display:flex;align-items:center;gap:10px;padding:14px 18px;font-size:13px;color:var(--ink-muted);border-right:1px solid var(--line);background:var(--bg-soft)}
+.step:last-child{border-right:none}
+.step-num{width:22px;height:22px;border:1px solid var(--line-strong);border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:11px;background:var(--bg);color:var(--ink-muted);flex-shrink:0}
+.step.complete .step-num{background:var(--accent);border-color:var(--accent);color:#fff}
+.step.complete .step-num::before{content:'\2713';font-size:12px}
+.step.complete .step-num span{display:none}
+.step.active{background:var(--bg);color:var(--ink);font-weight:500}
+.step.active .step-num{background:var(--accent);border-color:var(--accent);color:#fff}
+.section-title{font-size:16px;font-weight:600;margin-bottom:4px}
+.section-sub{font-size:13px;color:var(--ink-muted);margin-bottom:18px}
+.event-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-bottom:28px}
+.event-card{background:var(--bg);border:1px solid var(--line);border-radius:var(--rl);padding:22px;cursor:pointer;text-align:left;font-family:var(--font);position:relative;transition:all .15s;box-shadow:var(--sh)}
+.event-card:hover{border-color:var(--line-strong)}
+.event-card.selected{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
+.event-card.selected::after{content:'\2713';position:absolute;top:14px;right:14px;width:20px;height:20px;background:var(--accent);border-radius:50%;color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px}
+.event-icon{width:38px;height:38px;margin-bottom:12px;color:var(--accent);display:inline-flex;align-items:center;justify-content:center}
+.event-icon svg{width:38px;height:38px}
+.event-card h3{font-size:15px;font-weight:600;margin-bottom:4px}
+.event-meta{font-size:12px;color:var(--ink-muted);margin-bottom:8px}
+.event-desc{font-size:13px;color:var(--ink-soft);line-height:1.5;margin-bottom:12px}
+.event-price{padding-top:10px;border-top:1px solid var(--line);font-size:14px;font-weight:600}
+.event-price small{font-weight:400;color:var(--ink-muted);font-size:12px}
+.pill-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:20px}
+.pill{padding:7px 13px;border:1px solid var(--line);background:var(--bg);font-size:13px;cursor:pointer;font-family:var(--font);color:var(--ink-soft);border-radius:var(--r);transition:all .15s}
+.pill:hover{border-color:var(--line-strong);color:var(--ink)}
+.pill.selected{border-color:var(--accent);background:var(--accent-soft);color:var(--accent);font-weight:500}
+.panel{background:var(--bg);border:1px solid var(--line);border-radius:var(--rl);padding:18px;box-shadow:var(--sh)}
+.panel-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:8px}
+.panel-title{font-size:15px;font-weight:600}
+.month-nav{width:30px;height:30px;border:1px solid var(--line);background:var(--bg);cursor:pointer;font-size:14px;color:var(--ink-soft);border-radius:var(--r);display:flex;align-items:center;justify-content:center}
+.month-nav:hover{border-color:var(--line-strong);color:var(--ink)}
+.weekdays{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-bottom:4px}
+.weekdays div{text-align:center;font-size:10px;font-weight:500;color:var(--ink-muted);padding:5px 0;text-transform:uppercase;letter-spacing:.04em}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}
+.cal-day{aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-size:13px;cursor:pointer;border:1px solid transparent;background:transparent;color:var(--ink);border-radius:var(--r);transition:all .12s;position:relative;font-family:var(--font)}
+.cal-day:not(.empty):not(.disabled):not(.full):not(.blocked):hover{background:var(--accent-soft);border-color:var(--accent-soft-2)}
+.cal-day.empty{cursor:default}
+.cal-day.disabled{color:var(--line-strong);cursor:not-allowed}
+.cal-day.full{background:var(--danger-bg);color:var(--danger-ink);cursor:not-allowed;text-decoration:line-through}
+.cal-day.blocked{background:var(--bg-muted);color:var(--ink-muted);cursor:not-allowed}
+.cal-day.today{font-weight:600;color:var(--accent)}
+.cal-day.selected{background:var(--accent);color:#fff!important;border-color:var(--accent);font-weight:600}
+.legend{display:flex;gap:14px;margin-top:14px;padding-top:12px;border-top:1px solid var(--line);font-size:12px;color:var(--ink-muted);flex-wrap:wrap}
+.legend span{display:flex;align-items:center;gap:6px}
+.legend i{width:10px;height:10px;display:inline-block;border-radius:2px}
+.l-free{background:var(--bg-alt);border:1px solid var(--line)}
+.l-full{background:var(--danger-bg)}
+.l-blocked{background:var(--bg-muted)}
+.form-section{background:var(--bg);border:1px solid var(--line);border-radius:var(--rl);padding:26px;margin-bottom:20px;box-shadow:var(--sh)}
+.summary-bar{background:var(--accent-soft);border:1px solid var(--accent-soft-2);padding:12px 14px;margin-bottom:22px;font-size:13px;color:var(--accent);border-radius:var(--r)}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
+@media(max-width:600px){.form-row{grid-template-columns:1fr}}
+.form-row.three{grid-template-columns:1fr 1fr 1fr}
+@media(max-width:600px){.form-row.three{grid-template-columns:1fr}}
+.field label{display:block;font-size:13px;margin-bottom:6px;font-weight:500}
+.field label .req{color:var(--danger-ink)}
+.field input,.field textarea,.field select{width:100%;padding:9px 12px;border:1px solid var(--line-strong);background:var(--bg);font-family:var(--font);font-size:14px;color:var(--ink);border-radius:var(--r);transition:border-color .15s,box-shadow .15s}
+.field input:focus,.field textarea:focus,.field select:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.field textarea{resize:vertical;min-height:80px}
+.field input[type=color]{height:38px;padding:3px;cursor:pointer}
+.checkbox-row{display:flex;align-items:flex-start;gap:8px;margin:16px 0;font-size:13px;color:var(--ink-soft)}
+.checkbox-row input{margin-top:3px}
+.payment-box{background:var(--bg-alt);border:1px solid var(--line);padding:18px;margin:18px 0;border-radius:var(--rl)}
+.payment-row{display:flex;justify-content:space-between;padding:6px 0;font-size:13px;color:var(--ink-soft)}
+.payment-row span:last-child{color:var(--ink);font-weight:500}
+.payment-row.total{border-top:1px solid var(--line);margin-top:8px;padding-top:12px;font-size:16px;font-weight:600}
+.payment-methods{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:8px}
+@media(max-width:600px){.payment-methods{grid-template-columns:1fr}}
+.pay-option{padding:12px;border:1px solid var(--line);background:var(--bg);cursor:pointer;font-size:13px;border-radius:var(--r);transition:all .15s;display:flex;align-items:center;gap:10px}
+.pay-option:hover{border-color:var(--line-strong)}
+.pay-option.selected{border-color:var(--accent);background:var(--accent-soft)}
+.pay-option strong{font-weight:500}
+.pay-icon{width:36px;height:24px;background:var(--bg-muted);border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:var(--ink-soft);flex-shrink:0}
+.notice{font-size:12px;color:var(--ink-muted);padding:10px 12px;background:var(--bg-alt);border-left:3px solid var(--accent);margin-top:14px;border-radius:0 var(--r) var(--r) 0}
+.btn{padding:9px 18px;border:1px solid var(--accent);background:var(--accent);color:#fff;font-family:var(--font);font-size:13px;cursor:pointer;font-weight:500;border-radius:var(--r);transition:all .15s;display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.btn:hover{background:var(--accent-hover);border-color:var(--accent-hover)}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.btn-ghost{background:var(--bg);color:var(--ink-soft);border-color:var(--line-strong)}
+.btn-ghost:hover{background:var(--bg-alt);color:var(--ink)}
+.btn-success{background:#059669;border-color:#059669}
+.btn-success:hover{background:#047857;border-color:#047857}
+.btn-danger{background:#b91c1c;border-color:#b91c1c}
+.btn-danger:hover{background:#991b1b;border-color:#991b1b}
+.btn-sm{padding:6px 12px;font-size:12px}
+.actions-row{display:flex;justify-content:space-between;gap:10px;margin-top:22px;flex-wrap:wrap}
+.confirm-box{text-align:center;padding:48px 28px;background:var(--bg);border:1px solid var(--line);border-radius:var(--rxl);box-shadow:var(--sh)}
+.confirm-mark{width:56px;height:56px;margin:0 auto 20px;background:var(--success-bg-strong);border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--success-ink);font-size:24px}
+.confirm-box h3{font-size:22px;font-weight:600;margin-bottom:8px}
+.confirm-box p{color:var(--ink-soft);margin-bottom:6px;max-width:540px;margin-left:auto;margin-right:auto}
+.confirm-ref{display:inline-block;margin:20px 0;padding:10px 16px;background:var(--bg-alt);border:1px solid var(--line);font-size:14px;font-weight:600;border-radius:var(--r);letter-spacing:.04em;font-family:var(--font-mono)}
+.confirm-actions{display:flex;gap:8px;justify-content:center;margin-top:18px;flex-wrap:wrap}
+.admin-layout{display:grid;grid-template-columns:220px 1fr;gap:24px;align-items:start}
+@media(max-width:900px){.admin-layout{grid-template-columns:1fr}}
+.admin-sidebar{background:var(--bg);border:1px solid var(--line);border-radius:var(--rl);padding:16px 12px;position:sticky;top:80px;box-shadow:var(--sh)}
+@media(max-width:900px){.admin-sidebar{position:static}}
+.sidebar-section-title{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-muted);font-weight:600;padding:8px 12px 6px}
+.sidebar-item{display:flex;align-items:center;gap:10px;padding:8px 12px;font-size:13px;color:var(--ink-soft);cursor:pointer;border-radius:var(--r);font-weight:500;border:none;background:none;width:100%;text-align:left;font-family:var(--font);transition:all .12s}
+.sidebar-item:hover{background:var(--bg-alt);color:var(--ink)}
+.sidebar-item.active{background:var(--accent-soft);color:var(--accent)}
+.sidebar-item .ic{width:16px;height:16px;flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;color:var(--ink-muted)}
+.sidebar-item.active .ic{color:var(--accent)}
+.sidebar-item .ic svg{width:16px;height:16px}
+.sidebar-item .count{margin-left:auto;background:var(--bg-muted);color:var(--ink-soft);font-size:11px;padding:1px 7px;border-radius:10px;font-weight:600}
+.sidebar-item.active .count{background:var(--accent);color:#fff}
+.sidebar-item .count.warn{background:var(--warn-bg-strong);color:var(--warn-ink)}
+.sidebar-divider{height:1px;background:var(--line);margin:12px 8px}
+.admin-main{min-width:0}
+.admin-page-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:22px;gap:16px;flex-wrap:wrap}
+.admin-page-header h2{font-size:22px;font-weight:600;letter-spacing:-.01em}
+.admin-page-header p{font-size:13px;color:var(--ink-muted);margin-top:2px}
+.admin-page-actions{display:flex;gap:8px;flex-wrap:wrap}
+.dashboard-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px}
+@media(max-width:900px){.dashboard-stats{grid-template-columns:repeat(2,1fr)}}
+.stat-card{background:var(--bg);border:1px solid var(--line);padding:16px 18px;border-radius:var(--rl);box-shadow:var(--sh)}
+.stat-card-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.stat-label{font-size:12px;color:var(--ink-muted);font-weight:500}
+.stat-icon{width:32px;height:32px;display:flex;align-items:center;justify-content:center;border-radius:var(--r);flex-shrink:0}
+.stat-icon svg{width:16px;height:16px}
+.stat-icon.blue{background:var(--info-bg);color:var(--info-ink)}
+.stat-icon.green{background:var(--success-bg);color:var(--success-ink)}
+.stat-icon.amber{background:var(--warn-bg);color:var(--warn-ink)}
+.stat-icon.red{background:var(--danger-bg);color:var(--danger-ink)}
+.stat-value{font-size:26px;font-weight:600;line-height:1.1;letter-spacing:-.02em}
+.stat-trend{font-size:12px;color:var(--ink-muted);margin-top:6px}
+.stat-trend.up{color:var(--success-ink)}
+.stat-trend.warn{color:var(--warn-ink)}
+.stat-trend.danger{color:var(--danger-ink)}
+.dashboard-charts{display:grid;grid-template-columns:1.5fr 1fr;gap:16px;margin-bottom:20px}
+@media(max-width:900px){.dashboard-charts{grid-template-columns:1fr}}
+.chart-card{background:var(--bg);border:1px solid var(--line);border-radius:var(--rl);padding:18px;box-shadow:var(--sh)}
+.chart-card h3{font-size:14px;font-weight:600;margin-bottom:4px}
+.chart-card .chart-sub{font-size:12px;color:var(--ink-muted);margin-bottom:16px}
+.chart-wrap{position:relative;width:100%;height:240px}
+.dashboard-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px}
+@media(max-width:900px){.dashboard-grid{grid-template-columns:1fr}}
+.event-list-card{background:var(--bg);border:1px solid var(--line);border-radius:var(--rl);padding:18px;box-shadow:var(--sh)}
+.event-list-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+.event-list-head h3{font-size:14px;font-weight:600}
+.event-list-head a{font-size:12px;color:var(--accent);text-decoration:none;cursor:pointer}
+.event-list{display:flex;flex-direction:column;gap:8px}
+.event-row{display:flex;align-items:center;gap:12px;padding:10px;border-radius:var(--r);cursor:pointer;transition:all .12s;border:1px solid transparent}
+.event-row:hover{background:var(--bg-alt);border-color:var(--line)}
+.event-time{width:52px;text-align:center;flex-shrink:0;border-right:1px solid var(--line);padding-right:12px}
+.event-time-day{font-size:11px;color:var(--ink-muted);text-transform:uppercase;letter-spacing:.04em;font-weight:600}
+.event-time-num{font-size:20px;font-weight:600;line-height:1.1}
+.event-time-month{font-size:10px;color:var(--ink-muted);margin-top:2px}
+.event-info{flex:1;min-width:0}
+.event-info-title{font-weight:500;font-size:13px;margin-bottom:2px}
+.event-info-meta{font-size:12px;color:var(--ink-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.event-tag{font-size:11px;padding:2px 7px;border-radius:3px;font-weight:500;flex-shrink:0;background:var(--bg-muted);color:var(--ink-soft)}
+.empty-event-list{text-align:center;padding:28px 16px;color:var(--ink-muted);font-size:13px}
+.activity-feed{display:flex;flex-direction:column;gap:10px;max-height:320px;overflow-y:auto}
+.activity-item{display:flex;gap:10px;padding:8px 0;border-bottom:1px solid var(--line);font-size:13px}
+.activity-item:last-child{border-bottom:none}
+.activity-dot{width:8px;height:8px;border-radius:50%;background:var(--accent);margin-top:6px;flex-shrink:0}
+.activity-dot.success{background:#059669}
+.activity-dot.warn{background:#d97706}
+.activity-dot.danger{background:#dc2626}
+.activity-content{flex:1;min-width:0}
+.activity-text{line-height:1.4;color:var(--ink)}
+.activity-time{font-size:11px;color:var(--ink-muted);margin-top:2px}
+.toolbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:10px}
+.filter-pills{display:flex;gap:4px;flex-wrap:wrap}
+.filter-pill{padding:6px 11px;border:1px solid var(--line);background:var(--bg);font-size:12px;cursor:pointer;color:var(--ink-soft);border-radius:var(--r);transition:all .12s;font-weight:500}
+.filter-pill:hover{border-color:var(--line-strong);color:var(--ink)}
+.filter-pill.active{border-color:var(--accent);background:var(--accent);color:#fff}
+.search-box{display:flex;align-items:center;border:1px solid var(--line-strong);border-radius:var(--r);padding:4px 10px;background:var(--bg);width:240px;max-width:100%}
+.search-box:focus-within{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.search-box input{border:none;outline:none;padding:5px 8px;font-family:var(--font);font-size:13px;width:100%;background:transparent;color:var(--ink)}
+.bookings-table{background:var(--bg);border:1px solid var(--line);border-radius:var(--rl);overflow:hidden;box-shadow:var(--sh)}
+.table-scroll{overflow-x:auto}
+.bookings-table table{width:100%;border-collapse:collapse;font-size:13px}
+.bookings-table th{text-align:left;padding:11px 14px;font-size:11px;color:var(--ink-muted);font-weight:600;border-bottom:1px solid var(--line);background:var(--bg-soft);white-space:nowrap;text-transform:uppercase;letter-spacing:.03em;cursor:pointer;user-select:none}
+.bookings-table th:hover{color:var(--ink)}
+.bookings-table th.sort-asc::after{content:' \2191';color:var(--accent)}
+.bookings-table th.sort-desc::after{content:' \2193';color:var(--accent)}
+.bookings-table td{padding:12px 14px;border-bottom:1px solid var(--line);vertical-align:middle}
+.bookings-table tr:last-child td{border-bottom:none}
+.bookings-table tr:hover td{background:var(--bg-alt);cursor:pointer}
+.bookings-table tr.flagged td{background:#fffbeb}
+.ref-code{font-family:var(--font-mono);font-size:12px;color:var(--ink-muted)}
+.user-cell{display:flex;align-items:center;gap:10px}
+.avatar{width:32px;height:32px;border-radius:50%;background:var(--accent-soft);color:var(--accent);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;flex-shrink:0;text-transform:uppercase}
+.user-name{font-weight:500;line-height:1.3}
+.user-meta{font-size:12px;color:var(--ink-muted);line-height:1.3}
+.badge{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;font-size:11px;font-weight:500;border-radius:4px;white-space:nowrap}
+.badge::before{content:'';width:5px;height:5px;border-radius:50%;background:currentColor;display:inline-block}
+.badge-confirmed,.badge-paid{background:var(--success-bg);color:var(--success-ink)}
+.badge-pending,.badge-partial{background:var(--warn-bg);color:var(--warn-ink)}
+.badge-cancelled,.badge-unpaid{background:var(--bg-muted);color:var(--ink-muted)}
+.badge-completed{background:var(--info-bg);color:var(--info-ink)}
+.row-actions{display:flex;gap:4px}
+.icon-btn{padding:5px 10px;border:1px solid var(--line);background:var(--bg);cursor:pointer;color:var(--ink-soft);border-radius:var(--r);transition:all .12s;font-size:12px;font-family:var(--font);font-weight:500}
+.icon-btn:hover{border-color:var(--line-strong);color:var(--ink);background:var(--bg-alt)}
+.icon-btn.danger:hover{border-color:var(--danger-ink);color:var(--danger-ink);background:var(--danger-bg)}
+.icon-btn.success:hover{border-color:var(--success-ink);color:var(--success-ink);background:var(--success-bg)}
+.flag-mark{display:inline-block;width:6px;height:6px;background:var(--warn-ink);border-radius:50%;margin-right:6px;vertical-align:middle}
+.drawer-backdrop{position:fixed;inset:0;background:rgba(15,23,42,.5);display:none;z-index:200}
+.drawer-backdrop.show{display:block}
+.drawer{position:fixed;top:0;right:0;bottom:0;width:560px;max-width:100%;background:var(--bg);border-left:1px solid var(--line);z-index:201;transform:translateX(100%);transition:transform .25s ease-out;display:flex;flex-direction:column;box-shadow:-8px 0 24px rgba(15,23,42,.08)}
+.drawer.show{transform:translateX(0)}
+.drawer-header{padding:18px 22px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:flex-start}
+.drawer-header h3{font-size:17px;font-weight:600}
+.drawer-header .ref-code{font-size:12px;margin-top:2px;display:block}
+.drawer-tabs{display:flex;border-bottom:1px solid var(--line);padding:0 22px;gap:2px}
+.drawer-tab{padding:10px 12px;font-size:13px;background:none;border:none;color:var(--ink-muted);cursor:pointer;font-family:var(--font);font-weight:500;border-bottom:2px solid transparent;margin-bottom:-1px}
+.drawer-tab:hover{color:var(--ink)}
+.drawer-tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+.drawer-body{padding:22px;overflow-y:auto;flex:1;background:var(--bg-alt)}
+.drawer-footer{padding:14px 22px;border-top:1px solid var(--line);background:var(--bg);display:flex;gap:8px;flex-wrap:wrap}
+.drawer-section{background:var(--bg);border:1px solid var(--line);border-radius:var(--rl);padding:16px 18px;margin-bottom:14px}
+.drawer-section h4{font-size:11px;font-weight:600;color:var(--ink-muted);margin-bottom:12px;text-transform:uppercase;letter-spacing:.05em}
+.detail-grid{display:grid;grid-template-columns:130px 1fr;gap:10px 14px;font-size:13px}
+.detail-grid dt{color:var(--ink-muted)}
+.detail-grid dd{color:var(--ink);font-weight:500}
+.note-item{background:var(--bg-alt);border:1px solid var(--line);border-radius:var(--r);padding:10px 12px;font-size:13px;margin-bottom:8px}
+.note-meta{font-size:11px;color:var(--ink-muted);margin-bottom:4px;display:flex;justify-content:space-between;gap:8px}
+.note-add textarea{width:100%;border:1px solid var(--line-strong);border-radius:var(--r);padding:8px 10px;font-family:var(--font);font-size:13px;resize:vertical;min-height:60px;margin-top:8px}
+.history-item{display:flex;gap:10px;align-items:flex-start;padding:8px 0;border-bottom:1px dashed var(--line);font-size:12px}
+.history-item:last-child{border-bottom:none}
+.history-time{color:var(--ink-muted);flex-shrink:0;width:110px;font-size:11px}
+.history-text{color:var(--ink-soft)}
+.admin-cal-wrap{background:var(--bg);border:1px solid var(--line);border-radius:var(--rl);padding:16px;box-shadow:var(--sh)}
+.admin-cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.admin-cal-day{min-height:90px;border:1px solid var(--line);border-radius:var(--r);padding:6px;font-size:12px;background:var(--bg);position:relative;cursor:pointer;transition:all .12s}
+.admin-cal-day.empty{background:transparent;border:none;cursor:default}
+.admin-cal-day:hover:not(.empty){border-color:var(--line-strong)}
+.admin-cal-day.blocked{background:repeating-linear-gradient(45deg,var(--bg-alt),var(--bg-alt) 4px,var(--bg) 4px,var(--bg) 8px)}
+.admin-cal-day.today{border-color:var(--accent);border-width:2px;padding:5px}
+.admin-cal-day.weekend{background:var(--bg-soft)}
+.admin-cal-day-num{font-weight:600;font-size:12px;margin-bottom:6px;display:flex;justify-content:space-between;align-items:center}
+.admin-cal-day.today .admin-cal-day-num span:first-child{background:var(--accent);color:#fff;width:20px;height:20px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:11px}
+.admin-cal-event{font-size:10px;padding:3px 5px;margin-bottom:2px;border-radius:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:500;cursor:pointer;background:var(--bg-muted);color:var(--ink)}
+.admin-cal-event.cancelled{opacity:.5;text-decoration:line-through}
+.cal-legend{display:flex;gap:16px;font-size:12px;color:var(--ink-muted);flex-wrap:wrap}
+.cal-legend-item{display:flex;align-items:center;gap:6px}
+.cal-legend-dot{width:10px;height:10px;border-radius:2px}
+.settings-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:900px){.settings-grid{grid-template-columns:1fr}}
+.settings-grid.full{grid-template-columns:1fr}
+.setting-card{background:var(--bg);border:1px solid var(--line);border-radius:var(--rl);padding:20px;box-shadow:var(--sh)}
+.setting-card h4{font-size:14px;font-weight:600;margin-bottom:4px}
+.setting-card p{font-size:13px;color:var(--ink-muted);margin-bottom:14px}
+.list-card{background:var(--bg);border:1px solid var(--line);border-radius:var(--rl);padding:18px;box-shadow:var(--sh)}
+.blocked-date-item,.waitlist-item,.cfg-item{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:var(--bg-alt);border:1px solid var(--line);border-radius:var(--r);font-size:13px;margin-bottom:6px;gap:8px}
+.waitlist-item{padding:12px 14px}
+.cfg-item-fields{display:flex;gap:8px;flex:1;flex-wrap:wrap}
+.cfg-item-fields input{flex:1;min-width:100px;padding:6px 10px;border:1px solid var(--line-strong);border-radius:var(--r);font-family:var(--font);font-size:13px;background:var(--bg)}
+.modal-backdrop{position:fixed;inset:0;background:rgba(15,23,42,.5);display:none;align-items:center;justify-content:center;z-index:250;padding:20px}
+.modal-backdrop.show{display:flex}
+.modal{background:var(--bg);border-radius:var(--rxl);padding:24px;max-width:460px;width:100%;box-shadow:var(--shl)}
+.modal h3{font-size:17px;font-weight:600;margin-bottom:8px}
+.modal-body{color:var(--ink-soft);font-size:14px;margin-bottom:18px}
+.modal-actions{display:flex;gap:8px;justify-content:flex-end}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(120%);background:var(--ink);color:var(--bg);padding:11px 18px;border-radius:var(--r);font-size:13px;z-index:400;transition:transform .25s;box-shadow:var(--shl)}
+.toast.show{transform:translateX(-50%) translateY(0)}
+.toast.success{background:#065f46}
+.toast.error{background:#991b1b}
+.empty-state{text-align:center;padding:48px 20px;color:var(--ink-muted);font-size:13px}
+.empty-state h4{color:var(--ink);font-weight:500;margin-bottom:4px;font-size:14px}
+footer{text-align:center;padding:22px 28px;font-size:12px;color:var(--ink-muted);border-top:1px solid var(--line);background:var(--bg)}
+footer strong{color:var(--ink);font-weight:600}
+.kbd{display:inline-block;padding:1px 5px;font-family:var(--font-mono);font-size:11px;background:var(--bg-muted);border:1px solid var(--line);border-radius:3px;color:var(--ink-soft);font-weight:500}
+.edit-banner{position:sticky;top:60px;z-index:90;background:#1f4788;color:#fff;padding:10px 28px;display:none;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;font-size:13px}
+.edit-banner.show{display:flex}
+.edit-banner button{padding:5px 12px;background:#fff;color:#1f4788;border:none;border-radius:var(--r);font-size:12px;font-weight:500;cursor:pointer;font-family:var(--font)}
+body.editing [data-edit]{outline:2px dashed rgba(31,71,136,.5);outline-offset:3px;cursor:pointer;border-radius:3px;position:relative}
+body.editing [data-edit]:hover{outline-color:#1f4788;background:rgba(31,71,136,.05)}
+body.editing [data-edit]::before{content:'\270E';position:absolute;top:-10px;right:-10px;background:#1f4788;color:#fff;width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;z-index:10}
+.edit-popover{position:fixed;background:var(--bg);border:1px solid var(--line);border-radius:var(--rl);padding:14px;box-shadow:var(--shl);z-index:500;max-width:420px;min-width:280px}
+.edit-popover h5{font-size:13px;font-weight:600;margin-bottom:8px;color:var(--ink)}
+.edit-popover input,.edit-popover textarea{width:100%;padding:7px 10px;border:1px solid var(--line-strong);border-radius:var(--r);font-family:var(--font);font-size:13px;color:var(--ink);background:var(--bg)}
+.edit-popover textarea{min-height:60px;resize:vertical}
+.edit-popover-actions{display:flex;gap:6px;margin-top:10px;justify-content:flex-end}
+.purple-bg{background:#f5f3ff}.purple-ink{color:#5b21b6}
+.teal-bg{background:#f0fdfa}.teal-ink{color:#115e59}
+.amber-bg{background:#fef3c7}.amber-ink{color:#854d0e}
+:root{--purple-bg:#f5f3ff;--purple-ink:#5b21b6;--teal-bg:#f0fdfa;--teal-ink:#115e59;--amber-bg:#fef3c7;--amber-ink:#854d0e;--ink-faint:#94a3b8}
+.event-tag.uitvaart{background:var(--bg-muted);color:var(--ink-soft)}
+.event-tag.communie{background:var(--info-bg);color:var(--info-ink)}
+.event-tag.jubileum{background:var(--success-bg);color:var(--success-ink)}
+.template-row{padding:14px;border:1px solid var(--line);border-radius:var(--r);margin-bottom:10px;background:var(--bg)}
+.template-row-head{display:flex;justify-content:space-between;align-items:center;cursor:pointer}
+.template-row-head strong{font-size:14px;font-weight:600}
+.template-row-body{display:none;margin-top:10px;padding-top:10px;border-top:1px solid var(--line)}
+.template-row.open .template-row-body{display:block}
+.template-row .chev{transition:transform .15s;color:var(--ink-muted)}
+.template-row.open .chev{transform:rotate(90deg)}
+.audit-list{max-height:600px;overflow-y:auto}
+.audit-item{display:flex;gap:12px;padding:10px 12px;border-bottom:1px solid var(--line);font-size:13px}
+.audit-item:last-child{border-bottom:none}
+.audit-time{font-size:11px;color:var(--ink-muted);width:130px;flex-shrink:0}
+.audit-content{flex:1}.audit-content strong{font-weight:500}
+.audit-who{font-size:11px;color:var(--ink-muted);background:var(--bg-muted);padding:1px 6px;border-radius:3px;display:inline-block;margin-top:2px}
+.var-pill{display:inline-block;padding:2px 6px;background:var(--accent-soft);color:var(--accent);font-family:var(--font-mono);font-size:11px;border-radius:3px;cursor:pointer;margin:2px}
+.var-pill:hover{background:var(--accent-soft-2)}
+.list-item{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:var(--bg-alt);border:1px solid var(--line);border-radius:var(--r);font-size:13px;margin-bottom:6px;gap:10px}
+.list-item-info{flex:1;min-width:0}
+.kbd{display:inline-block;padding:1px 5px;font-family:var(--font-mono);font-size:11px;background:var(--bg-muted);border:1px solid var(--line);border-radius:3px;color:var(--ink-soft);font-weight:500}
+.checkbox-row{display:flex;align-items:flex-start;gap:8px;margin:10px 0;font-size:13px;color:var(--ink-soft)}
+.checkbox-row input{margin-top:3px}
+.empty-state{text-align:center;padding:48px 20px;color:var(--ink-muted);font-size:13px}
+.empty-state h4{color:var(--ink);font-weight:500;margin-bottom:4px;font-size:14px}
+.perm-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:6px;margin:8px 0}
+.perm-item{display:flex;align-items:center;gap:6px;padding:6px 10px;background:var(--bg-alt);border:1px solid var(--line);border-radius:var(--r);font-size:12px}
+.perm-item input{margin:0}
+
+/* === Multi-tenant + meertaligheid === */
+.parish-switcher{display:flex;align-items:center;gap:8px;margin-right:12px;padding:4px 10px;background:var(--bg-alt);border:1px solid var(--line);border-radius:var(--r);cursor:pointer;font-size:13px;font-weight:500;color:var(--ink);transition:background .15s}
+.parish-switcher:hover{background:var(--bg-muted)}
+.parish-switcher svg{width:14px;height:14px;color:var(--ink-muted)}
+.lang-switcher{display:flex;background:var(--bg-alt);border:1px solid var(--line);border-radius:var(--r);overflow:hidden;margin-right:12px}
+.lang-btn{padding:5px 10px;background:none;border:none;font-size:11px;font-weight:500;color:var(--ink-soft);cursor:pointer;border-right:1px solid var(--line);transition:background .15s}
+.lang-btn:last-child{border-right:none}
+.lang-btn.active{background:var(--accent);color:white}
+.lang-btn:hover:not(.active){background:var(--bg-muted)}
+[dir="rtl"]{direction:rtl}
+[dir="rtl"] .nav-tabs,[dir="rtl"] .pill-row,[dir="rtl"] .actions-row{flex-direction:row-reverse}
+[dir="rtl"] .ic{margin-right:0;margin-left:8px}
+[dir="rtl"] .stat-card-head,[dir="rtl"] .table-row{flex-direction:row-reverse}
+.suryoyo{font-family:'Estrangelo Edessa','Serto Jerusalem','East Syriac Adiabene',serif}
+.parish-modal-list{display:grid;gap:8px;margin-top:12px}
+.parish-card{padding:14px;background:var(--bg-alt);border:1px solid var(--line);border-radius:var(--r);cursor:pointer;display:flex;justify-content:space-between;align-items:center;transition:all .15s}
+.parish-card:hover{border-color:var(--accent);background:var(--accent-soft)}
+.parish-card.active{border-color:var(--accent);background:var(--accent-soft)}
+.parish-card-info strong{font-size:14px;display:block;margin-bottom:2px}
+.parish-card-info small{font-size:12px;color:var(--ink-muted)}
+.parish-card-badge{font-size:11px;padding:2px 8px;background:var(--accent);color:white;border-radius:3px}
+
+/* Register sectie */
+.register-tabs{display:flex;gap:4px;margin-bottom:18px;border-bottom:1px solid var(--line)}
+.register-tab{padding:10px 16px;background:none;border:none;font-size:13px;font-weight:500;color:var(--ink-soft);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px}
+.register-tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+.register-tab:hover:not(.active){color:var(--ink)}
+.register-list{background:var(--bg);border:1px solid var(--line);border-radius:var(--r)}
+.register-row{padding:14px 16px;border-bottom:1px solid var(--line);cursor:pointer;display:flex;justify-content:space-between;align-items:center;transition:background .1s}
+.register-row:hover{background:var(--bg-alt)}
+.register-row:last-child{border-bottom:none}
+.register-row-info strong{font-size:14px;font-weight:500;display:block;margin-bottom:2px}
+.register-row-info small{font-size:12px;color:var(--ink-muted)}
+.register-row-meta{font-size:12px;color:var(--ink-muted);text-align:right}
+.bilingual-row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.bilingual-row .field label{display:flex;justify-content:space-between;align-items:center}
+.bilingual-row .field label small{font-weight:400;color:var(--ink-muted)}
+.cert-preview{background:#fafbfc;border:1px solid var(--line);border-radius:var(--r);padding:24px;font-family:Georgia,serif;text-align:center;line-height:1.7}
+.cert-preview h3{font-size:18px;margin-bottom:6px}
+.cert-preview .cert-sub{font-size:13px;color:var(--ink-muted);font-style:italic;margin-bottom:18px}
+.cert-preview dl{text-align:left;display:grid;grid-template-columns:1fr 2fr;gap:6px 16px;font-size:13px;margin:18px 0}
+.cert-preview dt{color:var(--ink-muted);font-weight:400}
+.cert-preview dd{font-weight:500}
+.family-tree{padding:12px;background:var(--bg-alt);border-radius:var(--r);margin-top:8px}
+.family-member{display:flex;align-items:center;gap:10px;padding:6px 0;font-size:13px}
+.family-member .role{min-width:80px;font-size:11px;color:var(--ink-muted);text-transform:uppercase}
+.cross-ref{display:inline-block;padding:2px 8px;background:var(--accent-soft);color:var(--accent);font-size:11px;border-radius:3px;cursor:pointer;text-decoration:none}
+.cross-ref:hover{background:var(--accent-soft-2)}
+</style></head><body>
+<header class="site-header">
+  <div class="site-header-inner">
+    <div class="brand">
+      <div class="brand-mark" id="brand-mark">ME</div>
+      <div class="brand-text">
+        <h1 id="brand-name">Mor Ephrem Klooster</h1>
+        <small>Online reserveringssysteem</small>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+      <button class="parish-switcher" id="parish-switcher-btn">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 14V8l5-4 5 4v6"/><path d="M3 14h10M6 14v-3h4v3"/></svg>
+        <span id="current-parish-name">—</span>
+      </button>
+      <div class="lang-switcher" id="lang-switcher">
+        <button class="lang-btn active" data-lang="nl">NL</button>
+        <button class="lang-btn" data-lang="sy">ܣܘܪܝܝܐ</button>
+        <button class="lang-btn" data-lang="de">DE</button>
+      </div>
+      <nav class="nav-tabs">
+        <button class="nav-tab active" data-page="booking" data-i18n="nav_booking">Reserveren</button>
+        <button class="nav-tab" data-page="admin" id="admin-tab-btn" data-i18n="nav_admin">Beheer</button>
+      </nav>
+    </div>
+  </div>
+</header>
+<main>
+<section class="page active" id="page-booking">
+  <div class="page-header"><div><h2>Plechtigheid reserveren</h2><p>Reserveer online een plechtigheid of zaalhuur. Elke reservering geldt voor de hele dag.</p></div></div>
+  <div class="steps">
+    <div class="step active" data-step="1"><span class="step-num"><span>1</span></span>Type</div>
+    <div class="step" data-step="2"><span class="step-num"><span>2</span></span>Datum</div>
+    <div class="step" data-step="3"><span class="step-num"><span>3</span></span>Gegevens</div>
+    <div class="step" data-step="4"><span class="step-num"><span>4</span></span>Bevestiging</div>
+  </div>
+  <div id="step-1">
+    <h3 class="section-title">Selecteer het type plechtigheid</h3>
+    <p class="section-sub">Klik op een optie om verder te gaan. Elke reservering is voor de hele dag.</p>
+    <div class="event-grid" id="event-grid"></div>
+  </div>
+  <div id="step-2" style="display:none;">
+    <h3 class="section-title">Kies locatie en datum</h3>
+    <p class="section-sub">Selecteer eerst een locatie, daarna een beschikbare datum.</p>
+    <label style="display:block;font-size:13px;font-weight:500;margin-bottom:8px;">Locatie</label>
+    <div class="pill-row" id="locations"></div>
+    <div class="booking-grid"><div class="panel">
+      <div class="panel-header">
+        <button class="month-nav" id="prev-month">‹</button>
+        <h4 class="panel-title" id="month-label"></h4>
+        <button class="month-nav" id="next-month">›</button>
+      </div>
+      <div class="weekdays"><div>ma</div><div>di</div><div>wo</div><div>do</div><div>vr</div><div>za</div><div>zo</div></div>
+      <div class="cal-grid" id="cal-grid"></div>
+      <div class="legend"><span><i class="l-free"></i>Beschikbaar</span><span><i class="l-full"></i>Bezet</span><span><i class="l-blocked"></i>Niet beschikbaar</span></div>
+    </div></div>
+    <div class="actions-row"><button class="btn btn-ghost" data-back="1">← Terug</button><button class="btn" id="to-step-3" disabled>Verder →</button></div>
+  </div>
+  <div id="step-3" style="display:none;">
+    <div class="form-section">
+      <h3 class="section-title">Contactgegevens</h3>
+      <p class="section-sub">Wij gebruiken deze gegevens uitsluitend voor uw reservering.</p>
+      <div class="summary-bar" id="summary-3"></div>
+      <div class="form-row">
+        <div class="field"><label>Voornaam <span class="req">*</span></label><input type="text" id="firstname"></div>
+        <div class="field"><label>Achternaam <span class="req">*</span></label><input type="text" id="lastname"></div>
+      </div>
+      <div class="form-row">
+        <div class="field"><label>E-mailadres <span class="req">*</span></label><input type="email" id="email"></div>
+        <div class="field"><label>Telefoonnummer <span class="req">*</span></label><input type="tel" id="phone"></div>
+      </div>
+      <div class="form-row three">
+        <div class="field"><label>Adres</label><input type="text" id="address"></div>
+        <div class="field"><label>Postcode</label><input type="text" id="postcode"></div>
+        <div class="field"><label>Woonplaats</label><input type="text" id="city"></div>
+      </div>
+      <div class="form-row">
+        <div class="field"><label>Aantal genodigden</label><input type="number" id="guests" min="1"></div>
+        <div class="field"><label>Voorkeur celebrant</label><select id="celebrant"><option value="">Geen voorkeur</option></select></div>
+      </div>
+      <div class="field"><label>Bijkomende informatie of wensen</label><textarea id="notes"></textarea><div class="field-hint">Optioneel.</div></div>
+      <div class="checkbox-row"><input type="checkbox" id="agree-terms"><label for="agree-terms" style="font-weight:400;margin:0;cursor:pointer;">Ik ga akkoord met de huisregels en privacyverklaring (AVG).</label></div>
+      <div class="actions-row"><button class="btn btn-ghost" data-back="2">← Terug</button><button class="btn" id="to-step-4">Verder →</button></div>
+    </div>
+  </div>
+  <div id="step-4" style="display:none;">
+    <div class="form-section">
+      <h3 class="section-title">Overzicht en betaling</h3>
+      <p class="section-sub">Controleer uw gegevens en betaal het voorschot.</p>
+      <div class="summary-bar" id="summary-4"></div>
+      <div class="payment-box">
+        <div class="payment-row"><span>Type plechtigheid</span><span id="pay-event">—</span></div>
+        <div class="payment-row"><span>Locatie</span><span id="pay-loc">—</span></div>
+        <div class="payment-row"><span>Datum</span><span id="pay-when">—</span></div>
+        <div class="payment-row"><span>Aanvrager</span><span id="pay-name">—</span></div>
+        <div class="payment-row"><span>Totaalbedrag</span><span id="pay-total-line">—</span></div>
+        <div class="payment-row total"><span id="pay-deposit-label">Voorschot (30%)</span><span id="pay-deposit">—</span></div>
+      </div>
+      <label style="display:block;font-size:13px;font-weight:500;margin-bottom:8px;">Kies een betaalmethode</label>
+      <div class="payment-methods" id="pay-methods">
+        <div class="pay-option selected" data-method="ideal"><div class="pay-icon">iDEAL</div><strong>iDEAL</strong></div>
+        <div class="pay-option" data-method="bancontact"><div class="pay-icon">BC</div><strong>Bancontact</strong></div>
+        <div class="pay-option" data-method="overschrijving"><div class="pay-icon">SEPA</div><strong>Overschrijving</strong></div>
+      </div>
+      <div class="notice">Beveiligde betaling via Mollie. Het saldo regelt u na overleg met het secretariaat.</div>
+      <div class="actions-row"><button class="btn btn-ghost" data-back="3">← Terug</button><button class="btn" id="confirm-booking">Bevestig en betaal voorschot</button></div>
+    </div>
+  </div>
+  <div id="step-done" style="display:none;">
+    <div class="confirm-box">
+      <div class="confirm-mark">✓</div>
+      <h3>Reservering ontvangen</h3>
+      <p id="confirm-detail"></p>
+      <div class="confirm-ref" id="confirm-ref">—</div>
+      <p style="font-size:13px;">U ontvangt binnen enkele minuten een bevestigingsmail.</p>
+      <div class="confirm-actions">
+        <button class="btn btn-ghost" id="download-ics">Agenda (.ics)</button>
+        <button class="btn btn-ghost" id="download-pdf">Factuur (PDF)</button>
+        <button class="btn" id="new-booking">Nieuwe reservering</button>
+      </div>
+    </div>
+  </div>
+</section>
+<section class="page" id="page-admin">
+  <div class="admin-layout">
+    <aside class="admin-sidebar">
+      <div class="sidebar-section-title">Overzicht</div>
+      <button class="sidebar-item active" data-subtab="dashboard" data-perm="dashboard"><svg class="ic" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="5" height="5" rx="1"/><rect x="9" y="2" width="5" height="5" rx="1"/><rect x="2" y="9" width="5" height="5" rx="1"/><rect x="9" y="9" width="5" height="5" rx="1"/></svg>Dashboard</button>
+      <button class="sidebar-item" data-subtab="list" data-perm="bookings"><svg class="ic" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 4h12M2 8h12M2 12h12"/></svg>Reserveringen <span class="count" id="sb-count-list">0</span></button>
+      <button class="sidebar-item" data-subtab="calendar" data-perm="bookings"><svg class="ic" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="3" width="12" height="11" rx="1"/><path d="M2 6h12M5 1v3M11 1v3"/></svg>Kalender</button>
+      <div class="sidebar-section-title">Te doen</div>
+      <button class="sidebar-item" data-subtab="pending" data-perm="bookings"><svg class="ic" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="6"/><path d="M8 4v4l3 2"/></svg>In behandeling <span class="count warn" id="sb-count-pending" style="display:none;">0</span></button>
+      <button class="sidebar-item" data-subtab="unpaid" data-perm="bookings"><svg class="ic" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="4" width="12" height="9" rx="1"/><path d="M2 7h12"/></svg>Open betalingen <span class="count warn" id="sb-count-unpaid" style="display:none;">0</span></button>
+      <button class="sidebar-item" data-subtab="waitlist" data-perm="bookings"><svg class="ic" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="6" cy="5" r="2.5"/><path d="M2 13c0-2 2-3 4-3s4 1 4 3M11 7l2 2 3-3"/></svg>Wachtlijst <span class="count" id="sb-count-waitlist" style="display:none;">0</span></button>
+      <div class="sidebar-divider"></div>
+      <div class="sidebar-section-title" data-i18n="sb_register">Kerkelijk register</div>
+      <button class="sidebar-item" data-subtab="register" data-perm="register"><svg class="ic" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 2h10v12H3z"/><path d="M3 5h10M5 8h6M5 11h4"/><path d="M11 1v3"/></svg><span data-i18n="sb_register_btn">Doop · Huwelijk · Leden</span></button>
+      <div class="sidebar-divider"></div>
+      <div class="sidebar-section-title" data-i18n="sb_management">Beheer</div>
+      <button class="sidebar-item" data-subtab="contacts" data-perm="contacts"><svg class="ic" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="5" r="2.5"/><path d="M3 13c0-2.5 2-4 5-4s5 1.5 5 4"/></svg>Contacten</button>
+      <button class="sidebar-item" data-subtab="reports" data-perm="reports"><svg class="ic" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 14V2M14 14V8M8 14V5"/><path d="M1 14h14"/></svg>Rapporten</button>
+      <button class="sidebar-item" data-subtab="blocked" data-perm="blocked"><svg class="ic" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="6"/><path d="M3.5 3.5l9 9"/></svg>Geblokkeerde data</button>
+      <button class="sidebar-item" data-subtab="templates" data-perm="templates"><svg class="ic" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="3" width="12" height="10" rx="1"/><path d="M2 4l6 5 6-5"/></svg>E-mailsjablonen</button>
+      <button class="sidebar-item" data-subtab="audit" data-perm="audit"><svg class="ic" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 2h7l3 3v9H3z"/><path d="M5 7h6M5 9h6M5 11h4"/></svg>Activiteitenlogboek</button>
+      <button class="sidebar-item" data-subtab="settings" data-perm="settings"><svg class="ic" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="2"/><path d="M8 1v2M8 13v2M3.5 3.5l1.4 1.4M11.1 11.1l1.4 1.4M1 8h2M13 8h2"/></svg>Instellingen</button>
+      <div class="sidebar-divider"></div>
+      <div style="padding:8px 12px;font-size:11px;color:var(--ink-muted);" id="current-user-info">—</div>
+      <button class="sidebar-item" id="logout-btn" style="color:var(--danger-ink);"><svg class="ic" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 2H4a1 1 0 00-1 1v10a1 1 0 001 1h5M11 5l3 3-3 3M14 8H7"/></svg>Uitloggen</button>
+    </aside>
+    <div class="admin-main">
+      <div id="subtab-dashboard" class="admin-subpage">
+        <div class="admin-page-header"><div><h2>Dashboard</h2><p>Overzicht van reserveringen, betalingen en activiteit.</p></div><div class="admin-page-actions"><button class="btn btn-ghost btn-sm" id="export-all-btn">CSV exporteren</button><button class="btn btn-ghost btn-sm" id="print-day-btn">Vandaag afdrukken</button></div></div>
+        <div class="dashboard-stats">
+          <div class="stat-card"><div class="stat-card-head"><span class="stat-label">Deze maand</span><div class="stat-icon blue"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="3" width="12" height="11" rx="1"/><path d="M2 6h12M5 1v3M11 1v3"/></svg></div></div><div class="stat-value" id="stat-month">0</div><div class="stat-trend up" id="stat-month-trend">— t.o.v. vorige maand</div></div>
+          <div class="stat-card"><div class="stat-card-head"><span class="stat-label">In behandeling</span><div class="stat-icon amber"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="6"/><path d="M8 4v4l3 2"/></svg></div></div><div class="stat-value" id="stat-pending">0</div><div class="stat-trend warn">Vereist actie</div></div>
+          <div class="stat-card"><div class="stat-card-head"><span class="stat-label">Voorschotten</span><div class="stat-icon green"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M11 5H7a2 2 0 000 4h2a2 2 0 010 4H5M8 3v2M8 13v2"/></svg></div></div><div class="stat-value" id="stat-revenue">€ 0</div><div class="stat-trend">Ontvangen</div></div>
+          <div class="stat-card"><div class="stat-card-head"><span class="stat-label">Open te innen</span><div class="stat-icon red"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 2v7M8 13v.5"/><circle cx="8" cy="8" r="6.5"/></svg></div></div><div class="stat-value" id="stat-outstanding">€ 0</div><div class="stat-trend danger">Restbedragen</div></div>
+        </div>
+        <div class="dashboard-charts">
+          <div class="chart-card"><h3>Reserveringen per maand</h3><div class="chart-sub">Laatste 6 maanden</div><div class="chart-wrap"><canvas id="chart-monthly"></canvas></div></div>
+          <div class="chart-card"><h3>Verdeling per type</h3><div class="chart-sub">Alle bevestigde reserveringen</div><div class="chart-wrap"><canvas id="chart-types"></canvas></div><div id="chart-legend" style="display:flex;flex-wrap:wrap;gap:12px;margin-top:8px;font-size:12px;color:var(--ink-muted);"></div></div>
+        </div>
+        <div class="dashboard-grid">
+          <div class="event-list-card"><div class="event-list-head"><h3>Aankomend</h3><a id="view-all-upcoming">Alles tonen →</a></div><div class="event-list" id="upcoming-list"></div></div>
+          <div class="event-list-card"><div class="event-list-head"><h3>Recente activiteit</h3></div><div class="activity-feed" id="activity-feed"></div></div>
+        </div>
+      </div>
+      <div id="subtab-list" class="admin-subpage" style="display:none;">
+        <div class="admin-page-header"><div><h2>Reserveringen</h2><p>Volledige lijst met filter- en zoekopties.</p></div><div class="admin-page-actions"><button class="btn btn-ghost btn-sm" id="export-btn">CSV exporteren</button></div></div>
+        <div class="toolbar">
+          <div class="filter-pills" id="filters">
+            <button class="filter-pill active" data-filter="all">Alle</button>
+            <button class="filter-pill" data-filter="pending">In behandeling</button>
+            <button class="filter-pill" data-filter="confirmed">Bevestigd</button>
+            <button class="filter-pill" data-filter="unpaid">Onbetaald</button>
+            <button class="filter-pill" data-filter="upcoming">Komende 7 dgn</button>
+          </div>
+          <div class="search-box"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="7" cy="7" r="5"/><path d="M14 14l-3-3"/></svg><input type="text" id="search-input" placeholder="Zoek naam, e-mail, ref..."></div>
+        </div>
+        <div class="bookings-table"><div class="table-scroll"><table><thead><tr><th data-sort="ref">Ref.</th><th data-sort="date">Datum</th><th data-sort="type">Type</th><th data-sort="location">Locatie</th><th data-sort="name">Aanvrager</th><th data-sort="status">Status</th><th data-sort="paid">Betaling</th><th></th></tr></thead><tbody id="bookings-body"></tbody></table></div></div>
+      </div>
+      <div id="subtab-calendar" class="admin-subpage" style="display:none;">
+        <div class="admin-page-header"><div><h2>Kalender</h2><p>Maandoverzicht van alle reserveringen.</p></div></div>
+        <div class="toolbar">
+          <div style="display:flex;align-items:center;gap:10px;"><button class="month-nav" id="admin-prev-month">‹</button><h3 style="margin:0;font-size:16px;" id="admin-month-label">—</h3><button class="month-nav" id="admin-next-month">›</button><button class="btn btn-sm btn-ghost" id="admin-today-btn">Vandaag</button></div>
+          <div class="cal-legend" id="admin-cal-legend"></div>
+        </div>
+        <div class="admin-cal-wrap"><div class="weekdays"><div>maandag</div><div>dinsdag</div><div>woensdag</div><div>donderdag</div><div>vrijdag</div><div>zaterdag</div><div>zondag</div></div><div class="admin-cal-grid" id="admin-cal-grid"></div></div>
+      </div>
+      <div id="subtab-pending" class="admin-subpage" style="display:none;">
+        <div class="admin-page-header"><div><h2>In behandeling</h2><p>Aanvragen die wachten op bevestiging.</p></div></div>
+        <div class="bookings-table"><div class="table-scroll"><table><thead><tr><th>Ref.</th><th>Datum</th><th>Type</th><th>Aanvrager</th><th>Aangevraagd</th><th></th></tr></thead><tbody id="pending-body"></tbody></table></div></div>
+      </div>
+      <div id="subtab-unpaid" class="admin-subpage" style="display:none;">
+        <div class="admin-page-header"><div><h2>Open betalingen</h2><p>Reserveringen waarvan voorschot of restbedrag nog niet ontvangen is.</p></div></div>
+        <div class="bookings-table"><div class="table-scroll"><table><thead><tr><th>Ref.</th><th>Datum</th><th>Aanvrager</th><th>Methode</th><th>Open bedrag</th><th>Status</th><th></th></tr></thead><tbody id="unpaid-body"></tbody></table></div></div>
+      </div>
+      <div id="subtab-waitlist" class="admin-subpage" style="display:none;">
+        <div class="admin-page-header"><div><h2>Wachtlijst</h2><p>Personen die wachten op een vrijgekomen plek.</p></div></div>
+        <div class="list-card"><div id="waitlist-list"></div></div>
+      </div>
+      <div id="subtab-contacts" class="admin-subpage" style="display:none;">
+        <div class="admin-page-header"><div><h2>Contacten</h2><p>Alle aanvragers en hun reserveringsgeschiedenis.</p></div></div>
+        <div class="toolbar"><div></div><div class="search-box"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="7" cy="7" r="5"/><path d="M14 14l-3-3"/></svg><input type="text" id="contact-search" placeholder="Zoek contact..."></div></div>
+        <div class="bookings-table"><div class="table-scroll"><table><thead><tr><th>Naam</th><th>Contact</th><th>Plaats</th><th>Reserveringen</th><th>Totaal</th><th>Laatst</th><th></th></tr></thead><tbody id="contacts-body"></tbody></table></div></div>
+      </div>
+      <div id="subtab-reports" class="admin-subpage" style="display:none;">
+        <div class="admin-page-header"><div><h2>Rapporten</h2><p>Statistieken en analyses.</p></div></div>
+        <div class="dashboard-charts" style="grid-template-columns:1fr 1fr;">
+          <div class="chart-card"><h3>Omzet per maand</h3><div class="chart-sub">Voorschotten, laatste 12 maanden</div><div class="chart-wrap"><canvas id="chart-revenue"></canvas></div></div>
+          <div class="chart-card"><h3>Bezetting per locatie</h3><div class="chart-sub">Aantal reserveringen per ruimte</div><div class="chart-wrap"><canvas id="chart-locations"></canvas></div></div>
+        </div>
+      </div>
+      <div id="subtab-blocked" class="admin-subpage" style="display:none;">
+        <div class="admin-page-header"><div><h2>Geblokkeerde data</h2><p>Blokkeer dagen voor hoogfeesten of bijzondere bezoeken.</p></div></div>
+        <div class="setting-card">
+          <h4>Datum blokkeren</h4>
+          <div class="form-row"><div class="field"><label>Datum</label><input type="date" id="block-date"></div><div class="field"><label>Reden</label><input type="text" id="block-reason" placeholder="bv. Mor Ephrem feestdag"></div></div>
+          <button class="btn btn-sm" id="add-block">Datum blokkeren</button>
+          <div id="blocked-list" style="margin-top:18px;"></div>
+        </div>
+      </div>
+      <div id="subtab-templates" class="admin-subpage" style="display:none;">
+        <div class="admin-page-header"><div><h2>E-mailsjablonen</h2><p>Aanpasbare berichten met variabelen tussen accolades.</p></div></div>
+        <div class="setting-card" style="margin-bottom:14px;">
+          <p style="margin-bottom:8px;">Beschikbare variabelen — klik om te kopiëren:</p>
+          <div><span class="var-pill">{naam}</span><span class="var-pill">{datum}</span><span class="var-pill">{type}</span><span class="var-pill">{locatie}</span><span class="var-pill">{ref}</span><span class="var-pill">{totaal}</span><span class="var-pill">{voorschot}</span><span class="var-pill">{rest}</span><span class="var-pill">{iban}</span><span class="var-pill">{klooster}</span></div>
+        </div>
+        <div id="templates-list"></div>
+      </div>
+      <div id="subtab-audit" class="admin-subpage" style="display:none;">
+        <div class="admin-page-header"><div><h2>Activiteitenlogboek</h2><p>Wie heeft wanneer wat gedaan.</p></div><div class="admin-page-actions"><button class="btn btn-ghost btn-sm" id="clear-audit-btn">Logboek wissen</button></div></div>
+        <div class="setting-card audit-list" id="audit-list"></div>
+      </div>
+      <div id="subtab-register" class="admin-subpage" style="display:none;">
+        <div class="admin-page-header"><div><h2 data-i18n="reg_title">Kerkelijk register</h2><p data-i18n="reg_sub">Doop, huwelijk en lidmaatschap. Gedeeld over alle parochies binnen het bisdom.</p></div><div class="admin-page-actions"><button class="btn btn-sm" id="reg-add-btn"><span data-i18n="reg_add">+ Inschrijving</span></button></div></div>
+        <div class="register-tabs">
+          <button class="register-tab active" data-rtab="baptism" data-i18n="reg_baptism">Doopregister</button>
+          <button class="register-tab" data-rtab="marriage" data-i18n="reg_marriage">Huwelijksregister</button>
+          <button class="register-tab" data-rtab="family" data-i18n="reg_family">Lidmaatschap gezinnen</button>
+        </div>
+        <div class="toolbar"><div></div><div class="search-box"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="7" cy="7" r="5"/><path d="M14 14l-3-3"/></svg><input type="text" id="register-search" placeholder="Zoek..."></div></div>
+        <div id="register-content"></div>
+      </div>
+      <div id="subtab-settings" class="admin-subpage" style="display:none;">
+        <div class="admin-page-header"><div><h2>Instellingen</h2><p>Beheer alles zelf — gegevens, locaties, types, beheerders en meer.</p></div></div>
+        <div class="settings-grid" id="settings-grid"></div>
+      </div>
+    </div>
+  </div>
+</section>
+</main>
+<footer>
+  <div><strong id="footer-name">Mor Ephrem Klooster</strong> · <span id="footer-address">Glanerbrugstraat 33, Glane</span> · <span id="footer-phone">053 461 47 64</span></div>
+  <div style="margin-top:4px;" id="footer-hours">Secretariaat: werkdagen 9.00 - 17.00 uur</div>
+</footer>
+<div class="admin-login" id="login-screen">
+  <div class="login-card">
+    <h2>Beheerderslogin</h2>
+    <p>Toegang tot het beheerpaneel is uitsluitend voor het secretariaat.</p>
+    <div class="field" style="margin-bottom:10px;"><label>Gebruikersnaam</label><input type="text" id="login-user" placeholder="bv. secretariaat"></div>
+    <div class="field" style="margin-bottom:14px;"><label>Wachtwoord</label><input type="password" id="login-password"></div>
+    <div style="display:flex;gap:8px;"><button class="btn" id="login-submit" style="flex:1;">Inloggen</button><button class="btn btn-ghost" id="login-cancel">Annuleer</button></div>
+    <p style="margin-top:14px;font-size:12px;">Standaard: <span class="kbd">admin</span> / <span class="kbd">admin</span></p>
+  </div>
+</div>
+<div class="drawer-backdrop" id="drawer-backdrop"></div>
+<aside class="drawer" id="drawer">
+  <div class="drawer-header"><div><h3 id="drawer-title">Reservering</h3><span class="ref-code" id="drawer-ref">—</span></div><button class="icon-btn" id="drawer-close">✕</button></div>
+  <div class="drawer-tabs"><button class="drawer-tab active" data-dtab="details">Details</button><button class="drawer-tab" data-dtab="notes">Notities</button><button class="drawer-tab" data-dtab="history">Geschiedenis</button></div>
+  <div class="drawer-body" id="drawer-body"></div>
+  <div class="drawer-footer" id="drawer-footer"></div>
+</aside>
+<div class="modal-backdrop" id="modal">
+  <div class="modal"><h3 id="modal-title">Bevestigen</h3><div class="modal-body" id="modal-body">—</div><div class="modal-actions"><button class="btn btn-ghost" id="modal-cancel">Annuleer</button><button class="btn" id="modal-confirm">Bevestig</button></div></div>
+</div>
+<div class="modal-backdrop" id="parish-modal">
+  <div class="modal" style="max-width:520px;"><h3 data-i18n="parish_select">Selecteer parochie</h3><div class="modal-body"><p style="font-size:13px;color:var(--ink-muted);margin-bottom:14px;" data-i18n="parish_sub">Kies de parochie waarvoor u gegevens wilt zien of bewerken.</p><div class="parish-modal-list" id="parish-list"></div></div><div class="modal-actions"><button class="btn btn-ghost" id="parish-modal-close" data-i18n="close">Sluiten</button></div></div>
+</div>
+<div class="toast" id="toast">—</div>
+<script>
+(function(){
+'use strict';
+const STORAGE_KEY='morephrem_v7';
+const today=new Date(); today.setHours(0,0,0,0);
+const monthNames=['januari','februari','maart','april','mei','juni','juli','augustus','september','oktober','november','december'];
+const monthShort=['jan','feb','mrt','apr','mei','jun','jul','aug','sep','okt','nov','dec'];
+const dayNames=['zondag','maandag','dinsdag','woensdag','donderdag','vrijdag','zaterdag'];
+const dayShort=['zo','ma','di','wo','do','vr','za'];
+const avatarColors=['','purple','teal','amber','green','red'];
+const ALL_PERMS=['dashboard','bookings','contacts','reports','blocked','templates','audit','register','settings'];
+const PERM_LABELS={dashboard:'Dashboard',bookings:'Reserveringen',contacts:'Contacten',reports:'Rapporten',blocked:'Geblokkeerde data',templates:'E-mailsjablonen',audit:'Activiteitenlogboek',register:'Kerkelijk register',settings:'Instellingen'};
+const ICONS={
+  ring:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="14" r="6"/><path d="M9 8l-2-4M15 8l2-4M7 4h10"/></svg>',
+  dove:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M5 13c0-3 2-6 5-6 4 0 6 4 9 4M5 13c0 4 4 7 8 7s7-3 7-7M14 7l2-3M5 13l-2 3"/></svg>',
+  building:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 21V8l9-5 9 5v13M3 21h18M9 21v-6h6v6M11 11h2"/></svg>',
+  cross:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 3v18M5 8h14"/></svg>',
+  cup:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M6 4h12v6a6 6 0 01-12 0z M9 20h6 M12 16v4 M18 6h2a2 2 0 010 4h-2"/></svg>',
+  cake:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M5 14v6h14v-6 M3 14h18 M6 14v-3a2 2 0 012-2h8a2 2 0 012 2v3 M9 9V6 M12 9V5 M15 9V6"/></svg>',
+  generic:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>'
+};
+const defaultOrg={name:'Mor Ephrem Klooster',shortMark:'ME',address:'Glanerbrugstraat 33, Glane',phone:'053 461 47 64',email:'info@morephrem.nl',iban:'NL00 INGB 0000 0000 00',hours:'Secretariaat: werkdagen 9.00 - 17.00 uur'};
+const defaultTypes=[
+  {key:'huwelijk',label:'Huwelijk',price:400,icon:'ring',description:'Kerkelijke huwelijksviering met gebed en zegeningen.',color:'huwelijk'},
+  {key:'doopsel',label:'Doopsel',price:250,icon:'dove',description:'Doopplechtigheid voor kinderen of volwassenen.',color:'doopsel'},
+  {key:'zaal',label:'Zaal huren',price:150,icon:'building',description:'Voor recepties, gemeenschapsbijeenkomsten of vergaderingen.',color:'zaal'}
+];
+const defaultLocations=[
+  {key:'kathedraal',label:'Kathedraal H. Maagd Maria',capacity:1000},
+  {key:'kapel',label:'Kapel',capacity:80},
+  {key:'zaal-groot',label:'Zaal (groot)',capacity:120},
+  {key:'zaal-klein',label:'Zaal (klein)',capacity:40}
+];
+const defaultCelebrants=['Aartsbisschop Mor Polycarpus','Pater Saït','Diaken'];
+const defaultUsers=[{username:'admin',password:'admin',name:'Beheerder',perms:ALL_PERMS.slice()}];
+const defaultTemplates={
+  confirm:{enabled:true,label:'Bevestiging bij reservering',subject:'Bevestiging reservering {ref} - {klooster}',body:'Beste {naam},\n\nUw reservering is in goede orde ontvangen.\n\n• Type: {type}\n• Datum: {datum}\n• Locatie: {locatie}\n• Referentie: {ref}\n\nTotaalbedrag: € {totaal}\nVoorschot: € {voorschot}\nRestbedrag: € {rest}\n\nU ontvangt binnen enkele dagen een definitieve bevestiging.\n\nMet vriendelijke groet,\n{klooster}'},
+  reminder7:{enabled:true,label:'Herinnering 7 dagen vooraf',subject:'Herinnering: {type} over 7 dagen',body:'Beste {naam},\n\nOver 7 dagen vindt uw {type} plaats op {datum} in {locatie}.\n\nReferentie: {ref}\n\nVoor vragen kunt u contact opnemen met het secretariaat.\n\n{klooster}'},
+  reminder1:{enabled:true,label:'Herinnering 1 dag vooraf',subject:'Morgen: {type} in {locatie}',body:'Beste {naam},\n\nMorgen, {datum}, vindt uw {type} plaats in {locatie}.\n\nWij zien u graag tegemoet.\n\n{klooster}'},
+  paid:{enabled:false,label:'Betaling ontvangen',subject:'Betaling ontvangen - {ref}',body:'Beste {naam},\n\nWij hebben uw betaling van € {voorschot} in goede orde ontvangen.\n\nReferentie: {ref}\n\nDank u wel.\n\n{klooster}'},
+  cancel:{enabled:false,label:'Annulering',subject:'Annulering reservering {ref}',body:'Beste {naam},\n\nUw reservering ({type} op {datum}) is geannuleerd.\n\nIndien u vragen heeft, neem contact op met het secretariaat.\n\n{klooster}'}
+};
+const defaultSettings={org:defaultOrg,types:defaultTypes,locations:defaultLocations,celebrants:defaultCelebrants,users:defaultUsers,templates:defaultTemplates,depositPct:30,emails:{confirm:true,reminder7:true,reminder1:true,paid:false,cancel:false}};
+
+const state={
+  step:1,eventType:null,location:null,
+  viewYear:today.getFullYear(),viewMonth:today.getMonth(),
+  selectedDate:null,paymentMethod:'ideal',
+  adminAuth:false,currentUser:null,adminSubtab:'dashboard',
+  filter:'all',search:'',contactSearch:'',sortKey:'date',sortDir:'desc',
+  drawerTab:'details',drawerRef:null,
+  adminViewYear:today.getFullYear(),adminViewMonth:today.getMonth(),
+  bookings:[],blocked:[],waitlist:[],audit:[],
+  parishes:[],currentParishId:'glane',lang:'nl',
+  registers:{baptism:[],marriage:[],family:[]},registerSearch:'',
+  settings:JSON.parse(JSON.stringify(defaultSettings)),
+  lastBookingRef:null,charts:{},modalCallback:null
+};
+
+function $(id){return document.getElementById(id);}
+function $$(s){return document.querySelectorAll(s);}
+function escapeHtml(s){if(s==null)return'';return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function fmtDateKey(y,m,d){return y+'-'+String(m+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');}
+function dateLabel(s){const[y,m,d]=s.split('-').map(Number);const dt=new Date(y,m-1,d);return dayNames[dt.getDay()]+' '+d+' '+monthNames[m-1]+' '+y;}
+function shortDateLabel(s){const[y,m,d]=s.split('-').map(Number);return d+' '+monthNames[m-1]+' '+y;}
+function tinyDateLabel(s){const[y,m,d]=s.split('-').map(Number);return d+' '+monthShort[m-1]+' '+y;}
+function genRef(){const dt=new Date();return'ME-'+String(dt.getMonth()+1).padStart(2,'0')+String(dt.getFullYear()).slice(-2)+'-'+(Math.floor(Math.random()*9000)+1000);}
+function bookingForDate(s,l){return state.bookings.find(b=>b.date===s&&b.location===l&&b.parishId===state.currentParishId&&b.status!=='cancelled');}
+function currentBookings(){return state.bookings.filter(b=>b.parishId===state.currentParishId);}
+function isBlocked(s){return state.blocked.some(b=>b.date===s);}
+function blockedReason(s){const b=state.blocked.find(b=>b.date===s);return b?b.reason:'';}
+function getType(k){return state.settings.types.find(t=>t.key===k)||{key:k,label:k,price:0,icon:'generic',color:'huwelijk',description:''};}
+function getLoc(k){return state.settings.locations.find(l=>l.key===k)||{key:k,label:k,capacity:0};}
+function typeLabel(k){return getType(k).label;}
+function locLabel(k){return getLoc(k).label;}
+function formatDateTime(iso){const d=new Date(iso);return d.getDate()+' '+monthShort[d.getMonth()]+' '+d.getFullYear()+' '+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');}
+function relativeTime(iso){const d=new Date(iso),diff=(new Date()-d)/1000;if(diff<60)return'zojuist';if(diff<3600)return Math.floor(diff/60)+' min geleden';if(diff<86400)return Math.floor(diff/3600)+' uur geleden';if(diff<604800)return Math.floor(diff/86400)+' dgn geleden';return formatDateTime(iso);}
+function initials(n){const p=(n||'').trim().split(' ').filter(Boolean);if(!p.length)return'?';if(p.length===1)return p[0].slice(0,2).toUpperCase();return(p[0][0]+p[p.length-1][0]).toUpperCase();}
+function avatarColor(n){let h=0;for(let i=0;i<(n||'').length;i++)h=(h+n.charCodeAt(i))%avatarColors.length;return avatarColors[h];}
+function showToast(m,t){const el=$('toast');el.textContent=m;el.className='toast show'+(t?' '+t:'');clearTimeout(window._toastTO);window._toastTO=setTimeout(()=>el.classList.remove('show'),2400);}
+function showModal(title,body,cb,isHtml){$('modal-title').textContent=title;if(isHtml)$('modal-body').innerHTML=body;else $('modal-body').textContent=body;state.modalCallback=cb;$('modal-confirm').style.display=cb?'':'none';$('modal').classList.add('show');}
+function closeModal(){$('modal').classList.remove('show');state.modalCallback=null;}
+function fillTemplate(tpl,b){const p=getParish(b.parishId||state.currentParishId);const t=getType(b.type);const r={naam:b.name,datum:dateLabel(b.date),type:t.label,locatie:locLabel(b.location),ref:b.ref,totaal:b.total,voorschot:b.deposit,rest:b.total-b.deposit,iban:p.iban,klooster:p.name};return tpl.replace(/\{(\w+)\}/g,(_,k)=>r[k]!=null?r[k]:'{'+k+'}');}
+function hasPerm(p){if(!state.currentUser)return false;return state.currentUser.perms&&state.currentUser.perms.includes(p);}
+
+function loadAll(){try{const r=localStorage.getItem(STORAGE_KEY);if(r){const d=JSON.parse(r);state.bookings=d.bookings||[];state.blocked=d.blocked||[];state.waitlist=d.waitlist||[];state.audit=d.audit||[];state.parishes=d.parishes&&d.parishes.length?d.parishes:JSON.parse(JSON.stringify(defaultParishes));state.currentParishId=d.currentParishId||'glane';state.lang=d.lang||'nl';state.registers=d.registers||{baptism:[],marriage:[],family:[]};if(!state.registers.baptism)state.registers.baptism=[];if(!state.registers.marriage)state.registers.marriage=[];if(!state.registers.family)state.registers.family=[];state.settings=mergeSettings(d.settings||{});if(state.bookings.length===0)seedDemo();if(state.registers.baptism.length===0)seedRegisterDemo();}else{state.parishes=JSON.parse(JSON.stringify(defaultParishes));seedDemo();seedRegisterDemo();}}catch(e){console.error(e);state.parishes=JSON.parse(JSON.stringify(defaultParishes));seedDemo();seedRegisterDemo();}}
+function mergeSettings(s){const m=JSON.parse(JSON.stringify(defaultSettings));if(s.org)Object.assign(m.org,s.org);if(s.types)m.types=s.types;if(s.locations)m.locations=s.locations;if(s.celebrants)m.celebrants=s.celebrants;if(s.users)m.users=s.users.map(u=>({...u,perms:u.perms||ALL_PERMS.slice()}));if(s.templates){Object.keys(s.templates).forEach(k=>{if(m.templates[k])Object.assign(m.templates[k],s.templates[k]);else m.templates[k]=s.templates[k];});}if(s.depositPct!=null)m.depositPct=s.depositPct;if(s.emails)Object.assign(m.emails,s.emails);return m;}
+function saveAll(){try{localStorage.setItem(STORAGE_KEY,JSON.stringify({bookings:state.bookings,blocked:state.blocked,waitlist:state.waitlist,audit:state.audit,parishes:state.parishes,currentParishId:state.currentParishId,lang:state.lang,registers:state.registers,settings:state.settings}));}catch(e){console.error(e);}}
+function logAudit(action,detail){state.audit.unshift({ts:new Date().toISOString(),who:state.currentUser?state.currentUser.name:'systeem',action,detail:detail||''});if(state.audit.length>500)state.audit=state.audit.slice(0,500);saveAll();}
+
+function makeBooking(o){const ref=o.ref||genRef();const t=getType(o.type);const price=o.total!=null?o.total:(t.price||0);const deposit=Math.round(price*(state.settings.depositPct/100));return{ref,parishId:o.parishId||state.currentParishId,date:o.date,type:o.type,location:o.location,firstname:o.firstname||'',lastname:o.lastname||'',name:((o.firstname||'')+' '+(o.lastname||'')).trim(),email:o.email||'',phone:o.phone||'',address:o.address||'',postcode:o.postcode||'',city:o.city||'',guests:o.guests||0,celebrant:o.celebrant||'',notes:o.notes||'',status:o.status||'pending',paid:o.paid||'unpaid',method:o.method||'overschrijving',total:price,deposit,flagged:o.flagged||false,internalNotes:o.internalNotes||[],history:o.history||[{ts:new Date().toISOString(),text:'Reservering aangemaakt',who:'systeem'}],createdAt:o.createdAt||new Date().toISOString()};}
+
+function seedDemo(){
+  const y=today.getFullYear(),m=today.getMonth();
+  const offsets=[-90,-60,-45,-30,-20,-15,-10,-5,-3,1,3,5,7,10,14,17,21,24,28,35,45];
+  const types=['huwelijk','doopsel','zaal'];
+  const names=[['Sami','Aydin'],['Familie','Yacoub'],['Boutros','Barsoum'],['George','Malki'],['Familie','Hanna'],['Sara','Toma'],['Boutros','Daoud'],['Familie','Kassir'],['Maria','Saliba'],['Joseph','Khoury'],['Familie','Nakhle'],['Anton','Issa'],['Familie','Mansour'],['Karim','Sayegh'],['Familie','Aboud'],['Petra','Habib'],['Familie','Karim'],['Marcus','Bassil'],['Familie','Abdou'],['Therese','Najjar'],['Familie','Stephan']];
+  const cities=['Hengelo','Enschede','Glane','Oldenzaal','Losser','Almelo','Borne'];
+  const parishIds=['glane','glane','glane','enschede','hengelo','glane','enschede','glane','hengelo','glane','enschede','glane','glane','glane','enschede','glane','hengelo','glane','enschede','glane','glane'];
+  const used=new Set();state.bookings=[];
+  offsets.forEach((off,i)=>{
+    const date=new Date(y,m,today.getDate()+off);
+    const dk=fmtDateKey(date.getFullYear(),date.getMonth(),date.getDate());
+    const t=types[i%types.length];
+    const loc=t==='zaal'?(i%2?'zaal-groot':'zaal-klein'):(i%3===0?'kapel':'kathedraal');
+    const pid=parishIds[i]||'glane';
+    const k=dk+'_'+loc+'_'+pid;if(used.has(k))return;used.add(k);
+    const name=names[i%names.length];const isPast=off<0;
+    const status=isPast?'completed':(i%5===0?'pending':'confirmed');
+    const paid=isPast?'paid':(i%7===0?'unpaid':(i%11===0?'partial':'paid'));
+    state.bookings.push(makeBooking({parishId:pid,date:dk,type:t,location:loc,firstname:name[0],lastname:name[1],email:name[1].toLowerCase()+'@example.nl',phone:'+31 6 '+String(10000000+i*1234567).slice(0,8),address:'Hoofdstraat '+(i+1),postcode:'755'+(i%10)+' AB',city:cities[i%cities.length],guests:t==='huwelijk'?80+i*3:(t==='doopsel'?25+i:50+i*2),status,paid,method:['ideal','bancontact','overschrijving'][i%3],flagged:i===2,createdAt:new Date(date.getTime()-30*24*60*60*1000).toISOString()}));
+  });
+  state.blocked=[{date:fmtDateKey(y,m,25),reason:'Mor Ephrem feestdag'}];
+  state.waitlist=[{name:'Familie Aboud',email:'aboud@example.nl',phone:'+31 6 87654321',date:fmtDateKey(y,m,Math.min(28,today.getDate()+17)),location:'kathedraal',type:'huwelijk',ts:new Date().toISOString()}];
+  state.audit=[];saveAll();
+}
+
+function applyOrg(){/* legacy - parish data is gebruikt via applyParish */}
+function setupNav(){
+  $$('.nav-tab').forEach(tab=>{tab.addEventListener('click',()=>{const p=tab.dataset.page;if(p==='admin'&&!state.adminAuth){$('login-screen').classList.add('show');setTimeout(()=>$('login-user').focus(),50);return;}$$('.nav-tab').forEach(t=>t.classList.remove('active'));tab.classList.add('active');$$('.page').forEach(x=>x.classList.remove('active'));$('page-'+p).classList.add('active');if(p==='admin')renderAdmin();});});
+  $('login-submit').addEventListener('click',tryLogin);
+  $('login-password').addEventListener('keydown',e=>{if(e.key==='Enter')tryLogin();});
+  $('login-user').addEventListener('keydown',e=>{if(e.key==='Enter')$('login-password').focus();});
+  $('login-cancel').addEventListener('click',()=>{$('login-screen').classList.remove('show');$('login-password').value='';$('login-user').value='';});
+}
+function tryLogin(){
+  const u=$('login-user').value.trim();const p=$('login-password').value;
+  const user=state.settings.users.find(x=>x.username===u&&x.password===p);
+  if(user){
+    state.adminAuth=true;state.currentUser=user;
+    $('login-screen').classList.remove('show');
+    $('login-password').value='';$('login-user').value='';
+    $$('.nav-tab').forEach(t=>t.classList.remove('active'));
+    $('admin-tab-btn').classList.add('active');
+    $$('.page').forEach(p=>p.classList.remove('active'));
+    $('page-admin').classList.add('active');
+    applyPermissions();
+    logAudit('Ingelogd');
+    // Find first tab user has access to
+    const firstAllowed=$$('.sidebar-item[data-perm]').forEach(()=>{});
+    let firstTab='dashboard';
+    for(const it of $$('.sidebar-item[data-perm]')){if(hasPerm(it.dataset.perm)){firstTab=it.dataset.subtab;break;}}
+    state.adminSubtab=firstTab;
+    $$('.sidebar-item').forEach(x=>x.classList.remove('active'));
+    document.querySelector('.sidebar-item[data-subtab="'+firstTab+'"]').classList.add('active');
+    renderAdmin();
+    showToast('Welkom '+user.name,'success');
+  } else showToast('Onjuiste gegevens','error');
+}
+function applyPermissions(){
+  const u=state.currentUser;if(!u)return;
+  $('current-user-info').textContent=u.name+' ('+u.username+')';
+  $$('.sidebar-item[data-perm]').forEach(it=>{
+    it.style.display=hasPerm(it.dataset.perm)?'':'none';
+  });
+}
+
+function renderEventGrid(){
+  const g=$('event-grid');
+  g.innerHTML=state.settings.types.map(t=>('<button class="event-card" data-type="'+t.key+'"><div class="event-icon">'+(ICONS[t.icon]||ICONS.generic)+'</div><h3>'+escapeHtml(t.label)+'</h3><div class="event-meta">Hele dag</div><p class="event-desc">'+escapeHtml(t.description)+'</p><div class="event-price">€ '+t.price+' <small>per dag</small></div></button>')).join('');
+  g.querySelectorAll('.event-card').forEach(c=>{
+    c.addEventListener('click',()=>{
+      g.querySelectorAll('.event-card').forEach(x=>x.classList.remove('selected'));
+      c.classList.add('selected');
+      state.eventType=c.dataset.type;
+      if(state.eventType==='zaal'){const z=state.settings.locations.find(l=>l.key.startsWith('zaal'));state.location=z?z.key:state.settings.locations[0].key;}
+      else state.location=state.settings.locations[0].key;
+      setTimeout(()=>goToStep(2),200);
+    });
+  });
+}
+function renderLocationPills(){
+  const c=$('locations');
+  c.innerHTML=state.settings.locations.map(l=>('<button class="pill'+(l.key===state.location?' selected':'')+'" data-loc="'+l.key+'">'+escapeHtml(l.label)+(l.capacity?' · '+l.capacity+' personen':'')+'</button>')).join('');
+  c.querySelectorAll('.pill').forEach(p=>{p.addEventListener('click',()=>{state.location=p.dataset.loc;state.selectedDate=null;checkStep2();renderCalendar();renderLocationPills();});});
+}
+function renderCelebrants(){
+  const sel=$('celebrant');sel.innerHTML='<option value="">Geen voorkeur</option>';
+  state.settings.celebrants.forEach(c=>{const o=document.createElement('option');o.textContent=c;sel.appendChild(o);});
+}
+
+function goToStep(n){state.step=n;['step-1','step-2','step-3','step-4','step-done'].forEach(id=>{const el=$(id);if(el)el.style.display='none';});$(n===5?'step-done':'step-'+n).style.display='block';$$('.step').forEach(s=>{const num=parseInt(s.dataset.step);s.classList.remove('active','complete');if(n===5||num<n)s.classList.add('complete');else if(num===n)s.classList.add('active');});if(n===2){renderLocationPills();renderCalendar();}if(n===3)updateSummary('summary-3');if(n===4){updateSummary('summary-4');updatePayment();}window.scrollTo({top:0,behavior:'smooth'});}
+
+function setupBookingWizard(){
+  $$('[data-back]').forEach(b=>{b.addEventListener('click',()=>goToStep(parseInt(b.dataset.back)));});
+  $('prev-month').addEventListener('click',()=>{if(state.viewMonth===0){state.viewMonth=11;state.viewYear--;}else state.viewMonth--;renderCalendar();});
+  $('next-month').addEventListener('click',()=>{if(state.viewMonth===11){state.viewMonth=0;state.viewYear++;}else state.viewMonth++;renderCalendar();});
+  $('to-step-3').addEventListener('click',()=>{if(!state.selectedDate)return;if(bookingForDate(state.selectedDate,state.location)){showToast('Datum net gereserveerd','error');state.selectedDate=null;renderCalendar();checkStep2();return;}goToStep(3);});
+  $('to-step-4').addEventListener('click',()=>{
+    const fn=$('firstname').value.trim();const ln=$('lastname').value.trim();const em=$('email').value.trim();const ph=$('phone').value.trim();
+    if(!fn||!ln||!em||!ph){showToast('Vul alle verplichte velden in','error');return;}
+    if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)){showToast('Ongeldig e-mailadres','error');return;}
+    if(!$('agree-terms').checked){showToast('Akkoord vereist','error');return;}
+    goToStep(4);
+  });
+  $$('.pay-option').forEach(o=>{o.addEventListener('click',()=>{$$('.pay-option').forEach(x=>x.classList.remove('selected'));o.classList.add('selected');state.paymentMethod=o.dataset.method;});});
+  $('confirm-booking').addEventListener('click',()=>{
+    if(bookingForDate(state.selectedDate,state.location)){showToast('Datum net gereserveerd','error');goToStep(2);return;}
+    const b=makeBooking({date:state.selectedDate,type:state.eventType,location:state.location,firstname:$('firstname').value.trim(),lastname:$('lastname').value.trim(),email:$('email').value.trim(),phone:$('phone').value.trim(),address:$('address').value.trim(),postcode:$('postcode').value.trim(),city:$('city').value.trim(),guests:parseInt($('guests').value)||0,celebrant:$('celebrant').value,notes:$('notes').value.trim(),status:'pending',paid:state.paymentMethod==='overschrijving'?'unpaid':'paid',method:state.paymentMethod});
+    state.bookings.push(b);state.lastBookingRef=b.ref;saveAll();
+    $('confirm-detail').textContent=typeLabel(state.eventType)+' op '+dateLabel(state.selectedDate)+' is gereserveerd.';
+    $('confirm-ref').textContent=b.ref;goToStep(5);
+  });
+  $('download-ics').addEventListener('click',()=>{const b=state.bookings.find(x=>x.ref===state.lastBookingRef);if(b)downloadIcs(b);});
+  $('download-pdf').addEventListener('click',()=>{const b=state.bookings.find(x=>x.ref===state.lastBookingRef);if(b)downloadInvoice(b);});
+  $('new-booking').addEventListener('click',()=>{state.eventType=null;state.selectedDate=null;$$('.event-card').forEach(c=>c.classList.remove('selected'));['firstname','lastname','email','phone','guests','notes','address','postcode','city'].forEach(id=>{const el=$(id);if(el)el.value='';});$('celebrant').selectedIndex=0;$('agree-terms').checked=false;goToStep(1);});
+}
+
+function renderCalendar(){
+  $('month-label').textContent=monthNames[state.viewMonth]+' '+state.viewYear;
+  const g=$('cal-grid');g.innerHTML='';
+  const f=new Date(state.viewYear,state.viewMonth,1);
+  let sd=f.getDay()-1;if(sd<0)sd=6;
+  const dim=new Date(state.viewYear,state.viewMonth+1,0).getDate();
+  for(let i=0;i<sd;i++){const e=document.createElement('div');e.className='cal-day empty';g.appendChild(e);}
+  for(let d=1;d<=dim;d++){
+    const c=document.createElement('button');c.className='cal-day';c.textContent=d;c.type='button';
+    const ds=fmtDateKey(state.viewYear,state.viewMonth,d);
+    const cd=new Date(state.viewYear,state.viewMonth,d);
+    if(cd<today){c.classList.add('disabled');c.disabled=true;}
+    else if(isBlocked(ds)){c.classList.add('blocked');c.title=blockedReason(ds);c.disabled=true;}
+    else{
+      if(cd.toDateString()===today.toDateString())c.classList.add('today');
+      if(bookingForDate(ds,state.location)){c.classList.add('full');c.disabled=true;c.title='Deze datum is al gereserveerd';}
+      if(state.selectedDate===ds)c.classList.add('selected');
+      c.addEventListener('click',()=>{state.selectedDate=ds;checkStep2();renderCalendar();});
+    }
+    g.appendChild(c);
+  }
+}
+function checkStep2(){$('to-step-3').disabled=!state.selectedDate;}
+function updateSummary(id){const el=$(id);if(!state.eventType||!state.selectedDate)return;el.innerHTML='<strong>'+typeLabel(state.eventType)+'</strong> · '+locLabel(state.location)+' · '+dateLabel(state.selectedDate)+' (hele dag)';}
+function updatePayment(){const t=getType(state.eventType);const dep=Math.round(t.price*(state.settings.depositPct/100));$('pay-event').textContent=t.label;$('pay-loc').textContent=locLabel(state.location);$('pay-when').textContent=shortDateLabel(state.selectedDate)+' (hele dag)';$('pay-name').textContent=$('firstname').value+' '+$('lastname').value;$('pay-total-line').textContent='€ '+t.price;$('pay-deposit-label').textContent='Voorschot ('+state.settings.depositPct+'%)';$('pay-deposit').textContent='€ '+dep;}
+
+function downloadIcs(b){const[y,m,d]=b.date.split('-').map(Number);const start=new Date(y,m-1,d);const end=new Date(y,m-1,d+1);const fmt=d=>d.getFullYear()+String(d.getMonth()+1).padStart(2,'0')+String(d.getDate()).padStart(2,'0');const ics=['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//'+state.settings.org.name+'//NL','BEGIN:VEVENT','UID:'+b.ref+'@local','DTSTAMP:'+fmt(new Date())+'T000000','DTSTART;VALUE=DATE:'+fmt(start),'DTEND;VALUE=DATE:'+fmt(end),'SUMMARY:'+typeLabel(b.type)+' - '+b.name,'LOCATION:'+state.settings.org.name+'\\, '+locLabel(b.location)+'\\, '+state.settings.org.address,'DESCRIPTION:Referentie: '+b.ref,'END:VEVENT','END:VCALENDAR'].join('\r\n');const blob=new Blob([ics],{type:'text/calendar'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=b.ref+'.ics';a.click();showToast('Agenda-bestand gedownload','success');}
+
+function downloadInvoice(b){const o=state.settings.org;const html='<!DOCTYPE html><html><head><meta charset="utf-8"><title>Factuur '+b.ref+'</title><style>body{font-family:Helvetica,sans-serif;padding:40px;max-width:700px;color:#0f172a}h1{font-size:22px;margin-bottom:4px}.muted{color:#64748b;font-size:13px}table{width:100%;border-collapse:collapse;margin:24px 0}th,td{text-align:left;padding:8px;border-bottom:1px solid #e2e8f0}th{background:#f7f8fa;font-size:12px;text-transform:uppercase;color:#64748b}.box{background:#f7f8fa;padding:16px;border-radius:4px;margin:16px 0}.right{text-align:right}.flex{display:flex;justify-content:space-between;gap:32px;margin-bottom:24px}.flex>div{flex:1}</style></head><body><h1>'+escapeHtml(o.name)+'</h1><div class="muted">'+escapeHtml(o.address)+' &middot; '+escapeHtml(o.phone)+(o.iban?' &middot; IBAN '+escapeHtml(o.iban):'')+'</div><hr style="margin:20px 0;border:none;border-top:2px solid #1f4788"><div class="flex"><div><div class="muted">Factuur aan:</div><div><strong>'+escapeHtml(b.name)+'</strong></div><div>'+escapeHtml(b.address)+'</div><div>'+escapeHtml(b.postcode)+' '+escapeHtml(b.city)+'</div><div>'+escapeHtml(b.email)+'</div></div><div class="right"><div class="muted">Factuurnummer</div><div><strong>'+b.ref+'</strong></div><div class="muted" style="margin-top:8px">Datum</div><div>'+formatDateTime(b.createdAt)+'</div></div></div><table><thead><tr><th>Omschrijving</th><th class="right">Bedrag</th></tr></thead><tbody><tr><td>'+typeLabel(b.type)+' &middot; '+locLabel(b.location)+'<br><span class="muted">'+dateLabel(b.date)+' (hele dag)</span></td><td class="right">€ '+b.total+',00</td></tr><tr><td class="muted">Voorschot ('+state.settings.depositPct+'%)</td><td class="right muted">€ '+b.deposit+',00</td></tr><tr><td class="muted">Restbedrag</td><td class="right muted">€ '+(b.total-b.deposit)+',00</td></tr></tbody></table><div class="box"><strong>Status:</strong> '+(b.paid==='paid'?'Voorschot voldaan':b.paid==='partial'?'Gedeeltelijk':'Open')+'<br><strong>Methode:</strong> '+b.method+(o.iban?'<br><strong>IBAN:</strong> '+escapeHtml(o.iban):'')+'</div><scr'+'ipt>window.onload=()=>setTimeout(()=>window.print(),300)</scr'+'ipt></body></html>';const url=URL.createObjectURL(new Blob([html],{type:'text/html'}));window.open(url,'_blank');showToast('Factuur geopend','success');}
+
+function printDayOverview(){const dateStr=fmtDateKey(today.getFullYear(),today.getMonth(),today.getDate());const dayBookings=state.bookings.filter(b=>b.date===dateStr&&b.status!=='cancelled');const o=state.settings.org;let html='<!DOCTYPE html><html><head><meta charset="utf-8"><title>Dagoverzicht '+dateStr+'</title><style>body{font-family:Helvetica,sans-serif;padding:30px;color:#0f172a}h1{margin-bottom:4px}.muted{color:#64748b;font-size:13px}table{width:100%;border-collapse:collapse;margin-top:20px}th,td{padding:8px;border-bottom:1px solid #e2e8f0;text-align:left}th{background:#f7f8fa;font-size:11px;text-transform:uppercase;color:#64748b}</style></head><body><h1>Dagoverzicht '+dateLabel(dateStr)+'</h1><div class="muted">'+escapeHtml(o.name)+'</div>';if(dayBookings.length===0){html+='<p style="margin-top:30px;color:#64748b;">Geen reserveringen op deze dag.</p>';}else{html+='<table><thead><tr><th>Ref.</th><th>Type</th><th>Locatie</th><th>Aanvrager</th><th>Telefoon</th><th>Genodigden</th><th>Celebrant</th></tr></thead><tbody>';dayBookings.forEach(b=>{html+='<tr><td>'+b.ref+'</td><td>'+typeLabel(b.type)+'</td><td>'+locLabel(b.location)+'</td><td>'+escapeHtml(b.name)+'<br><span class="muted">'+escapeHtml(b.email)+'</span></td><td>'+escapeHtml(b.phone)+'</td><td>'+(b.guests||'-')+'</td><td>'+escapeHtml(b.celebrant||'-')+'</td></tr>';});html+='</tbody></table>';}html+='<scr'+'ipt>window.onload=()=>setTimeout(()=>window.print(),300)</scr'+'ipt></body></html>';const url=URL.createObjectURL(new Blob([html],{type:'text/html'}));window.open(url,'_blank');}
+function renderAdmin(){renderSidebarCounts();renderAdminSubpage();}
+function renderSidebarCounts(){$('sb-count-list').textContent=currentBookings().length;const p=currentBookings().filter(b=>b.status==='pending').length;const u=currentBookings().filter(b=>b.paid==='unpaid'&&b.status!=='cancelled').length;const w=state.waitlist.length;[['pending',p],['unpaid',u],['waitlist',w]].forEach(([k,v])=>{const e=$('sb-count-'+k);if(v>0){e.style.display='inline-block';e.textContent=v;}else e.style.display='none';});}
+
+function setupAdmin(){
+  $$('.sidebar-item[data-subtab]').forEach(it=>{
+    it.addEventListener('click',()=>{
+      const perm=it.dataset.perm;
+      if(perm&&!hasPerm(perm)){showToast('Geen toegang','error');return;}
+      $$('.sidebar-item').forEach(x=>x.classList.remove('active'));
+      it.classList.add('active');
+      state.adminSubtab=it.dataset.subtab;
+      renderAdminSubpage();
+    });
+  });
+  $('logout-btn').addEventListener('click',()=>{logAudit('Uitgelogd');state.adminAuth=false;state.currentUser=null;$$('.nav-tab').forEach(t=>t.classList.remove('active'));document.querySelector('[data-page="booking"]').classList.add('active');$$('.page').forEach(p=>p.classList.remove('active'));$('page-booking').classList.add('active');showToast('Uitgelogd');});
+  $('drawer-close').addEventListener('click',closeDrawer);
+  $('drawer-backdrop').addEventListener('click',closeDrawer);
+  $$('.drawer-tab').forEach(t=>{t.addEventListener('click',()=>{$$('.drawer-tab').forEach(x=>x.classList.remove('active'));t.classList.add('active');state.drawerTab=t.dataset.dtab;const b=state.bookings.find(x=>x.ref===state.drawerRef);if(b)renderDrawerBody(b);});});
+  $('modal-cancel').addEventListener('click',closeModal);
+  $('modal-confirm').addEventListener('click',()=>{if(state.modalCallback)state.modalCallback();});
+  $('modal').addEventListener('click',e=>{if(e.target.id==='modal')closeModal();});
+  $$('.filter-pill').forEach(p=>{p.addEventListener('click',()=>{$$('.filter-pill').forEach(x=>x.classList.remove('active'));p.classList.add('active');state.filter=p.dataset.filter;renderBookingsTable();});});
+  $('search-input').addEventListener('input',e=>{state.search=e.target.value.toLowerCase().trim();renderBookingsTable();});
+  document.querySelectorAll('th[data-sort]').forEach(th=>{th.addEventListener('click',()=>{const k=th.dataset.sort;if(state.sortKey===k)state.sortDir=state.sortDir==='asc'?'desc':'asc';else{state.sortKey=k;state.sortDir='asc';}renderBookingsTable();});});
+  $('admin-prev-month').addEventListener('click',()=>{if(state.adminViewMonth===0){state.adminViewMonth=11;state.adminViewYear--;}else state.adminViewMonth--;renderAdminCalendar();});
+  $('admin-next-month').addEventListener('click',()=>{if(state.adminViewMonth===11){state.adminViewMonth=0;state.adminViewYear++;}else state.adminViewMonth++;renderAdminCalendar();});
+  $('admin-today-btn').addEventListener('click',()=>{state.adminViewMonth=today.getMonth();state.adminViewYear=today.getFullYear();renderAdminCalendar();});
+  $('contact-search').addEventListener('input',e=>{state.contactSearch=e.target.value.toLowerCase().trim();renderContacts();});
+  $('add-block').addEventListener('click',()=>{const d=$('block-date').value;const r=$('block-reason').value.trim();if(!d){showToast('Selecteer een datum','error');return;}if(state.blocked.some(b=>b.date===d)){showToast('Al geblokkeerd','error');return;}state.blocked.push({date:d,reason:r});logAudit('Datum geblokkeerd',d+(r?' — '+r:''));saveAll();$('block-date').value='';$('block-reason').value='';renderBlocked();showToast('Geblokkeerd','success');});
+  $('export-btn').addEventListener('click',exportCSV);
+  $('export-all-btn').addEventListener('click',exportCSV);
+  $('print-day-btn').addEventListener('click',printDayOverview);
+  $('view-all-upcoming').addEventListener('click',()=>{document.querySelector('.sidebar-item[data-subtab="list"]').click();});
+  $('clear-audit-btn').addEventListener('click',()=>{showModal('Logboek wissen','Het volledige activiteitenlogboek wissen?',()=>{state.audit=[];saveAll();closeModal();renderAudit();showToast('Logboek gewist','success');});});
+  document.addEventListener('click',e=>{if(e.target.classList&&e.target.classList.contains('var-pill')){const t=e.target.textContent;if(navigator.clipboard)navigator.clipboard.writeText(t);showToast('Gekopieerd: '+t);}});
+}
+
+function renderAdminSubpage(){
+  ['dashboard','list','calendar','pending','unpaid','waitlist','contacts','reports','blocked','templates','audit','register','settings'].forEach(s=>{const e=$('subtab-'+s);if(e)e.style.display='none';});
+  const t=$('subtab-'+state.adminSubtab);if(t)t.style.display='block';
+  if(state.adminSubtab==='dashboard')renderDashboard();
+  if(state.adminSubtab==='list')renderBookingsTable();
+  if(state.adminSubtab==='calendar')renderAdminCalendar();
+  if(state.adminSubtab==='pending')renderPendingTable();
+  if(state.adminSubtab==='unpaid')renderUnpaidTable();
+  if(state.adminSubtab==='waitlist')renderWaitlist();
+  if(state.adminSubtab==='contacts')renderContacts();
+  if(state.adminSubtab==='reports')setTimeout(renderReports,50);
+  if(state.adminSubtab==='blocked')renderBlocked();
+  if(state.adminSubtab==='templates')renderTemplates();
+  if(state.adminSubtab==='audit')renderAudit();
+  if(state.adminSubtab==='register')renderRegister();
+  if(state.adminSubtab==='settings')renderSettings();
+}
+
+function renderDashboard(){
+  const tm=currentBookings().filter(b=>{const[y,m]=b.date.split('-').map(Number);return y===today.getFullYear()&&m-1===today.getMonth()&&b.status!=='cancelled';});
+  const lm=currentBookings().filter(b=>{const[y,m]=b.date.split('-').map(Number);const l=new Date(today.getFullYear(),today.getMonth()-1,1);return y===l.getFullYear()&&m-1===l.getMonth()&&b.status!=='cancelled';});
+  const p=currentBookings().filter(b=>b.status==='pending');
+  const r=currentBookings().filter(b=>b.paid==='paid'&&b.status!=='cancelled').reduce((s,b)=>s+b.deposit,0);
+  const o=currentBookings().filter(b=>b.paid!=='paid'&&b.status!=='cancelled').reduce((s,b)=>s+(b.total-(b.paid==='partial'?b.deposit:0)),0);
+  $('stat-month').textContent=tm.length;const diff=tm.length-lm.length;const t=$('stat-month-trend');t.textContent=(diff>=0?'+':'')+diff+' t.o.v. vorige maand';t.className='stat-trend '+(diff>=0?'up':'danger');
+  $('stat-pending').textContent=p.length;
+  $('stat-revenue').textContent='€ '+r.toLocaleString('nl-NL');
+  $('stat-outstanding').textContent='€ '+o.toLocaleString('nl-NL');
+  renderUpcomingList();renderActivityFeed();
+  setTimeout(()=>{renderMonthlyChart();renderTypesChart();},50);
+}
+
+function renderUpcomingList(){
+  const list=$('upcoming-list');
+  const up=currentBookings().filter(b=>{const dt=new Date(b.date);return dt>=today&&b.status!=='cancelled';}).sort((a,b)=>a.date.localeCompare(b.date)).slice(0,6);
+  if(!up.length){list.innerHTML='<div class="empty-event-list">Geen aankomende reserveringen</div>';return;}
+  list.innerHTML=up.map(b=>{const[y,m,d]=b.date.split('-').map(Number);const dt=new Date(y,m-1,d);const isT=dt.toDateString()===today.toDateString();const t=getType(b.type);return'<div class="event-row" data-ref="'+b.ref+'"><div class="event-time"><div class="event-time-day">'+(isT?'Vandaag':dayShort[dt.getDay()])+'</div><div class="event-time-num">'+d+'</div><div class="event-time-month">'+monthShort[m-1]+'</div></div><div class="event-info"><div class="event-info-title">'+escapeHtml(b.name)+'</div><div class="event-info-meta">'+escapeHtml(locLabel(b.location))+'</div></div><span class="event-tag '+(t.color||'huwelijk')+'">'+escapeHtml(t.label)+'</span></div>';}).join('');
+  list.querySelectorAll('.event-row').forEach(r=>{r.addEventListener('click',()=>openDrawer(r.dataset.ref));});
+}
+
+function renderActivityFeed(){
+  const f=$('activity-feed');const ev=[];
+  currentBookings().forEach(b=>{(b.history||[]).forEach(h=>{ev.push({ts:h.ts,text:h.text,who:h.who,ref:b.ref,name:b.name});});});
+  ev.sort((a,b)=>b.ts.localeCompare(a.ts));const r=ev.slice(0,12);
+  if(!r.length){f.innerHTML='<div class="empty-event-list">Nog geen activiteit</div>';return;}
+  f.innerHTML=r.map(e=>{let dc='';if(e.text.includes('bevestig'))dc='success';else if(e.text.includes('annulee')||e.text.includes('verwijder'))dc='danger';else if(e.text.includes('Markee'))dc='warn';return'<div class="activity-item"><div class="activity-dot '+dc+'"></div><div class="activity-content"><div class="activity-text"><strong>'+escapeHtml(e.name)+'</strong> · '+escapeHtml(e.text)+'</div><div class="activity-time">'+relativeTime(e.ts)+(e.who?' · '+escapeHtml(e.who):'')+'</div></div></div>';}).join('');
+}
+
+function renderMonthlyChart(){const c=$('chart-monthly');if(!c)return;if(state.charts.monthly)state.charts.monthly.destroy();const months=[],data=[];for(let i=5;i>=0;i--){const d=new Date(today.getFullYear(),today.getMonth()-i,1);months.push(monthShort[d.getMonth()]);data.push(currentBookings().filter(b=>{const[y,m]=b.date.split('-').map(Number);return y===d.getFullYear()&&m-1===d.getMonth()&&b.status!=='cancelled';}).length);}state.charts.monthly=new Chart(c,{type:'bar',data:{labels:months,datasets:[{label:'Reserveringen',data,backgroundColor:'#1f4788',borderRadius:4,maxBarThickness:40}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{backgroundColor:'#0f172a',padding:10,cornerRadius:6}},scales:{y:{beginAtZero:true,ticks:{stepSize:1,color:'#64748b',font:{size:11}},grid:{color:'#e2e8f0'}},x:{ticks:{color:'#64748b',font:{size:11}},grid:{display:false}}}}});}
+
+function renderTypesChart(){const c=$('chart-types');if(!c)return;if(state.charts.types)state.charts.types.destroy();const cnt={};state.settings.types.forEach(t=>cnt[t.key]=0);currentBookings().filter(b=>b.status!=='cancelled').forEach(b=>{if(cnt[b.type]!=null)cnt[b.type]++;});const tot=Object.values(cnt).reduce((s,v)=>s+v,0);const colorMap={huwelijk:'#5b21b6',doopsel:'#115e59',zaal:'#854d0e',uitvaart:'#475569',communie:'#1e40af',jubileum:'#065f46'};const labels=state.settings.types.map(t=>t.label);const dataArr=state.settings.types.map(t=>cnt[t.key]);const colors=state.settings.types.map(t=>colorMap[t.color]||'#1f4788');state.charts.types=new Chart(c,{type:'doughnut',data:{labels,datasets:[{data:dataArr,backgroundColor:colors,borderColor:'#fff',borderWidth:2}]},options:{responsive:true,maintainAspectRatio:false,cutout:'65%',plugins:{legend:{display:false},tooltip:{backgroundColor:'#0f172a',padding:10,cornerRadius:6}}}});$('chart-legend').innerHTML=state.settings.types.map((t,i)=>{const p=tot>0?Math.round(cnt[t.key]/tot*100):0;return'<span style="display:flex;align-items:center;gap:6px;"><span style="width:10px;height:10px;border-radius:2px;background:'+colors[i]+';"></span>'+escapeHtml(t.label)+' '+p+'%</span>';}).join('');}
+
+function getFiltered(){let rows=state.bookings.filter(b=>b.parishId===state.currentParishId);if(state.filter==='pending')rows=rows.filter(b=>b.status==='pending');else if(state.filter==='confirmed')rows=rows.filter(b=>b.status==='confirmed');else if(state.filter==='unpaid')rows=rows.filter(b=>b.paid!=='paid'&&b.status!=='cancelled');else if(state.filter==='upcoming'){rows=rows.filter(b=>{const d=(new Date(b.date)-today)/86400000;return d>=0&&d<=7&&b.status!=='cancelled';});}if(state.search)rows=rows.filter(b=>b.name.toLowerCase().includes(state.search)||b.email.toLowerCase().includes(state.search)||b.ref.toLowerCase().includes(state.search)||(b.phone||'').toLowerCase().includes(state.search));rows.sort((a,b)=>{let av=a[state.sortKey],bv=b[state.sortKey];if(av<bv)return state.sortDir==='asc'?-1:1;if(av>bv)return state.sortDir==='asc'?1:-1;return 0;});return rows;}
+
+function renderBookingsTable(){const tb=$('bookings-body');tb.innerHTML='';document.querySelectorAll('th[data-sort]').forEach(th=>{th.classList.remove('sort-asc','sort-desc');if(th.dataset.sort===state.sortKey)th.classList.add(state.sortDir==='asc'?'sort-asc':'sort-desc');});const rows=getFiltered();if(!rows.length){tb.innerHTML='<tr><td colspan="8"><div class="empty-state"><h4>Geen reserveringen</h4><div>Probeer een ander filter.</div></div></td></tr>';return;}rows.forEach(b=>{const tr=document.createElement('tr');tr.dataset.ref=b.ref;if(b.flagged)tr.classList.add('flagged');const t=getType(b.type);const sl={confirmed:'Bevestigd',pending:'In behandeling',cancelled:'Geannuleerd',completed:'Afgerond'}[b.status];const pl={paid:'Betaald',unpaid:'Open',partial:'Deels'}[b.paid];tr.innerHTML='<td>'+(b.flagged?'<span class="flag-mark"></span>':'')+'<span class="ref-code">'+b.ref+'</span></td><td><strong style="font-weight:500;">'+tinyDateLabel(b.date)+'</strong></td><td><span class="event-tag '+(t.color||'huwelijk')+'">'+escapeHtml(t.label)+'</span></td><td style="font-size:13px;">'+escapeHtml(locLabel(b.location))+'</td><td><div class="user-cell"><div class="avatar '+avatarColor(b.name)+'">'+initials(b.name)+'</div><div><div class="user-name">'+escapeHtml(b.name)+'</div><div class="user-meta">'+escapeHtml(b.email)+'</div></div></div></td><td><span class="badge badge-'+b.status+'">'+sl+'</span></td><td><span class="badge badge-'+b.paid+'">'+pl+'</span></td><td><div class="row-actions">'+(b.status==='pending'?'<button class="icon-btn success" data-act="confirm" data-ref="'+b.ref+'">Bevestig</button>':'')+'<button class="icon-btn" data-act="view" data-ref="'+b.ref+'">Open</button></div></td>';tb.appendChild(tr);});tb.onclick=function(e){const btn=e.target.closest('button[data-act]');if(btn){e.stopPropagation();const a=btn.dataset.act,r=btn.dataset.ref;if(a==='view')openDrawer(r);else if(a==='confirm')confirmBooking(r);return;}const tr=e.target.closest('tr[data-ref]');if(tr)openDrawer(tr.dataset.ref);};}
+
+function confirmBooking(ref){const b=state.bookings.find(x=>x.ref===ref);if(!b)return;b.status='confirmed';const who=state.currentUser?state.currentUser.name:'beheerder';b.history.push({ts:new Date().toISOString(),text:'Bevestigd',who});logAudit('Reservering bevestigd',ref);saveAll();renderAdmin();showToast('Bevestigd','success');}
+
+function openDrawer(ref){const b=state.bookings.find(x=>x.ref===ref);if(!b)return;state.drawerRef=ref;state.drawerTab='details';$('drawer-title').textContent=typeLabel(b.type)+' · '+b.name;$('drawer-ref').textContent=b.ref;$$('.drawer-tab').forEach(t=>t.classList.toggle('active',t.dataset.dtab==='details'));renderDrawerBody(b);renderDrawerFooter(b);$('drawer-backdrop').classList.add('show');$('drawer').classList.add('show');}
+function closeDrawer(){$('drawer-backdrop').classList.remove('show');$('drawer').classList.remove('show');state.drawerRef=null;}
+
+function renderDrawerBody(b){const t=getType(b.type);const sl={confirmed:'Bevestigd',pending:'In behandeling',cancelled:'Geannuleerd',completed:'Afgerond'}[b.status];const pl={paid:'Voorschot voldaan',unpaid:'Open',partial:'Gedeeltelijk'}[b.paid];const body=$('drawer-body');if(state.drawerTab==='details'){body.innerHTML='<div class="drawer-section"><h4>Status</h4><div style="display:flex;gap:8px;flex-wrap:wrap;"><span class="badge badge-'+b.status+'">'+sl+'</span><span class="badge badge-'+b.paid+'">'+pl+'</span>'+(b.flagged?'<span class="badge badge-pending">Aandacht</span>':'')+'</div></div><div class="drawer-section"><h4>Plechtigheid</h4><dl class="detail-grid"><dt>Type</dt><dd><span class="event-tag '+(t.color||'huwelijk')+'">'+escapeHtml(t.label)+'</span></dd><dt>Locatie</dt><dd>'+escapeHtml(locLabel(b.location))+'</dd><dt>Datum</dt><dd>'+dateLabel(b.date)+' (hele dag)</dd><dt>Genodigden</dt><dd>'+(b.guests||'-')+'</dd><dt>Celebrant</dt><dd>'+(escapeHtml(b.celebrant)||'Geen voorkeur')+'</dd></dl></div><div class="drawer-section"><h4>Aanvrager</h4><div class="user-cell" style="margin-bottom:12px;"><div class="avatar '+avatarColor(b.name)+'" style="width:40px;height:40px;font-size:13px;">'+initials(b.name)+'</div><div><div class="user-name" style="font-size:15px;">'+escapeHtml(b.name)+'</div><div class="user-meta">'+state.bookings.filter(x=>x.email===b.email).length+' reservering(en)</div></div></div><dl class="detail-grid"><dt>E-mail</dt><dd><a href="mailto:'+escapeHtml(b.email)+'" style="color:var(--accent);">'+escapeHtml(b.email)+'</a></dd><dt>Telefoon</dt><dd><a href="tel:'+escapeHtml(b.phone)+'" style="color:var(--accent);">'+escapeHtml(b.phone)+'</a></dd><dt>Adres</dt><dd>'+(escapeHtml(b.address)||'-')+'<br>'+escapeHtml(b.postcode)+' '+escapeHtml(b.city)+'</dd></dl></div><div class="drawer-section"><h4>Betaling</h4><dl class="detail-grid"><dt>Totaal</dt><dd>€ '+b.total+'</dd><dt>Voorschot</dt><dd>€ '+b.deposit+'</dd><dt>Restbedrag</dt><dd>€ '+(b.total-b.deposit)+'</dd><dt>Methode</dt><dd>'+escapeHtml(b.method)+'</dd></dl><div style="margin-top:12px;display:flex;gap:6px;flex-wrap:wrap;">'+(b.paid!=='paid'?'<button class="btn btn-sm btn-success" data-pay="paid">Markeer betaald</button>':'')+(b.paid==='unpaid'?'<button class="btn btn-sm btn-ghost" data-pay="partial">Deels</button>':'')+(b.paid==='paid'?'<button class="btn btn-sm btn-ghost" data-pay="unpaid">Open</button>':'')+'</div></div>'+(b.notes?'<div class="drawer-section"><h4>Wensen aanvrager</h4><div style="font-size:13px;line-height:1.6;">'+escapeHtml(b.notes)+'</div></div>':'');body.querySelectorAll('[data-pay]').forEach(btn=>{btn.addEventListener('click',()=>updatePay(b.ref,btn.dataset.pay));});}else if(state.drawerTab==='notes'){const n=b.internalNotes||[];body.innerHTML='<div class="drawer-section"><h4>Interne notities</h4><p style="font-size:12px;color:var(--ink-muted);margin-bottom:12px;">Niet zichtbaar voor de aanvrager.</p>'+(n.length?n.map(x=>'<div class="note-item"><div class="note-meta"><span>'+escapeHtml(x.who)+'</span><span>'+formatDateTime(x.ts)+'</span></div><div>'+escapeHtml(x.text)+'</div></div>').join(''):'<p style="font-size:13px;color:var(--ink-muted);">Nog geen notities.</p>')+'<div class="note-add"><textarea id="new-note" placeholder="Telefonisch contact, bijzonderheden..."></textarea></div><button class="btn btn-sm" id="add-note-btn" style="margin-top:8px;">Notitie toevoegen</button></div>';$('add-note-btn').addEventListener('click',()=>{const t=$('new-note').value.trim();if(t)addNote(b.ref,t);});}else{const items=(b.history||[]).slice().reverse();body.innerHTML='<div class="drawer-section"><h4>Geschiedenis</h4>'+items.map(h=>'<div class="history-item"><div class="history-time">'+formatDateTime(h.ts)+'</div><div class="history-text">'+escapeHtml(h.text)+(h.who?' <span style="color:var(--ink-muted);">('+escapeHtml(h.who)+')</span>':'')+'</div></div>').join('')+'</div>';}}
+
+function renderDrawerFooter(b){const f=$('drawer-footer');let h='';if(b.status==='pending')h+='<button class="btn btn-sm btn-success" data-act="confirm">Bevestigen</button>';if(b.status==='confirmed'&&new Date(b.date)<today)h+='<button class="btn btn-sm" data-act="complete">Afgerond</button>';h+='<button class="btn btn-sm btn-ghost" data-act="flag">'+(b.flagged?'Vlag weg':'Markeer')+'</button><button class="btn btn-sm btn-ghost" data-act="ics">Agenda</button><button class="btn btn-sm btn-ghost" data-act="invoice">Factuur</button><button class="btn btn-sm btn-ghost" data-act="email">Mail openen</button><button class="btn btn-sm btn-ghost" data-act="emailtpl">Mail uit sjabloon</button>';if(b.status!=='cancelled')h+='<button class="btn btn-sm btn-danger" data-act="cancel">Annuleer</button>';h+='<button class="btn btn-sm btn-danger" data-act="delete">Verwijder</button>';f.innerHTML=h;f.onclick=function(e){const btn=e.target.closest('button[data-act]');if(btn)handleAct(b.ref,btn.dataset.act);};}
+
+function handleAct(ref,a){const b=state.bookings.find(x=>x.ref===ref);if(!b)return;const who=state.currentUser?state.currentUser.name:'beheerder';if(a==='confirm'){b.status='confirmed';b.history.push({ts:new Date().toISOString(),text:'Bevestigd',who});logAudit('Bevestigd',ref);saveAll();openDrawer(ref);renderAdmin();showToast('Bevestigd','success');}else if(a==='complete'){b.status='completed';b.history.push({ts:new Date().toISOString(),text:'Afgerond',who});logAudit('Afgerond',ref);saveAll();openDrawer(ref);renderAdmin();}else if(a==='flag'){b.flagged=!b.flagged;b.history.push({ts:new Date().toISOString(),text:b.flagged?'Markering toegevoegd':'Markering weggehaald',who});logAudit(b.flagged?'Gemarkeerd':'Markering weggehaald',ref);saveAll();openDrawer(ref);renderAdmin();}else if(a==='ics')downloadIcs(b);else if(a==='invoice')downloadInvoice(b);else if(a==='email')window.location.href='mailto:'+b.email+'?subject=Reservering '+b.ref;else if(a==='emailtpl')openTemplateMailModal(b);else if(a==='cancel'){showModal('Annuleren','Weet u het zeker?',()=>{b.status='cancelled';b.history.push({ts:new Date().toISOString(),text:'Geannuleerd',who});logAudit('Geannuleerd',ref);saveAll();closeModal();openDrawer(ref);renderAdmin();showToast('Geannuleerd');});}else if(a==='delete'){showModal('Verwijderen','Permanent verwijderen?',()=>{state.bookings=state.bookings.filter(x=>x.ref!==ref);logAudit('Verwijderd',ref);saveAll();closeModal();closeDrawer();renderAdmin();showToast('Verwijderd');});}}
+
+function openTemplateMailModal(b){const opts=Object.entries(state.settings.templates).map(([k,t])=>'<option value="'+k+'">'+escapeHtml(t.label||k)+'</option>').join('');showModal('Mail uit sjabloon','<div class="field"><label>Sjabloon</label><select id="tpl-pick">'+opts+'</select></div><div style="font-size:12px;color:var(--ink-muted);margin-top:8px;">Opent uw e-mailprogramma met de tekst klaar om te verzenden.</div>',()=>{const k=$('tpl-pick').value;const tpl=state.settings.templates[k];const subj=fillTemplate(tpl.subject,b);const body=fillTemplate(tpl.body,b);window.location.href='mailto:'+b.email+'?subject='+encodeURIComponent(subj)+'&body='+encodeURIComponent(body);closeModal();},true);}
+
+function updatePay(ref,s){const b=state.bookings.find(x=>x.ref===ref);if(!b)return;const who=state.currentUser?state.currentUser.name:'beheerder';b.paid=s;const txt='Betaalstatus: '+({paid:'voldaan',partial:'gedeeltelijk',unpaid:'open'})[s];b.history.push({ts:new Date().toISOString(),text:txt,who});logAudit(txt,ref);saveAll();openDrawer(ref);renderAdmin();showToast('Bijgewerkt','success');}
+
+function addNote(ref,t){const b=state.bookings.find(x=>x.ref===ref);if(!b)return;const who=state.currentUser?state.currentUser.name:'beheerder';b.internalNotes=b.internalNotes||[];b.internalNotes.push({ts:new Date().toISOString(),text:t,who});b.history.push({ts:new Date().toISOString(),text:'Notitie toegevoegd',who});logAudit('Notitie toegevoegd',ref);saveAll();openDrawer(ref);showToast('Toegevoegd','success');}
+function renderAdminCalendar(){$('admin-month-label').textContent=monthNames[state.adminViewMonth]+' '+state.adminViewYear;const colorMap={huwelijk:'#5b21b6',doopsel:'#115e59',zaal:'#854d0e',uitvaart:'#475569',communie:'#1e40af',jubileum:'#065f46'};$('admin-cal-legend').innerHTML=state.settings.types.map(t=>'<span class="cal-legend-item"><span class="cal-legend-dot" style="background:'+(colorMap[t.color]||'#1f4788')+';"></span>'+escapeHtml(t.label)+'</span>').join('');const g=$('admin-cal-grid');g.innerHTML='';const f=new Date(state.adminViewYear,state.adminViewMonth,1);let sd=f.getDay()-1;if(sd<0)sd=6;const dim=new Date(state.adminViewYear,state.adminViewMonth+1,0).getDate();for(let i=0;i<sd;i++){const e=document.createElement('div');e.className='admin-cal-day empty';g.appendChild(e);}for(let d=1;d<=dim;d++){const c=document.createElement('div');c.className='admin-cal-day';const ds=fmtDateKey(state.adminViewYear,state.adminViewMonth,d);const cd=new Date(state.adminViewYear,state.adminViewMonth,d);if(cd.toDateString()===today.toDateString())c.classList.add('today');if(cd.getDay()===0||cd.getDay()===6)c.classList.add('weekend');if(isBlocked(ds))c.classList.add('blocked');const db=currentBookings().filter(b=>b.date===ds);let h='<div class="admin-cal-day-num"><span>'+d+'</span>';if(isBlocked(ds))h+='<span style="font-size:9px;color:var(--ink-muted);">'+escapeHtml(blockedReason(ds))+'</span>';h+='</div>';db.slice(0,4).forEach(b=>{const t=getType(b.type);h+='<div class="admin-cal-event '+(t.color||'huwelijk')+(b.status==='cancelled'?' cancelled':'')+'" data-ref="'+b.ref+'" title="'+escapeHtml(b.name)+'">'+escapeHtml(b.name.split(' ')[0])+' · '+escapeHtml(t.label.slice(0,4))+'</div>';});if(db.length>4)h+='<div style="font-size:10px;color:var(--ink-muted);">+'+(db.length-4)+' meer</div>';c.innerHTML=h;g.appendChild(c);}g.onclick=function(e){const ev=e.target.closest('.admin-cal-event');if(ev){e.stopPropagation();openDrawer(ev.dataset.ref);}};}
+
+function renderPendingTable(){const tb=$('pending-body');tb.innerHTML='';const r=currentBookings().filter(b=>b.status==='pending').sort((a,b)=>a.date.localeCompare(b.date));if(!r.length){tb.innerHTML='<tr><td colspan="6"><div class="empty-state"><h4>Geen openstaande aanvragen</h4></div></td></tr>';return;}r.forEach(b=>{const t=getType(b.type);const tr=document.createElement('tr');tr.dataset.ref=b.ref;tr.innerHTML='<td><span class="ref-code">'+b.ref+'</span></td><td><strong style="font-weight:500;">'+tinyDateLabel(b.date)+'</strong></td><td><span class="event-tag '+(t.color||'huwelijk')+'">'+escapeHtml(t.label)+'</span></td><td><div class="user-cell"><div class="avatar '+avatarColor(b.name)+'">'+initials(b.name)+'</div><div><div class="user-name">'+escapeHtml(b.name)+'</div><div class="user-meta">'+escapeHtml(b.email)+'</div></div></div></td><td style="font-size:12px;color:var(--ink-muted);">'+relativeTime(b.createdAt)+'</td><td><div class="row-actions"><button class="icon-btn success" data-pact="confirm" data-ref="'+b.ref+'">Bevestig</button><button class="icon-btn" data-pact="view" data-ref="'+b.ref+'">Open</button></div></td>';tb.appendChild(tr);});tb.onclick=function(e){const btn=e.target.closest('button[data-pact]');if(btn){e.stopPropagation();if(btn.dataset.pact==='confirm')confirmBooking(btn.dataset.ref);else openDrawer(btn.dataset.ref);return;}const tr=e.target.closest('tr[data-ref]');if(tr)openDrawer(tr.dataset.ref);};}
+
+function renderUnpaidTable(){const tb=$('unpaid-body');tb.innerHTML='';const r=currentBookings().filter(b=>b.paid!=='paid'&&b.status!=='cancelled').sort((a,b)=>a.date.localeCompare(b.date));if(!r.length){tb.innerHTML='<tr><td colspan="7"><div class="empty-state"><h4>Geen open betalingen</h4></div></td></tr>';return;}r.forEach(b=>{const open=b.total-(b.paid==='partial'?b.deposit:0);const pl={paid:'Betaald',unpaid:'Open',partial:'Deels'}[b.paid];const tr=document.createElement('tr');tr.dataset.ref=b.ref;tr.innerHTML='<td><span class="ref-code">'+b.ref+'</span></td><td><strong style="font-weight:500;">'+tinyDateLabel(b.date)+'</strong></td><td><div class="user-cell"><div class="avatar '+avatarColor(b.name)+'">'+initials(b.name)+'</div><div><div class="user-name">'+escapeHtml(b.name)+'</div></div></div></td><td style="font-size:13px;">'+b.method+'</td><td><strong>€ '+open+'</strong></td><td><span class="badge badge-'+b.paid+'">'+pl+'</span></td><td><div class="row-actions"><button class="icon-btn success" data-uact="paid" data-ref="'+b.ref+'">Markeer betaald</button></div></td>';tb.appendChild(tr);});tb.onclick=function(e){const btn=e.target.closest('button[data-uact]');if(btn){e.stopPropagation();updatePay(btn.dataset.ref,'paid');return;}const tr=e.target.closest('tr[data-ref]');if(tr)openDrawer(tr.dataset.ref);};}
+
+function renderWaitlist(){const l=$('waitlist-list');if(!state.waitlist.length){l.innerHTML='<div class="empty-state"><h4>Geen wachtlijst</h4></div>';return;}l.innerHTML=state.waitlist.map((w,i)=>'<div class="waitlist-item"><div class="user-cell"><div class="avatar '+avatarColor(w.name)+'">'+initials(w.name)+'</div><div><strong>'+escapeHtml(w.name)+'</strong> · '+escapeHtml(w.email)+'<div class="user-meta">'+(w.type?typeLabel(w.type):'?')+' · '+dateLabel(w.date)+' · '+locLabel(w.location)+'</div><div class="user-meta">Aangemeld: '+relativeTime(w.ts)+'</div></div></div><div style="display:flex;gap:4px;"><button class="icon-btn" data-wmail="'+escapeHtml(w.email)+'">Mail</button><button class="icon-btn danger" data-wr="'+i+'">Verwijder</button></div></div>').join('');l.onclick=function(e){const wm=e.target.closest('[data-wmail]');if(wm){window.location.href='mailto:'+wm.dataset.wmail;return;}const wr=e.target.closest('[data-wr]');if(wr){state.waitlist.splice(parseInt(wr.dataset.wr),1);logAudit('Wachtlijst item verwijderd');saveAll();renderWaitlist();renderSidebarCounts();showToast('Verwijderd');}};}
+
+function renderContacts(){const tb=$('contacts-body');tb.innerHTML='';const map=new Map();currentBookings().forEach(b=>{if(!map.has(b.email))map.set(b.email,{email:b.email,name:b.name,phone:b.phone,city:b.city,count:0,total:0,lastDate:b.date});const c=map.get(b.email);c.count++;c.total+=b.deposit;if(b.date>c.lastDate)c.lastDate=b.date;});let cs=[...map.values()].sort((a,b)=>b.count-a.count);if(state.contactSearch)cs=cs.filter(c=>c.name.toLowerCase().includes(state.contactSearch)||c.email.toLowerCase().includes(state.contactSearch));if(!cs.length){tb.innerHTML='<tr><td colspan="7"><div class="empty-state"><h4>Geen contacten</h4></div></td></tr>';return;}cs.forEach(c=>{const tr=document.createElement('tr');tr.innerHTML='<td><div class="user-cell"><div class="avatar '+avatarColor(c.name)+'">'+initials(c.name)+'</div><div><div class="user-name">'+escapeHtml(c.name)+'</div></div></div></td><td style="font-size:12px;"><div>'+escapeHtml(c.email)+'</div><div style="color:var(--ink-muted);">'+escapeHtml(c.phone)+'</div></td><td>'+escapeHtml(c.city)+'</td><td><strong>'+c.count+'</strong></td><td>€ '+c.total+'</td><td style="font-size:12px;">'+tinyDateLabel(c.lastDate)+'</td><td><button class="icon-btn" data-cmail="'+escapeHtml(c.email)+'">Mail</button></td>';tb.appendChild(tr);});tb.onclick=function(e){const cm=e.target.closest('[data-cmail]');if(cm)window.location.href='mailto:'+cm.dataset.cmail;};}
+
+function renderReports(){const c1=$('chart-revenue');if(c1){if(state.charts.revenue)state.charts.revenue.destroy();const months=[],data=[];for(let i=11;i>=0;i--){const d=new Date(today.getFullYear(),today.getMonth()-i,1);months.push(monthShort[d.getMonth()]);data.push(currentBookings().filter(b=>{const[y,m]=b.date.split('-').map(Number);return y===d.getFullYear()&&m-1===d.getMonth()&&b.paid==='paid';}).reduce((s,b)=>s+b.deposit,0));}state.charts.revenue=new Chart(c1,{type:'line',data:{labels:months,datasets:[{label:'Omzet',data,borderColor:'#1f4788',backgroundColor:'rgba(31,71,136,0.1)',fill:true,tension:0.3,pointBackgroundColor:'#1f4788',pointRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{backgroundColor:'#0f172a',padding:10,cornerRadius:6,callbacks:{label:c=>'€ '+c.parsed.y.toLocaleString('nl-NL')}}},scales:{y:{beginAtZero:true,ticks:{color:'#64748b',font:{size:11},callback:v=>'€ '+v},grid:{color:'#e2e8f0'}},x:{ticks:{color:'#64748b',font:{size:11}},grid:{display:false}}}}});}const c2=$('chart-locations');if(c2){if(state.charts.loc)state.charts.loc.destroy();const cnt={};state.settings.locations.forEach(l=>cnt[l.key]=0);currentBookings().filter(b=>b.status!=='cancelled').forEach(b=>{if(cnt[b.location]!=null)cnt[b.location]++;});state.charts.loc=new Chart(c2,{type:'bar',data:{labels:state.settings.locations.map(l=>l.label),datasets:[{data:state.settings.locations.map(l=>cnt[l.key]),backgroundColor:['#1f4788','#5b21b6','#854d0e','#115e59','#475569','#1e40af'],borderRadius:4,maxBarThickness:50}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{backgroundColor:'#0f172a',padding:10,cornerRadius:6}},scales:{x:{beginAtZero:true,ticks:{stepSize:1,color:'#64748b',font:{size:11}},grid:{color:'#e2e8f0'}},y:{ticks:{color:'#64748b',font:{size:11}},grid:{display:false}}}}});}}
+
+function renderBlocked(){const l=$('blocked-list');const s=[...state.blocked].sort((a,b)=>a.date.localeCompare(b.date));if(!s.length){l.innerHTML='<p style="text-align:center;color:var(--ink-muted);padding:20px;font-size:13px;">Geen geblokkeerde data.</p>';return;}l.innerHTML=s.map(b=>'<div class="blocked-date-item"><div><strong>'+dateLabel(b.date)+'</strong>'+(b.reason?' <span style="color:var(--ink-muted);font-weight:400;">— '+escapeHtml(b.reason)+'</span>':'')+'</div><button class="icon-btn danger" data-ub="'+b.date+'">Verwijder</button></div>').join('');l.onclick=function(e){const ub=e.target.closest('[data-ub]');if(ub){state.blocked=state.blocked.filter(x=>x.date!==ub.dataset.ub);logAudit('Datum gedeblokkeerd',ub.dataset.ub);saveAll();renderBlocked();showToast('Gedeblokkeerd');}};}
+
+function renderTemplates(){const list=$('templates-list');const keys=Object.keys(state.settings.templates);list.innerHTML=keys.map(k=>{const t=state.settings.templates[k];return'<div class="template-row" data-tpl="'+k+'"><div class="template-row-head" data-toggle="'+k+'"><strong>'+escapeHtml(t.label||k)+'</strong><span class="chev">›</span></div><div class="template-row-body"><div class="form-row"><div class="field" style="grid-column:1/-1;"><label>Onderwerp</label><input type="text" data-tpl-subj="'+k+'" value="'+escapeHtml(t.subject)+'"></div></div><div class="field" style="margin-bottom:10px;"><label>Bericht</label><textarea data-tpl-body="'+k+'" style="min-height:160px;font-family:var(--font-mono);font-size:12px;">'+escapeHtml(t.body)+'</textarea></div><div style="display:flex;gap:6px;"><button class="btn btn-sm" data-tpl-save="'+k+'">Opslaan</button><button class="btn btn-sm btn-ghost" data-tpl-reset="'+k+'">Standaard herstellen</button></div></div></div>';}).join('');list.onclick=function(e){const tg=e.target.closest('[data-toggle]');if(tg){tg.parentElement.classList.toggle('open');return;}const sv=e.target.closest('[data-tpl-save]');if(sv){const k=sv.dataset.tplSave;state.settings.templates[k].subject=list.querySelector('[data-tpl-subj="'+k+'"]').value;state.settings.templates[k].body=list.querySelector('[data-tpl-body="'+k+'"]').value;saveAll();logAudit('E-mailsjabloon gewijzigd',state.settings.templates[k].label||k);showToast('Sjabloon opgeslagen','success');return;}const rs=e.target.closest('[data-tpl-reset]');if(rs){const k=rs.dataset.tplReset;if(defaultTemplates[k]){state.settings.templates[k]=JSON.parse(JSON.stringify(defaultTemplates[k]));saveAll();renderTemplates();showToast('Hersteld','success');}}};}
+
+function renderAudit(){const el=$('audit-list');if(!state.audit.length){el.innerHTML='<div class="empty-state"><h4>Nog geen activiteit</h4><div>Acties van beheerders worden hier getoond.</div></div>';return;}el.innerHTML=state.audit.map(a=>'<div class="audit-item"><div class="audit-time">'+formatDateTime(a.ts)+'</div><div class="audit-content"><strong>'+escapeHtml(a.action)+'</strong>'+(a.detail?' — <span style="color:var(--ink-muted);">'+escapeHtml(a.detail)+'</span>':'')+'<div><span class="audit-who">'+escapeHtml(a.who)+'</span></div></div></div>').join('');}
+
+function exportCSV(){const headers=['Ref','Datum','Type','Locatie','Naam','E-mail','Telefoon','Plaats','Genodigden','Status','Betaling','Totaal','Voorschot','Methode'];const rows=currentBookings().map(b=>[b.ref,b.date,typeLabel(b.type),locLabel(b.location),b.name,b.email,b.phone,b.city,b.guests,b.status,b.paid,b.total,b.deposit,b.method]);const csv=[headers,...rows].map(r=>r.map(v=>'"'+String(v||'').replace(/"/g,'""')+'"').join(',')).join('\n');const blob=new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='reserveringen-'+fmtDateKey(today.getFullYear(),today.getMonth(),today.getDate())+'.csv';a.click();showToast('CSV gedownload','success');}
+// === i18n ===
+const I18N={
+  nl:{nav_booking:'Reserveren',nav_admin:'Beheer',sb_register:'Kerkelijk register',sb_register_btn:'Doop · Huwelijk · Leden',sb_management:'Beheer',reg_title:'Kerkelijk register',reg_sub:'Doop, huwelijk en lidmaatschap. Gedeeld over alle parochies binnen het bisdom.',reg_add:'+ Inschrijving',reg_baptism:'Doopregister',reg_marriage:'Huwelijksregister',reg_family:'Lidmaatschap gezinnen',parish_select:'Selecteer parochie',parish_sub:'Kies de parochie waarvoor u gegevens wilt zien of bewerken.',close:'Sluiten',toast_lang:'Taal gewijzigd',toast_parish:'Parochie gewijzigd'},
+  sy:{nav_booking:'ܛܘܟܣܐ',nav_admin:'ܡܕܒܪܢܘܬܐ',sb_register:'ܣܦܪܐ ܕܥܕܬܐ',sb_register_btn:'ܡܥܡܘܕܝܬܐ · ܙܘܘܓܐ · ܒܢ̈ܝܐ',sb_management:'ܡܕܒܪܢܘܬܐ',reg_title:'ܣܦܪܐ ܥܕܬܢܝܐ',reg_sub:'ܡܥܡܘܕܝܬܐ، ܙܘܘܓܐ ܘܡܫܘܬܦܘܬܐ܂ ܫܪܝܟ ܒܝܬ ܟܠ ܥܕ̈ܬܐ ܕܐܦܣܩܦܘܬܐ܂',reg_add:'+ ܛܘܟܣܐ',reg_baptism:'ܣܦܪܐ ܕܡܥܡܘܕܝܬܐ',reg_marriage:'ܣܦܪܐ ܕܙܘܘܓܐ',reg_family:'ܡܫܘܬܦܘܬܐ ܕܒܝ̈ܬܝܐ',parish_select:'ܓܒܝ ܥܕܬܐ',parish_sub:'ܓܒܝ ܥܕܬܐ ܕܒܥܐ ܐܢܬ ܠܡܚܙܐ ܐܘ ܠܡܫܚܠܦܘ ܛܒ̈ܝܗ܂',close:'ܣܘܟܪܐ',toast_lang:'ܠܫܢܐ ܐܫܬܚܠܦ',toast_parish:'ܥܕܬܐ ܐܫܬܚܠܦܬ'},
+  de:{nav_booking:'Reservierung',nav_admin:'Verwaltung',sb_register:'Kirchenregister',sb_register_btn:'Taufe · Ehe · Mitglieder',sb_management:'Verwaltung',reg_title:'Kirchenregister',reg_sub:'Taufe, Ehe und Mitgliedschaft. Geteilt über alle Pfarreien innerhalb der Eparchie.',reg_add:'+ Eintrag',reg_baptism:'Taufregister',reg_marriage:'Eheregister',reg_family:'Familienmitgliedschaft',parish_select:'Pfarrei wählen',parish_sub:'Wählen Sie die Pfarrei, für die Sie Daten ansehen oder bearbeiten möchten.',close:'Schließen',toast_lang:'Sprache geändert',toast_parish:'Pfarrei geändert'}
+};
+
+function t(key){const lang=state.lang||'nl';return(I18N[lang]&&I18N[lang][key])||I18N.nl[key]||key;}
+function applyI18n(){document.querySelectorAll('[data-i18n]').forEach(el=>{const k=el.dataset.i18n;const v=t(k);if(v)el.textContent=v;});document.documentElement.dir=state.lang==='sy'?'rtl':'ltr';document.documentElement.lang=state.lang;document.body.classList.toggle('suryoyo',state.lang==='sy');}
+
+function setLang(lang){state.lang=lang;saveAll();document.querySelectorAll('.lang-btn').forEach(b=>b.classList.toggle('active',b.dataset.lang===lang));applyI18n();showToast(t('toast_lang'),'success');}
+
+// === Parishes (multi-tenant) ===
+const defaultParishes=[
+  {id:'glane',name:'Mor Ephrem Klooster',shortMark:'ME',address:'Glanerbrugstraat 33, Glane',phone:'053 461 47 64',email:'info@morephrem.nl',iban:'NL00 INGB 0000 0000 00',hours:'Werkdagen 9.00 - 17.00 uur',city:'Glane',country:'NL'},
+  {id:'enschede',name:'Mor Kuryakos',shortMark:'MK',address:'Voorbeeldstraat 1, Enschede',phone:'053 000 00 00',email:'info@morkuryakos.nl',iban:'NL11 INGB 0000 0000 11',hours:'Werkdagen 10.00 - 16.00 uur',city:'Enschede',country:'NL'},
+  {id:'hengelo',name:'Mor Yulios',shortMark:'MY',address:'Voorbeeldweg 5, Hengelo',phone:'074 000 00 00',email:'info@moryulios.nl',iban:'NL22 INGB 0000 0000 22',hours:'Werkdagen 9.00 - 15.00 uur',city:'Hengelo',country:'NL'}
+];
+
+function getParish(id){return state.parishes.find(p=>p.id===id)||state.parishes[0];}
+function currentParish(){return getParish(state.currentParishId);}
+
+function applyParish(){const p=currentParish();if(!p)return;$('current-parish-name').textContent=p.name;$('brand-name').textContent=p.name;$('brand-mark').textContent=p.shortMark||p.name.slice(0,2).toUpperCase();$('footer-name').textContent=p.name;$('footer-address').textContent=p.address;$('footer-phone').textContent=p.phone;$('footer-hours').textContent=p.hours;document.title=p.name+' · Reserveringen';}
+
+function setupParishSwitcher(){
+  $('parish-switcher-btn').addEventListener('click',()=>{
+    const list=$('parish-list');
+    list.innerHTML=state.parishes.map(p=>'<div class="parish-card'+(p.id===state.currentParishId?' active':'')+'" data-pid="'+p.id+'"><div class="parish-card-info"><strong>'+escapeHtml(p.name)+'</strong><small>'+escapeHtml(p.address)+'</small></div>'+(p.id===state.currentParishId?'<span class="parish-card-badge">Actief</span>':'')+'</div>').join('');
+    list.onclick=function(e){const c=e.target.closest('[data-pid]');if(c){state.currentParishId=c.dataset.pid;saveAll();applyParish();renderEventGrid();renderCelebrants();renderCalendar();if(state.adminAuth)renderAdmin();$('parish-modal').classList.remove('show');showToast(t('toast_parish'),'success');}};
+    $('parish-modal').classList.add('show');
+  });
+  $('parish-modal-close').addEventListener('click',()=>$('parish-modal').classList.remove('show'));
+  $('parish-modal').addEventListener('click',e=>{if(e.target.id==='parish-modal')e.target.classList.remove('show');});
+}
+
+function setupLangSwitcher(){document.querySelectorAll('.lang-btn').forEach(b=>{b.addEventListener('click',()=>setLang(b.dataset.lang));});}
+
+// Filter bookings by current parish
+const _origGetFiltered=window.getFiltered||null;
+
+// === Registers ===
+function defaultRegisters(){return{baptism:[],marriage:[],family:[]};}
+
+function seedRegisterDemo(){
+  if(state.registers.baptism.length>0)return;
+  state.registers.baptism=[
+    {id:'B-001',parishId:'glane',firstname:'Sami',firstnameSy:'ܣܐܡܝ',lastname:'Aydin',lastnameSy:'ܐܝܕܝܢ',birthDate:'2024-03-15',birthPlace:'Hengelo',baptismDate:'2024-06-22',baptismPlace:'Mor Ephrem, Glane',father:'Joseph Aydin',mother:'Maria Aydin-Hanna',godfather:'Boutros Aydin',godmother:'Sara Hanna',celebrant:'Pater Saït',notes:'',createdAt:new Date(2024,5,22).toISOString()},
+    {id:'B-002',parishId:'glane',firstname:'Maria',firstnameSy:'ܡܪܝܡ',lastname:'Yacoub',lastnameSy:'ܝܥܩܘܒ',birthDate:'2023-11-08',birthPlace:'Enschede',baptismDate:'2024-02-10',baptismPlace:'Mor Ephrem, Glane',father:'Anton Yacoub',mother:'Petra Yacoub-Toma',godfather:'George Toma',godmother:'Therese Najjar',celebrant:'Aartsbisschop Mor Polycarpus',notes:'',createdAt:new Date(2024,1,10).toISOString()},
+    {id:'B-003',parishId:'enschede',firstname:'Boutros',firstnameSy:'ܦܛܪܘܣ',lastname:'Daoud',lastnameSy:'ܕܘܕ',birthDate:'2024-01-20',birthPlace:'Almelo',baptismDate:'2024-04-14',baptismPlace:'Mor Kuryakos, Enschede',father:'Marcus Daoud',mother:'Sara Daoud-Saliba',godfather:'Joseph Khoury',godmother:'Maria Saliba',celebrant:'Pater Saït',notes:'',createdAt:new Date(2024,3,14).toISOString()}
+  ];
+  state.registers.marriage=[
+    {id:'M-001',parishId:'glane',groomFirstname:'Karim',groomLastname:'Sayegh',groomBirthDate:'1995-04-12',groomBaptismRef:'',brideFirstname:'Therese',brideLastname:'Najjar',brideBirthDate:'1997-08-25',brideBaptismRef:'',date:'2024-08-17',place:'Mor Ephrem, Glane',celebrant:'Aartsbisschop Mor Polycarpus',witness1:'Anton Yacoub',witness2:'Maria Saliba',notes:'',createdAt:new Date(2024,7,17).toISOString()},
+    {id:'M-002',parishId:'glane',groomFirstname:'Joseph',groomLastname:'Aydin',groomBirthDate:'1990-02-03',groomBaptismRef:'',brideFirstname:'Maria',brideLastname:'Hanna',brideBirthDate:'1993-06-18',brideBaptismRef:'',date:'2018-05-26',place:'Mor Ephrem, Glane',celebrant:'Pater Saït',witness1:'Boutros Aydin',witness2:'Sara Hanna',notes:'',createdAt:new Date(2018,4,26).toISOString()}
+  ];
+  state.registers.family=[
+    {id:'F-001',parishId:'glane',headName:'Joseph Aydin',headBirthDate:'1990-02-03',partnerName:'Maria Aydin-Hanna',partnerBirthDate:'1993-06-18',children:[{name:'Sami Aydin',birthDate:'2024-03-15'}],address:'Hoofdstraat 12, Hengelo',phone:'+31 6 12345678',email:'aydin@example.nl',memberSince:'2018-05-26',annualContribution:'paid',notes:'',createdAt:new Date(2018,4,26).toISOString()},
+    {id:'F-002',parishId:'glane',headName:'Anton Yacoub',headBirthDate:'1988-09-11',partnerName:'Petra Yacoub-Toma',partnerBirthDate:'1991-12-05',children:[{name:'Maria Yacoub',birthDate:'2023-11-08'}],address:'Voorbeeldlaan 7, Enschede',phone:'+31 6 87654321',email:'yacoub@example.nl',memberSince:'2020-03-15',annualContribution:'pending',notes:'',createdAt:new Date(2020,2,15).toISOString()}
+  ];
+  saveAll();
+}
+
+let registerTab='baptism';
+function renderRegister(){
+  const root=$('register-content');
+  document.querySelectorAll('.register-tab').forEach(t=>t.classList.toggle('active',t.dataset.rtab===registerTab));
+  const search=(state.registerSearch||'').toLowerCase();
+  if(registerTab==='baptism'){
+    let rows=state.registers.baptism.filter(r=>r.parishId===state.currentParishId);
+    if(search)rows=rows.filter(r=>(r.firstname+' '+r.lastname).toLowerCase().includes(search));
+    if(!rows.length){root.innerHTML='<div class="empty-state"><h4>Geen inschrijvingen</h4><div>Klik op + Inschrijving om de eerste toe te voegen.</div></div>';return;}
+    root.innerHTML='<div class="register-list">'+rows.map(r=>'<div class="register-row" data-rid="'+r.id+'"><div class="register-row-info"><strong>'+escapeHtml(r.firstname+' '+r.lastname)+(r.firstnameSy?' <span class="suryoyo" style="color:var(--ink-muted);font-weight:400;">'+escapeHtml(r.firstnameSy+' '+r.lastnameSy)+'</span>':'')+'</strong><small>Gedoopt op '+shortDateLabel(r.baptismDate)+' · '+escapeHtml(r.baptismPlace)+'</small></div><div class="register-row-meta">'+escapeHtml(r.id)+'<br>'+escapeHtml(r.celebrant)+'</div></div>').join('')+'</div>';
+    root.onclick=function(e){const row=e.target.closest('[data-rid]');if(row)editBaptismModal(row.dataset.rid);};
+  } else if(registerTab==='marriage'){
+    let rows=state.registers.marriage.filter(r=>r.parishId===state.currentParishId);
+    if(search)rows=rows.filter(r=>(r.groomFirstname+' '+r.groomLastname+' '+r.brideFirstname+' '+r.brideLastname).toLowerCase().includes(search));
+    if(!rows.length){root.innerHTML='<div class="empty-state"><h4>Geen huwelijken geregistreerd</h4></div>';return;}
+    root.innerHTML='<div class="register-list">'+rows.map(r=>'<div class="register-row" data-mid="'+r.id+'"><div class="register-row-info"><strong>'+escapeHtml(r.groomFirstname+' '+r.groomLastname)+' &amp; '+escapeHtml(r.brideFirstname+' '+r.brideLastname)+'</strong><small>Gehuwd op '+shortDateLabel(r.date)+' · '+escapeHtml(r.place)+'</small></div><div class="register-row-meta">'+escapeHtml(r.id)+'<br>'+escapeHtml(r.celebrant)+'</div></div>').join('')+'</div>';
+    root.onclick=function(e){const row=e.target.closest('[data-mid]');if(row)editMarriageModal(row.dataset.mid);};
+  } else {
+    let rows=state.registers.family.filter(r=>r.parishId===state.currentParishId);
+    if(search)rows=rows.filter(r=>(r.headName+' '+(r.partnerName||'')).toLowerCase().includes(search));
+    if(!rows.length){root.innerHTML='<div class="empty-state"><h4>Geen gezinnen geregistreerd</h4></div>';return;}
+    root.innerHTML='<div class="register-list">'+rows.map(r=>{const kids=(r.children||[]).map(c=>escapeHtml(c.name)).join(', ')||'Geen';const cb={paid:'Betaald',pending:'Open',exempt:'Vrijgesteld'}[r.annualContribution]||'-';return'<div class="register-row" data-fid="'+r.id+'"><div class="register-row-info"><strong>'+escapeHtml(r.headName)+(r.partnerName?' &amp; '+escapeHtml(r.partnerName):'')+'</strong><small>Kinderen: '+kids+' · Lid sinds '+shortDateLabel(r.memberSince)+'</small></div><div class="register-row-meta">'+escapeHtml(r.id)+'<br>Bijdrage: '+cb+'</div></div>';}).join('')+'</div>';
+    root.onclick=function(e){const row=e.target.closest('[data-fid]');if(row)editFamilyModal(row.dataset.fid);};
+  }
+}
+
+function setupRegister(){
+  document.querySelectorAll('.register-tab').forEach(t=>{t.addEventListener('click',()=>{registerTab=t.dataset.rtab;renderRegister();});});
+  $('register-search').addEventListener('input',e=>{state.registerSearch=e.target.value;renderRegister();});
+  $('reg-add-btn').addEventListener('click',()=>{if(registerTab==='baptism')editBaptismModal(null);else if(registerTab==='marriage')editMarriageModal(null);else editFamilyModal(null);});
+}
+
+function editBaptismModal(id){
+  const isNew=!id;const r=isNew?{id:'B-'+String(state.registers.baptism.length+1).padStart(3,'0'),parishId:state.currentParishId,firstname:'',firstnameSy:'',lastname:'',lastnameSy:'',birthDate:'',birthPlace:'',baptismDate:'',baptismPlace:currentParish().name+', '+currentParish().city,father:'',mother:'',godfather:'',godmother:'',celebrant:'',notes:''}:state.registers.baptism.find(x=>x.id===id);
+  const celOpts=state.settings.celebrants.map(c=>'<option'+(c===r.celebrant?' selected':'')+'>'+escapeHtml(c)+'</option>').join('');
+  showModal((isNew?'Nieuwe doopinschrijving':'Doopinschrijving '+r.id),
+    '<div class="bilingual-row">'+
+    '<div class="field"><label>Voornaam <small>(Latijn)</small></label><input type="text" id="b-fn" value="'+escapeHtml(r.firstname)+'"></div>'+
+    '<div class="field"><label>Voornaam <small class="suryoyo">(ܣܘܪܝܝܐ)</small></label><input type="text" id="b-fn-sy" class="suryoyo" dir="rtl" value="'+escapeHtml(r.firstnameSy)+'"></div>'+
+    '</div>'+
+    '<div class="bilingual-row">'+
+    '<div class="field"><label>Achternaam <small>(Latijn)</small></label><input type="text" id="b-ln" value="'+escapeHtml(r.lastname)+'"></div>'+
+    '<div class="field"><label>Achternaam <small class="suryoyo">(ܣܘܪܝܝܐ)</small></label><input type="text" id="b-ln-sy" class="suryoyo" dir="rtl" value="'+escapeHtml(r.lastnameSy)+'"></div>'+
+    '</div>'+
+    '<div class="form-row"><div class="field"><label>Geboortedatum</label><input type="date" id="b-bd" value="'+r.birthDate+'"></div><div class="field"><label>Geboorteplaats</label><input type="text" id="b-bp" value="'+escapeHtml(r.birthPlace)+'"></div></div>'+
+    '<div class="form-row"><div class="field"><label>Doopdatum</label><input type="date" id="b-dd" value="'+r.baptismDate+'"></div><div class="field"><label>Doopplaats</label><input type="text" id="b-dp" value="'+escapeHtml(r.baptismPlace)+'"></div></div>'+
+    '<div class="form-row"><div class="field"><label>Vader</label><input type="text" id="b-fa" value="'+escapeHtml(r.father)+'"></div><div class="field"><label>Moeder</label><input type="text" id="b-mo" value="'+escapeHtml(r.mother)+'"></div></div>'+
+    '<div class="form-row"><div class="field"><label>Peetvader</label><input type="text" id="b-gf" value="'+escapeHtml(r.godfather)+'"></div><div class="field"><label>Peetmoeder</label><input type="text" id="b-gm" value="'+escapeHtml(r.godmother)+'"></div></div>'+
+    '<div class="field" style="margin-bottom:10px;"><label>Bedienaar</label><select id="b-cel"><option value="">Kies celebrant</option>'+celOpts+'</select></div>'+
+    '<div class="field"><label>Aantekeningen</label><textarea id="b-notes">'+escapeHtml(r.notes)+'</textarea></div>'+
+    (isNew?'':'<div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--line);display:flex;gap:6px;flex-wrap:wrap;"><button class="btn btn-sm btn-ghost" id="b-cert">Doopcertificaat (PDF)</button><button class="btn btn-sm btn-danger" id="b-del">Verwijder inschrijving</button></div>'),
+    ()=>{
+      r.firstname=$('b-fn').value.trim();r.firstnameSy=$('b-fn-sy').value.trim();
+      r.lastname=$('b-ln').value.trim();r.lastnameSy=$('b-ln-sy').value.trim();
+      r.birthDate=$('b-bd').value;r.birthPlace=$('b-bp').value.trim();
+      r.baptismDate=$('b-dd').value;r.baptismPlace=$('b-dp').value.trim();
+      r.father=$('b-fa').value.trim();r.mother=$('b-mo').value.trim();
+      r.godfather=$('b-gf').value.trim();r.godmother=$('b-gm').value.trim();
+      r.celebrant=$('b-cel').value;r.notes=$('b-notes').value.trim();
+      if(!r.firstname||!r.lastname||!r.baptismDate){showToast('Voornaam, achternaam en doopdatum vereist','error');return;}
+      if(isNew){r.createdAt=new Date().toISOString();state.registers.baptism.push(r);}
+      saveAll();logAudit(isNew?'Doopinschrijving toegevoegd':'Doopinschrijving bewerkt',r.id+' '+r.firstname+' '+r.lastname);closeModal();renderRegister();showToast('Opgeslagen','success');
+    },true);
+  if(!isNew){setTimeout(()=>{const cb=$('b-cert'),db=$('b-del');if(cb)cb.addEventListener('click',()=>downloadBaptismCert(r));if(db)db.addEventListener('click',()=>{showModal('Verwijderen','Inschrijving '+r.id+' permanent verwijderen?',()=>{state.registers.baptism=state.registers.baptism.filter(x=>x.id!==r.id);saveAll();logAudit('Doopinschrijving verwijderd',r.id);closeModal();renderRegister();showToast('Verwijderd');});});},50);}
+}
+
+function editMarriageModal(id){
+  const isNew=!id;const r=isNew?{id:'M-'+String(state.registers.marriage.length+1).padStart(3,'0'),parishId:state.currentParishId,groomFirstname:'',groomLastname:'',groomBirthDate:'',groomBaptismRef:'',brideFirstname:'',brideLastname:'',brideBirthDate:'',brideBaptismRef:'',date:'',place:currentParish().name+', '+currentParish().city,celebrant:'',witness1:'',witness2:'',notes:''}:state.registers.marriage.find(x=>x.id===id);
+  const celOpts=state.settings.celebrants.map(c=>'<option'+(c===r.celebrant?' selected':'')+'>'+escapeHtml(c)+'</option>').join('');
+  const baptismOpts='<option value="">Geen / extern</option>'+state.registers.baptism.map(b=>'<option value="'+b.id+'">'+escapeHtml(b.id+' — '+b.firstname+' '+b.lastname+' ('+b.baptismDate+')')+'</option>').join('');
+  showModal(isNew?'Nieuwe huwelijksinschrijving':'Huwelijksinschrijving '+r.id,
+    '<h4 style="font-size:13px;margin-bottom:8px;color:var(--ink-soft);">Bruidegom</h4>'+
+    '<div class="form-row"><div class="field"><label>Voornaam</label><input type="text" id="m-gfn" value="'+escapeHtml(r.groomFirstname)+'"></div><div class="field"><label>Achternaam</label><input type="text" id="m-gln" value="'+escapeHtml(r.groomLastname)+'"></div></div>'+
+    '<div class="form-row"><div class="field"><label>Geboortedatum</label><input type="date" id="m-gbd" value="'+r.groomBirthDate+'"></div><div class="field"><label>Doopinschrijving (kruisverwijzing)</label><select id="m-gref">'+baptismOpts.replace('value="'+r.groomBaptismRef+'"','value="'+r.groomBaptismRef+'" selected')+'</select></div></div>'+
+    '<h4 style="font-size:13px;margin:14px 0 8px;color:var(--ink-soft);">Bruid</h4>'+
+    '<div class="form-row"><div class="field"><label>Voornaam</label><input type="text" id="m-bfn" value="'+escapeHtml(r.brideFirstname)+'"></div><div class="field"><label>Achternaam</label><input type="text" id="m-bln" value="'+escapeHtml(r.brideLastname)+'"></div></div>'+
+    '<div class="form-row"><div class="field"><label>Geboortedatum</label><input type="date" id="m-bbd" value="'+r.brideBirthDate+'"></div><div class="field"><label>Doopinschrijving (kruisverwijzing)</label><select id="m-bref">'+baptismOpts.replace('value="'+r.brideBaptismRef+'"','value="'+r.brideBaptismRef+'" selected')+'</select></div></div>'+
+    '<h4 style="font-size:13px;margin:14px 0 8px;color:var(--ink-soft);">Plechtigheid</h4>'+
+    '<div class="form-row"><div class="field"><label>Datum</label><input type="date" id="m-date" value="'+r.date+'"></div><div class="field"><label>Plaats</label><input type="text" id="m-place" value="'+escapeHtml(r.place)+'"></div></div>'+
+    '<div class="field" style="margin-bottom:10px;"><label>Bedienaar</label><select id="m-cel"><option value="">Kies celebrant</option>'+celOpts+'</select></div>'+
+    '<div class="form-row"><div class="field"><label>Getuige 1</label><input type="text" id="m-w1" value="'+escapeHtml(r.witness1)+'"></div><div class="field"><label>Getuige 2</label><input type="text" id="m-w2" value="'+escapeHtml(r.witness2)+'"></div></div>'+
+    '<div class="field"><label>Aantekeningen</label><textarea id="m-notes">'+escapeHtml(r.notes)+'</textarea></div>'+
+    (isNew?'':'<div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--line);display:flex;gap:6px;flex-wrap:wrap;"><button class="btn btn-sm btn-ghost" id="m-cert">Huwelijksakte (PDF)</button><button class="btn btn-sm btn-danger" id="m-del">Verwijder</button></div>'),
+    ()=>{
+      r.groomFirstname=$('m-gfn').value.trim();r.groomLastname=$('m-gln').value.trim();r.groomBirthDate=$('m-gbd').value;r.groomBaptismRef=$('m-gref').value;
+      r.brideFirstname=$('m-bfn').value.trim();r.brideLastname=$('m-bln').value.trim();r.brideBirthDate=$('m-bbd').value;r.brideBaptismRef=$('m-bref').value;
+      r.date=$('m-date').value;r.place=$('m-place').value.trim();r.celebrant=$('m-cel').value;
+      r.witness1=$('m-w1').value.trim();r.witness2=$('m-w2').value.trim();r.notes=$('m-notes').value.trim();
+      if(!r.groomFirstname||!r.brideFirstname||!r.date){showToast('Namen en datum vereist','error');return;}
+      if(isNew){r.createdAt=new Date().toISOString();state.registers.marriage.push(r);}
+      saveAll();logAudit(isNew?'Huwelijksinschrijving toegevoegd':'Huwelijksinschrijving bewerkt',r.id);closeModal();renderRegister();showToast('Opgeslagen','success');
+    },true);
+  if(!isNew){setTimeout(()=>{const cb=$('m-cert'),db=$('m-del');if(cb)cb.addEventListener('click',()=>downloadMarriageCert(r));if(db)db.addEventListener('click',()=>{showModal('Verwijderen','Inschrijving '+r.id+' verwijderen?',()=>{state.registers.marriage=state.registers.marriage.filter(x=>x.id!==r.id);saveAll();logAudit('Huwelijksinschrijving verwijderd',r.id);closeModal();renderRegister();showToast('Verwijderd');});});},50);}
+}
+
+function editFamilyModal(id){
+  const isNew=!id;const r=isNew?{id:'F-'+String(state.registers.family.length+1).padStart(3,'0'),parishId:state.currentParishId,headName:'',headBirthDate:'',partnerName:'',partnerBirthDate:'',children:[],address:'',phone:'',email:'',memberSince:'',annualContribution:'pending',notes:''}:state.registers.family.find(x=>x.id===id);
+  const childrenJson=JSON.stringify(r.children||[]);
+  showModal(isNew?'Nieuw gezin':'Gezin '+r.id,
+    '<div class="form-row"><div class="field"><label>Hoofd van gezin</label><input type="text" id="f-hn" value="'+escapeHtml(r.headName)+'"></div><div class="field"><label>Geboortedatum</label><input type="date" id="f-hbd" value="'+r.headBirthDate+'"></div></div>'+
+    '<div class="form-row"><div class="field"><label>Partner</label><input type="text" id="f-pn" value="'+escapeHtml(r.partnerName||'')+'"></div><div class="field"><label>Geboortedatum partner</label><input type="date" id="f-pbd" value="'+(r.partnerBirthDate||'')+'"></div></div>'+
+    '<div class="field" style="margin-bottom:10px;"><label>Kinderen (één per regel: Naam | yyyy-mm-dd)</label><textarea id="f-kids" rows="3">'+(r.children||[]).map(c=>c.name+' | '+c.birthDate).join('\n')+'</textarea></div>'+
+    '<div class="field" style="margin-bottom:10px;"><label>Adres</label><input type="text" id="f-addr" value="'+escapeHtml(r.address)+'"></div>'+
+    '<div class="form-row"><div class="field"><label>Telefoon</label><input type="text" id="f-phone" value="'+escapeHtml(r.phone)+'"></div><div class="field"><label>E-mail</label><input type="email" id="f-email" value="'+escapeHtml(r.email)+'"></div></div>'+
+    '<div class="form-row"><div class="field"><label>Lid sinds</label><input type="date" id="f-since" value="'+r.memberSince+'"></div><div class="field"><label>Jaarbijdrage</label><select id="f-cb"><option value="paid"'+(r.annualContribution==='paid'?' selected':'')+'>Betaald</option><option value="pending"'+(r.annualContribution==='pending'?' selected':'')+'>Open</option><option value="exempt"'+(r.annualContribution==='exempt'?' selected':'')+'>Vrijgesteld</option></select></div></div>'+
+    '<div class="field"><label>Aantekeningen</label><textarea id="f-notes">'+escapeHtml(r.notes)+'</textarea></div>'+
+    (isNew?'':'<div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--line);"><button class="btn btn-sm btn-danger" id="f-del">Verwijder gezin</button></div>'),
+    ()=>{
+      r.headName=$('f-hn').value.trim();r.headBirthDate=$('f-hbd').value;
+      r.partnerName=$('f-pn').value.trim();r.partnerBirthDate=$('f-pbd').value;
+      const kids=$('f-kids').value.split('\n').map(l=>l.trim()).filter(Boolean).map(l=>{const p=l.split('|').map(x=>x.trim());return{name:p[0]||'',birthDate:p[1]||''};});
+      r.children=kids;
+      r.address=$('f-addr').value.trim();r.phone=$('f-phone').value.trim();r.email=$('f-email').value.trim();
+      r.memberSince=$('f-since').value;r.annualContribution=$('f-cb').value;r.notes=$('f-notes').value.trim();
+      if(!r.headName){showToast('Naam vereist','error');return;}
+      if(isNew){r.createdAt=new Date().toISOString();state.registers.family.push(r);}
+      saveAll();logAudit(isNew?'Gezin toegevoegd':'Gezin bewerkt',r.id+' '+r.headName);closeModal();renderRegister();showToast('Opgeslagen','success');
+    },true);
+  if(!isNew){setTimeout(()=>{const db=$('f-del');if(db)db.addEventListener('click',()=>{showModal('Verwijderen','Gezin '+r.id+' verwijderen?',()=>{state.registers.family=state.registers.family.filter(x=>x.id!==r.id);saveAll();logAudit('Gezin verwijderd',r.id);closeModal();renderRegister();showToast('Verwijderd');});});},50);}
+}
+
+function downloadBaptismCert(r){
+  const p=getParish(r.parishId);
+  const html='<!DOCTYPE html><html><head><meta charset="utf-8"><title>Doopcertificaat '+r.id+'</title><style>body{font-family:Georgia,serif;padding:48px;max-width:700px;margin:0 auto;color:#0f172a;line-height:1.7}.header{text-align:center;border-bottom:3px double #1f4788;padding-bottom:18px;margin-bottom:24px}.header h1{font-size:24px;margin-bottom:4px;color:#1f4788}.header .sy{font-size:18px;font-family:"Estrangelo Edessa",serif;direction:rtl;margin-top:6px}.header small{color:#64748b}h2{text-align:center;font-size:20px;margin:24px 0 8px;color:#1f4788}h2 .sy{display:block;font-size:16px;font-family:"Estrangelo Edessa",serif;direction:rtl;margin-top:4px}dl{display:grid;grid-template-columns:1fr 2fr;gap:8px 16px;margin:24px 0;font-size:14px}dt{color:#64748b;font-weight:400}dd{font-weight:600;margin:0}.signature{margin-top:48px;display:flex;justify-content:space-between;font-size:12px;color:#64748b}.sigline{border-top:1px solid #cbd5e1;padding-top:6px;width:200px;text-align:center}</style></head><body><div class="header"><h1>'+escapeHtml(p.name)+'</h1><div class="sy suryoyo">ܥܕܬܐ ܣܘܪܝܝܬܐ ܐܪܬܘܕܘܟܣܝܬܐ</div><small>'+escapeHtml(p.address)+'</small></div><h2>Doopcertificaat<span class="sy suryoyo">ܫܘܘܕܥܐ ܕܡܥܡܘܕܝܬܐ</span></h2><p style="text-align:center;font-style:italic;color:#475569;">Hierbij wordt verklaard dat</p><div style="text-align:center;font-size:22px;margin:16px 0;font-weight:600;">'+escapeHtml(r.firstname+' '+r.lastname)+(r.firstnameSy?'<br><span class="suryoyo" style="font-size:18px;">'+escapeHtml(r.firstnameSy+' '+r.lastnameSy)+'</span>':'')+'</div><p style="text-align:center;color:#475569;">in het heilig sacrament van de doop is opgenomen volgens de gebruiken van de Syrisch-Orthodoxe Kerk.</p><dl><dt>Geboren op</dt><dd>'+(r.birthDate?dateLabel(r.birthDate):'-')+'</dd><dt>Te</dt><dd>'+escapeHtml(r.birthPlace||'-')+'</dd><dt>Vader</dt><dd>'+escapeHtml(r.father||'-')+'</dd><dt>Moeder</dt><dd>'+escapeHtml(r.mother||'-')+'</dd><dt>Gedoopt op</dt><dd>'+dateLabel(r.baptismDate)+'</dd><dt>In</dt><dd>'+escapeHtml(r.baptismPlace)+'</dd><dt>Door</dt><dd>'+escapeHtml(r.celebrant||'-')+'</dd><dt>Peetvader</dt><dd>'+escapeHtml(r.godfather||'-')+'</dd><dt>Peetmoeder</dt><dd>'+escapeHtml(r.godmother||'-')+'</dd><dt>Inschrijfnummer</dt><dd>'+escapeHtml(r.id)+'</dd></dl><div class="signature"><div class="sigline">Bedienaar</div><div class="sigline">Parochie zegel</div></div><scr'+'ipt>window.onload=()=>setTimeout(()=>window.print(),300)</scr'+'ipt></body></html>';
+  const url=URL.createObjectURL(new Blob([html],{type:'text/html'}));window.open(url,'_blank');showToast('Certificaat geopend','success');
+}
+
+function downloadMarriageCert(r){
+  const p=getParish(r.parishId);
+  const html='<!DOCTYPE html><html><head><meta charset="utf-8"><title>Huwelijksakte '+r.id+'</title><style>body{font-family:Georgia,serif;padding:48px;max-width:700px;margin:0 auto;color:#0f172a;line-height:1.7}.header{text-align:center;border-bottom:3px double #1f4788;padding-bottom:18px;margin-bottom:24px}.header h1{font-size:24px;margin-bottom:4px;color:#1f4788}h2{text-align:center;font-size:20px;margin:24px 0 8px;color:#1f4788}dl{display:grid;grid-template-columns:1fr 2fr;gap:8px 16px;margin:24px 0;font-size:14px}dt{color:#64748b;font-weight:400}dd{font-weight:600;margin:0}.signature{margin-top:48px;display:flex;justify-content:space-between;font-size:12px;color:#64748b}.sigline{border-top:1px solid #cbd5e1;padding-top:6px;width:160px;text-align:center}</style></head><body><div class="header"><h1>'+escapeHtml(p.name)+'</h1><small>'+escapeHtml(p.address)+'</small></div><h2>Huwelijksakte</h2><p style="text-align:center;font-style:italic;color:#475569;">Hierbij wordt verklaard dat</p><div style="text-align:center;font-size:18px;margin:16px 0;font-weight:600;">'+escapeHtml(r.groomFirstname+' '+r.groomLastname)+'<br><span style="font-size:13px;color:#64748b;font-weight:400;">en</span><br>'+escapeHtml(r.brideFirstname+' '+r.brideLastname)+'</div><p style="text-align:center;color:#475569;">in het heilig sacrament van het huwelijk zijn verbonden volgens de gebruiken van de Syrisch-Orthodoxe Kerk.</p><dl><dt>Datum</dt><dd>'+dateLabel(r.date)+'</dd><dt>Plaats</dt><dd>'+escapeHtml(r.place)+'</dd><dt>Bedienaar</dt><dd>'+escapeHtml(r.celebrant||'-')+'</dd><dt>Getuige 1</dt><dd>'+escapeHtml(r.witness1||'-')+'</dd><dt>Getuige 2</dt><dd>'+escapeHtml(r.witness2||'-')+'</dd><dt>Inschrijfnummer</dt><dd>'+escapeHtml(r.id)+'</dd></dl><div class="signature"><div class="sigline">Bruidegom</div><div class="sigline">Bruid</div><div class="sigline">Bedienaar</div></div><scr'+'ipt>window.onload=()=>setTimeout(()=>window.print(),300)</scr'+'ipt></body></html>';
+  const url=URL.createObjectURL(new Blob([html],{type:'text/html'}));window.open(url,'_blank');showToast('Akte geopend','success');
+}
+function renderSettings(){
+  const o=state.settings.org;
+  const grid=$('settings-grid');
+  grid.innerHTML=
+    '<div class="setting-card"><h4>Klooster gegevens</h4><p>Naam, adres en contactgegevens (verschijnen op factuur en in footer).</p>'+
+    '<div class="form-row"><div class="field"><label>Naam</label><input type="text" id="set-name" value="'+escapeHtml(o.name)+'"></div><div class="field"><label>Initialen logo</label><input type="text" id="set-mark" maxlength="3" value="'+escapeHtml(o.shortMark)+'"></div></div>'+
+    '<div class="field" style="margin-bottom:10px;"><label>Adres</label><input type="text" id="set-address" value="'+escapeHtml(o.address)+'"></div>'+
+    '<div class="form-row"><div class="field"><label>Telefoon</label><input type="text" id="set-phone" value="'+escapeHtml(o.phone)+'"></div><div class="field"><label>E-mail</label><input type="email" id="set-email" value="'+escapeHtml(o.email||'')+'"></div></div>'+
+    '<div class="field" style="margin-bottom:10px;"><label>IBAN (voor facturen)</label><input type="text" id="set-iban" value="'+escapeHtml(o.iban||'')+'"></div>'+
+    '<div class="field" style="margin-bottom:10px;"><label>Openingstijden secretariaat</label><input type="text" id="set-hours" value="'+escapeHtml(o.hours||'')+'"></div>'+
+    '<button class="btn btn-sm" id="save-org">Opslaan</button></div>'+
+
+    '<div class="setting-card"><h4>Voorschot &amp; betalingen</h4><p>Welk percentage van het totaalbedrag wordt vooruit gevraagd.</p>'+
+    '<div class="form-row"><div class="field"><label>Voorschot (%)</label><input type="number" id="deposit-pct" min="0" max="100" value="'+state.settings.depositPct+'"></div></div>'+
+    '<button class="btn btn-sm" id="save-deposit">Opslaan</button></div>'+
+
+    '<div class="setting-card"><h4>Plechtigheidstypen</h4><p>Voeg toe, bewerk of verwijder types met eigen prijs en kleur.</p>'+
+    '<div id="types-list"></div><button class="btn btn-sm btn-ghost" id="add-type">+ Type toevoegen</button></div>'+
+
+    '<div class="setting-card"><h4>Locaties</h4><p>Beschikbare ruimtes met capaciteit.</p>'+
+    '<div id="locs-list"></div><button class="btn btn-sm btn-ghost" id="add-loc">+ Locatie toevoegen</button></div>'+
+
+    '<div class="setting-card"><h4>Celebranten</h4><p>Voorkeuren voor de aanvrager bij reservering.</p>'+
+    '<div id="cels-list"></div><button class="btn btn-sm btn-ghost" id="add-cel">+ Celebrant toevoegen</button></div>'+
+
+    '<div class="setting-card" style="grid-column:1/-1;"><h4>Beheerders &amp; rechten</h4><p>Wie kan inloggen, met welk wachtwoord en welke onderdelen kan diegene bekijken.</p>'+
+    '<div id="users-list"></div><button class="btn btn-sm btn-ghost" id="add-user">+ Gebruiker toevoegen</button></div>'+
+
+    '<div class="setting-card"><h4>E-mail bevestigingen</h4><p>Welke automatische e-mails zijn ingeschakeld.</p>'+
+    '<div class="checkbox-row"><input type="checkbox" id="email-confirm" '+(state.settings.emails.confirm?'checked':'')+'><label for="email-confirm" style="font-weight:400;margin:0;">Bevestiging bij reservering</label></div>'+
+    '<div class="checkbox-row"><input type="checkbox" id="email-reminder7" '+(state.settings.emails.reminder7?'checked':'')+'><label for="email-reminder7" style="font-weight:400;margin:0;">Herinnering 7 dagen vooraf</label></div>'+
+    '<div class="checkbox-row"><input type="checkbox" id="email-reminder1" '+(state.settings.emails.reminder1?'checked':'')+'><label for="email-reminder1" style="font-weight:400;margin:0;">Herinnering 1 dag vooraf</label></div>'+
+    '<div class="checkbox-row"><input type="checkbox" id="email-paid" '+(state.settings.emails.paid?'checked':'')+'><label for="email-paid" style="font-weight:400;margin:0;">Bedankje na betaling</label></div>'+
+    '<button class="btn btn-sm" id="save-emails">Opslaan</button></div>'+
+
+    '<div class="setting-card"><h4>Backup &amp; herstel</h4><p>Download of importeer alle data.</p>'+
+    '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;">'+
+    '<button class="btn btn-sm btn-ghost" id="backup-download">Backup downloaden</button>'+
+    '<button class="btn btn-sm btn-ghost" id="backup-upload-btn">Backup uploaden</button>'+
+    '<input type="file" id="backup-file" accept=".json" style="display:none;"></div>'+
+    '<p style="font-size:11px;color:var(--ink-muted);">Tip: maak regelmatig een backup. Gegevens staan alleen lokaal in deze browser opgeslagen.</p></div>'+
+
+    '<div class="setting-card"><h4>Demo &amp; reset</h4><p>Reset of importeer demogegevens.</p>'+
+    '<div style="display:flex;gap:6px;flex-wrap:wrap;">'+
+    '<button class="btn btn-sm btn-ghost" id="reset-demo">Demogegevens herstellen</button>'+
+    '<button class="btn btn-sm btn-danger" id="reset-all">Alles wissen</button></div></div>';
+
+  renderTypesList();renderLocsList();renderCelsList();renderUsersList();
+  setupSettingsEvents();
+}
+
+function renderTypesList(){const list=$('types-list');list.innerHTML=state.settings.types.map((t,i)=>'<div class="list-item"><div class="list-item-info"><strong>'+escapeHtml(t.label)+'</strong> · € '+t.price+' <span style="color:var(--ink-muted);">('+escapeHtml(t.key)+')</span></div><div style="display:flex;gap:4px;"><button class="icon-btn" data-edit-type="'+i+'">Bewerk</button><button class="icon-btn danger" data-del-type="'+i+'">Verwijder</button></div></div>').join('')||'<p style="font-size:12px;color:var(--ink-muted);">Geen types ingesteld.</p>';}
+function renderLocsList(){const list=$('locs-list');list.innerHTML=state.settings.locations.map((l,i)=>'<div class="list-item"><div class="list-item-info"><strong>'+escapeHtml(l.label)+'</strong> · '+(l.capacity||'?')+' personen <span style="color:var(--ink-muted);">('+escapeHtml(l.key)+')</span></div><div style="display:flex;gap:4px;"><button class="icon-btn" data-edit-loc="'+i+'">Bewerk</button><button class="icon-btn danger" data-del-loc="'+i+'">Verwijder</button></div></div>').join('')||'<p style="font-size:12px;color:var(--ink-muted);">Geen locaties ingesteld.</p>';}
+function renderCelsList(){const list=$('cels-list');list.innerHTML=state.settings.celebrants.map((c,i)=>'<div class="list-item"><div class="list-item-info"><strong>'+escapeHtml(c)+'</strong></div><div style="display:flex;gap:4px;"><button class="icon-btn" data-edit-cel="'+i+'">Bewerk</button><button class="icon-btn danger" data-del-cel="'+i+'">Verwijder</button></div></div>').join('')||'<p style="font-size:12px;color:var(--ink-muted);">Geen celebranten ingesteld.</p>';}
+function renderUsersList(){const list=$('users-list');list.innerHTML=state.settings.users.map((u,i)=>{const permLabels=(u.perms||[]).map(p=>PERM_LABELS[p]||p).join(', ')||'Geen rechten';return'<div class="list-item"><div class="list-item-info"><strong>'+escapeHtml(u.name)+'</strong> <span style="color:var(--ink-muted);">('+escapeHtml(u.username)+')</span><div style="font-size:11px;color:var(--ink-muted);margin-top:2px;">Toegang: '+escapeHtml(permLabels)+'</div></div><div style="display:flex;gap:4px;"><button class="icon-btn" data-edit-user="'+i+'">Bewerk</button>'+(state.settings.users.length>1?'<button class="icon-btn danger" data-del-user="'+i+'">Verwijder</button>':'')+'</div></div>';}).join('');}
+
+function setupSettingsEvents(){
+  $('save-org').addEventListener('click',()=>{state.settings.org.name=$('set-name').value.trim();state.settings.org.shortMark=$('set-mark').value.trim()||state.settings.org.name.slice(0,2).toUpperCase();state.settings.org.address=$('set-address').value.trim();state.settings.org.phone=$('set-phone').value.trim();state.settings.org.email=$('set-email').value.trim();state.settings.org.iban=$('set-iban').value.trim();state.settings.org.hours=$('set-hours').value.trim();saveAll();applyOrg();logAudit('Klooster gegevens gewijzigd');showToast('Opgeslagen','success');});
+  $('save-deposit').addEventListener('click',()=>{state.settings.depositPct=Math.min(100,Math.max(0,parseInt($('deposit-pct').value)||30));saveAll();logAudit('Voorschot percentage gewijzigd',state.settings.depositPct+'%');showToast('Opgeslagen','success');});
+  $('save-emails').addEventListener('click',()=>{state.settings.emails={confirm:$('email-confirm').checked,reminder7:$('email-reminder7').checked,reminder1:$('email-reminder1').checked,paid:$('email-paid').checked,cancel:state.settings.emails.cancel||false};saveAll();logAudit('E-mail instellingen gewijzigd');showToast('Opgeslagen','success');});
+
+  $('add-type').addEventListener('click',()=>editTypeModal(-1));
+  $('types-list').onclick=function(e){const ed=e.target.closest('[data-edit-type]');if(ed){editTypeModal(parseInt(ed.dataset.editType));return;}const dl=e.target.closest('[data-del-type]');if(dl){const i=parseInt(dl.dataset.delType);const t=state.settings.types[i];const inUse=state.bookings.some(b=>b.type===t.key);showModal('Type verwijderen',inUse?'Type is in gebruik door bestaande reserveringen. Toch verwijderen?':'Type "'+t.label+'" verwijderen?',()=>{state.settings.types.splice(i,1);saveAll();logAudit('Type verwijderd',t.label);closeModal();renderTypesList();renderEventGrid();showToast('Verwijderd');});}};
+
+  $('add-loc').addEventListener('click',()=>editLocModal(-1));
+  $('locs-list').onclick=function(e){const ed=e.target.closest('[data-edit-loc]');if(ed){editLocModal(parseInt(ed.dataset.editLoc));return;}const dl=e.target.closest('[data-del-loc]');if(dl){const i=parseInt(dl.dataset.delLoc);const l=state.settings.locations[i];const inUse=state.bookings.some(b=>b.location===l.key);showModal('Locatie verwijderen',inUse?'Locatie is in gebruik. Toch verwijderen?':'Locatie "'+l.label+'" verwijderen?',()=>{state.settings.locations.splice(i,1);saveAll();logAudit('Locatie verwijderd',l.label);closeModal();renderLocsList();showToast('Verwijderd');});}};
+
+  $('add-cel').addEventListener('click',()=>editCelModal(-1));
+  $('cels-list').onclick=function(e){const ed=e.target.closest('[data-edit-cel]');if(ed){editCelModal(parseInt(ed.dataset.editCel));return;}const dl=e.target.closest('[data-del-cel]');if(dl){const i=parseInt(dl.dataset.delCel);const c=state.settings.celebrants[i];showModal('Celebrant verwijderen','"'+c+'" verwijderen?',()=>{state.settings.celebrants.splice(i,1);saveAll();logAudit('Celebrant verwijderd',c);closeModal();renderCelsList();renderCelebrants();showToast('Verwijderd');});}};
+
+  $('add-user').addEventListener('click',()=>editUserModal(-1));
+  $('users-list').onclick=function(e){const ed=e.target.closest('[data-edit-user]');if(ed){editUserModal(parseInt(ed.dataset.editUser));return;}const dl=e.target.closest('[data-del-user]');if(dl){const i=parseInt(dl.dataset.delUser);const u=state.settings.users[i];if(u.username===state.currentUser.username){showToast('Kunt uw eigen account niet verwijderen','error');return;}showModal('Gebruiker verwijderen','"'+u.name+'" verwijderen?',()=>{state.settings.users.splice(i,1);saveAll();logAudit('Gebruiker verwijderd',u.username);closeModal();renderUsersList();showToast('Verwijderd');});}};
+
+  $('backup-download').addEventListener('click',()=>{const data=JSON.stringify({bookings:state.bookings,blocked:state.blocked,waitlist:state.waitlist,audit:state.audit,settings:state.settings,exportedAt:new Date().toISOString()},null,2);const blob=new Blob([data],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='backup-'+fmtDateKey(today.getFullYear(),today.getMonth(),today.getDate())+'.json';a.click();logAudit('Backup gedownload');showToast('Backup gedownload','success');});
+  $('backup-upload-btn').addEventListener('click',()=>$('backup-file').click());
+  $('backup-file').addEventListener('change',e=>{const f=e.target.files[0];if(!f)return;const reader=new FileReader();reader.onload=ev=>{try{const d=JSON.parse(ev.target.result);if(!d.bookings||!d.settings){showToast('Ongeldig backup-bestand','error');return;}showModal('Backup importeren','Dit overschrijft alle huidige data. Doorgaan?',()=>{state.bookings=d.bookings;state.blocked=d.blocked||[];state.waitlist=d.waitlist||[];state.audit=d.audit||[];state.settings=mergeSettings(d.settings);saveAll();applyOrg();renderEventGrid();renderCelebrants();logAudit('Backup geïmporteerd');closeModal();renderAdmin();showToast('Geïmporteerd','success');});}catch(err){showToast('Fout: '+err.message,'error');}};reader.readAsText(f);});
+  $('reset-demo').addEventListener('click',()=>{showModal('Demo herstellen','Alle bestaande reserveringen worden vervangen. Doorgaan?',()=>{seedDemo();logAudit('Demo hersteld');closeModal();renderAdmin();showToast('Demo hersteld','success');});});
+  $('reset-all').addEventListener('click',()=>{showModal('Alles wissen','Alle data wordt definitief verwijderd. Doorgaan?',()=>{state.bookings=[];state.blocked=[];state.waitlist=[];state.audit=[];state.settings=JSON.parse(JSON.stringify(defaultSettings));saveAll();applyOrg();renderEventGrid();renderCelebrants();logAudit('Alles gewist');closeModal();renderAdmin();showToast('Gewist');});});
+}
+
+function editTypeModal(idx){const isNew=idx<0;const t=isNew?{key:'',label:'',price:0,icon:'generic',description:'',color:'huwelijk'}:state.settings.types[idx];const iconOpts=Object.keys(ICONS).map(k=>'<option value="'+k+'"'+(k===t.icon?' selected':'')+'>'+k+'</option>').join('');const colorOpts=['huwelijk','doopsel','zaal','uitvaart','communie','jubileum'].map(c=>'<option value="'+c+'"'+(c===t.color?' selected':'')+'>'+c+'</option>').join('');showModal(isNew?'Nieuw type':'Type bewerken','<div class="form-row"><div class="field"><label>Sleutel (klein, geen spaties)</label><input type="text" id="t-key" value="'+escapeHtml(t.key)+'"'+(isNew?'':' disabled')+'></div><div class="field"><label>Naam</label><input type="text" id="t-label" value="'+escapeHtml(t.label)+'"></div></div><div class="form-row"><div class="field"><label>Prijs (€)</label><input type="number" id="t-price" value="'+t.price+'"></div><div class="field"><label>Icoon</label><select id="t-icon">'+iconOpts+'</select></div></div><div class="field" style="margin-bottom:10px;"><label>Kleur</label><select id="t-color">'+colorOpts+'</select></div><div class="field"><label>Beschrijving</label><textarea id="t-desc">'+escapeHtml(t.description)+'</textarea></div>',()=>{const k=$('t-key').value.trim();const lbl=$('t-label').value.trim();if(!k||!lbl){showToast('Sleutel en naam vereist','error');return;}const obj={key:k,label:lbl,price:parseInt($('t-price').value)||0,icon:$('t-icon').value,color:$('t-color').value,description:$('t-desc').value.trim()};if(isNew){if(state.settings.types.some(x=>x.key===k)){showToast('Sleutel bestaat al','error');return;}state.settings.types.push(obj);}else state.settings.types[idx]=obj;saveAll();logAudit(isNew?'Type toegevoegd':'Type bewerkt',lbl);closeModal();renderTypesList();renderEventGrid();showToast('Opgeslagen','success');},true);}
+
+function editLocModal(idx){const isNew=idx<0;const l=isNew?{key:'',label:'',capacity:0}:state.settings.locations[idx];showModal(isNew?'Nieuwe locatie':'Locatie bewerken','<div class="form-row"><div class="field"><label>Sleutel (klein, geen spaties)</label><input type="text" id="l-key" value="'+escapeHtml(l.key)+'"'+(isNew?'':' disabled')+'></div><div class="field"><label>Naam</label><input type="text" id="l-label" value="'+escapeHtml(l.label)+'"></div></div><div class="field"><label>Capaciteit (personen)</label><input type="number" id="l-cap" value="'+l.capacity+'"></div>',()=>{const k=$('l-key').value.trim();const lbl=$('l-label').value.trim();if(!k||!lbl){showToast('Sleutel en naam vereist','error');return;}const obj={key:k,label:lbl,capacity:parseInt($('l-cap').value)||0};if(isNew){if(state.settings.locations.some(x=>x.key===k)){showToast('Sleutel bestaat al','error');return;}state.settings.locations.push(obj);}else state.settings.locations[idx]=obj;saveAll();logAudit(isNew?'Locatie toegevoegd':'Locatie bewerkt',lbl);closeModal();renderLocsList();showToast('Opgeslagen','success');},true);}
+
+function editCelModal(idx){const isNew=idx<0;const c=isNew?'':state.settings.celebrants[idx];showModal(isNew?'Nieuwe celebrant':'Celebrant bewerken','<div class="field"><label>Naam (bv. "Pater Saït")</label><input type="text" id="c-name" value="'+escapeHtml(c)+'"></div>',()=>{const n=$('c-name').value.trim();if(!n){showToast('Naam vereist','error');return;}if(isNew)state.settings.celebrants.push(n);else state.settings.celebrants[idx]=n;saveAll();logAudit(isNew?'Celebrant toegevoegd':'Celebrant bewerkt',n);closeModal();renderCelsList();renderCelebrants();showToast('Opgeslagen','success');},true);}
+
+function editUserModal(idx){const isNew=idx<0;const u=isNew?{username:'',password:'',name:'',perms:ALL_PERMS.slice()}:state.settings.users[idx];const permsHtml=ALL_PERMS.map(p=>'<div class="perm-item"><input type="checkbox" id="u-perm-'+p+'" '+((u.perms||[]).includes(p)?'checked':'')+'><label for="u-perm-'+p+'" style="margin:0;font-weight:400;">'+PERM_LABELS[p]+'</label></div>').join('');showModal(isNew?'Nieuwe gebruiker':'Gebruiker bewerken','<div class="form-row"><div class="field"><label>Volledige naam</label><input type="text" id="u-name" value="'+escapeHtml(u.name)+'" placeholder="bv. Maria Yacoub"></div><div class="field"><label>Gebruikersnaam</label><input type="text" id="u-user" value="'+escapeHtml(u.username)+'"'+(isNew?'':' disabled')+'></div></div><div class="field" style="margin-bottom:14px;"><label>Wachtwoord '+(isNew?'':'(leeg laten = niet wijzigen)')+'</label><input type="text" id="u-pass" value="'+(isNew?'':'')+'" placeholder="'+(isNew?'minimum 4 tekens':'••••••')+'"></div><label style="font-size:13px;font-weight:500;display:block;margin-bottom:6px;">Toegangsrechten</label><div class="perm-grid">'+permsHtml+'</div><p style="font-size:11px;color:var(--ink-muted);margin-top:6px;">Vink aan welke onderdelen deze persoon mag bekijken en bewerken.</p>',()=>{const name=$('u-name').value.trim();const user=$('u-user').value.trim();const pass=$('u-pass').value;if(!name||!user){showToast('Naam en gebruikersnaam vereist','error');return;}if(isNew&&(!pass||pass.length<4)){showToast('Wachtwoord min. 4 tekens','error');return;}const perms=ALL_PERMS.filter(p=>$('u-perm-'+p).checked);if(!perms.length){showToast('Selecteer ten minste 1 recht','error');return;}if(isNew){if(state.settings.users.some(x=>x.username===user)){showToast('Gebruikersnaam bestaat al','error');return;}state.settings.users.push({username:user,password:pass,name,perms});}else{state.settings.users[idx].name=name;if(pass)state.settings.users[idx].password=pass;state.settings.users[idx].perms=perms;if(state.currentUser&&state.currentUser.username===user)state.currentUser=state.settings.users[idx];}saveAll();logAudit(isNew?'Gebruiker toegevoegd':'Gebruiker bewerkt',user);closeModal();renderUsersList();applyPermissions();showToast('Opgeslagen','success');},true);}
+
+function init(){loadAll();applyParish();applyOrg();renderEventGrid();renderCelebrants();setupNav();setupBookingWizard();setupAdmin();setupParishSwitcher();setupLangSwitcher();setupRegister();renderCalendar();if(state.lang!=='nl'){document.querySelectorAll('.lang-btn').forEach(b=>b.classList.toggle('active',b.dataset.lang===state.lang));applyI18n();}else applyI18n();}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
+})();
+</script></body></html>
