@@ -276,10 +276,10 @@ main{max-width:1320px;margin:0 auto;padding:32px 28px 64px}
 .cfg-item-fields input{flex:1;min-width:100px;padding:6px 10px;border:1px solid var(--line-strong);border-radius:var(--r);font-family:var(--font);font-size:13px;background:var(--bg)}
 .modal-backdrop{position:fixed;inset:0;background:rgba(15,23,42,.5);display:none;align-items:center;justify-content:center;z-index:250;padding:20px}
 .modal-backdrop.show{display:flex}
-.modal{background:var(--bg);border-radius:var(--rxl);padding:24px;max-width:460px;width:100%;box-shadow:var(--shl)}
-.modal h3{font-size:17px;font-weight:600;margin-bottom:8px}
-.modal-body{color:var(--ink-soft);font-size:14px;margin-bottom:18px}
-.modal-actions{display:flex;gap:8px;justify-content:flex-end}
+.modal{background:var(--bg);border-radius:var(--rxl);padding:24px;max-width:460px;width:100%;max-height:calc(100vh - 40px);display:flex;flex-direction:column;box-shadow:var(--shl)}
+.modal h3{font-size:17px;font-weight:600;margin-bottom:8px;flex:0 0 auto}
+.modal-body{color:var(--ink-soft);font-size:14px;margin-bottom:18px;flex:1 1 auto;overflow-y:auto;min-height:0}
+.modal-actions{display:flex;gap:8px;justify-content:flex-end;flex:0 0 auto}
 .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(120%);background:var(--ink);color:var(--bg);padding:11px 18px;border-radius:var(--r);font-size:13px;z-index:400;transition:transform .25s;box-shadow:var(--shl)}
 .toast.show{transform:translateX(-50%) translateY(0)}
 .toast.success{background:#065f46}
