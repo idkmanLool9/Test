@@ -74,6 +74,16 @@ main{max-width:1320px;margin:0 auto;padding:32px 28px 64px}
 .l-free{background:#f0fdf4;border:1px solid #bbf7d0}
 .l-full{background:#fee2e2;border:1px solid #fecaca}
 .l-blocked{background:#fee2e2;border:1px solid #fecaca}
+.terms-box{max-height:340px;overflow-y:auto;border:1px solid var(--line-strong);border-radius:var(--rl);padding:18px 22px;background:var(--bg-soft);font-size:13px;line-height:1.6;color:var(--ink);scroll-behavior:smooth}
+.terms-box h1{font-size:18px;margin:0 0 8px;font-weight:600;color:var(--ink)}
+.terms-box h2{font-size:14px;margin:18px 0 6px;font-weight:600;color:var(--accent)}
+.terms-box p{margin:6px 0}
+.terms-box::-webkit-scrollbar{width:10px}
+.terms-box::-webkit-scrollbar-track{background:var(--bg-alt);border-radius:5px}
+.terms-box::-webkit-scrollbar-thumb{background:var(--line-strong);border-radius:5px}
+.terms-box.read{border-color:var(--success-ink);background:var(--success-bg)}
+.terms-progress{height:3px;background:var(--bg-muted);border-radius:2px;overflow:hidden;margin-top:6px}
+.terms-progress-bar{height:100%;background:var(--accent);width:0%;transition:width .15s}
 .tag-chip{display:inline-flex;align-items:center;padding:2px 8px;font-size:11px;font-weight:500;border-radius:10px;line-height:1.4;margin-right:4px;margin-top:2px;white-space:nowrap}
 .tag-chip.sm{padding:1px 6px;font-size:10px}
 .tag-chip.removable{padding-right:4px;cursor:default}
@@ -494,8 +504,13 @@ body.editing [data-edit]::before{content:'\270E';position:absolute;top:-10px;rig
         <div class="field"><label>Voorkeur celebrant</label><select id="celebrant"><option value="">Geen voorkeur</option></select></div>
       </div>
       <div class="field"><label>Bijkomende informatie of wensen</label><textarea id="notes"></textarea><div class="field-hint">Optioneel.</div></div>
-      <div class="checkbox-row"><input type="checkbox" id="agree-terms"><label for="agree-terms" style="font-weight:400;margin:0;cursor:pointer;">Ik ga akkoord met de huisregels en privacyverklaring (AVG).</label></div>
-      <div class="actions-row"><button class="btn btn-ghost" data-back="2">← Terug</button><button class="btn" id="to-step-4">Verder →</button></div>
+      <div class="terms-section">
+        <h4 class="section-title" style="margin-top:14px;">Algemene voorwaarden en huisregels</h4>
+        <p class="section-sub">Lees alles door en scroll helemaal naar beneden om verder te kunnen.</p>
+        <div id="terms-box" class="terms-box"></div>
+        <div class="checkbox-row" style="margin-top:14px;"><input type="checkbox" id="agree-terms" disabled><label for="agree-terms" id="agree-terms-label" style="font-weight:400;margin:0;cursor:not-allowed;color:var(--ink-muted);">Lees eerst de voorwaarden helemaal door</label></div>
+      </div>
+      <div class="actions-row"><button class="btn btn-ghost" data-back="2">← Terug</button><button class="btn" id="to-step-4" disabled>Verder →</button></div>
     </div>
   </div>
   <div id="step-4" style="display:none;">
@@ -763,7 +778,78 @@ const defaultTags=[
   {key:'familie',label:'Familie',color:'#1e40af',bg:'#dbeafe'},
   {key:'special',label:'Bijzonderheden',color:'#475569',bg:'#e2e8f0'}
 ];
-const defaultSettings={org:defaultOrg,types:defaultTypes,locations:defaultLocations,celebrants:defaultCelebrants,users:defaultUsers,templates:defaultTemplates,tags:defaultTags,depositPct:30,emails:{confirm:true,reminder7:true,reminder1:true,paid:false,cancel:false}};
+const defaultTerms=`# Algemene voorwaarden en huisregels
+
+## 1. Reservering
+
+1.1 Een reservering komt tot stand zodra de aanvrager dit formulier verzendt en deze voorwaarden uitdrukkelijk aanvaardt.
+
+1.2 De parochie behoudt zich het recht voor reserveringen te weigeren of te annuleren wanneer deze in strijd zijn met liturgische regels, kerkelijke kalender of openbare orde.
+
+1.3 Voor huwelijken geldt: maximaal één huwelijk per dag per parochie. Voor andere plechtigheden zijn meerdere boekingen per dag mogelijk in verschillende tijdvensters.
+
+## 2. Betaling
+
+2.1 Bij het indienen van de reservering is een voorschot verschuldigd zoals aangegeven in het overzicht. Het restbedrag dient uiterlijk zeven (7) dagen vóór de plechtigheid voldaan te zijn.
+
+2.2 Betaling kan via iDEAL, bankoverschrijving of een andere door de parochie aangegeven methode.
+
+2.3 Bij een bevestigde betaling ontvangt u een digitale bevestiging per e-mail.
+
+## 3. Annulering
+
+3.1 Annulering tot dertig (30) dagen vóór de plechtigheid: volledige terugbetaling van het voorschot, minus eventuele administratiekosten van € 25.
+
+3.2 Annulering tussen dertig (30) en zeven (7) dagen vóór de plechtigheid: 50% van het voorschot wordt ingehouden.
+
+3.3 Annulering binnen zeven (7) dagen vóór de plechtigheid: het volledige voorschot wordt ingehouden.
+
+3.4 Bij annulering door de parochie wegens overmacht (overlijden, ziekte van de celebrant, sluiting van het kerkgebouw) wordt het volledige bedrag terugbetaald.
+
+## 4. Gebruik van de locatie
+
+4.1 De aanvrager is verantwoordelijk voor het gepaste gedrag van alle genodigden tijdens en rondom de plechtigheid.
+
+4.2 Eten en drinken in de kerkruimte is niet toegestaan, met uitzondering van de zaal en in overleg met het secretariaat.
+
+4.3 Bloemen, versieringen of decoraties dienen vooraf met het secretariaat afgestemd te worden. Confetti, rijst en kaarsen op de vloer zijn niet toegestaan.
+
+4.4 Roken, alcoholgebruik en het gebruik van geluidsinstallaties zijn alleen toegestaan na uitdrukkelijke schriftelijke toestemming.
+
+4.5 Eventuele schade aan het kerkgebouw, de zaal of inventaris wordt aan de aanvrager in rekening gebracht.
+
+## 5. Foto- en video-opnames
+
+5.1 Foto's en video tijdens de plechtigheid zijn toegestaan mits dit niet de orde van dienst verstoort.
+
+5.2 Drone-opnames zijn niet toegestaan binnen het kerkgebouw of op het kerkterrein.
+
+5.3 Een professionele fotograaf dient zich vooraf te melden bij het secretariaat.
+
+## 6. Privacy (AVG / GDPR)
+
+6.1 De parochie verwerkt uw persoonsgegevens uitsluitend ten behoeve van de afhandeling van de reservering en, indien van toepassing, voor inschrijving in het kerkelijk register.
+
+6.2 Persoonsgegevens worden bewaard zo lang als wettelijk en canoniek vereist (kerkelijke registers: ten minste 100 jaar).
+
+6.3 U heeft recht op inzage, correctie en — voor zover wettelijk toegestaan — verwijdering van uw gegevens. Hiervoor kunt u contact opnemen met het secretariaat.
+
+6.4 Gegevens worden niet gedeeld met derden, behoudens wettelijke verplichtingen.
+
+## 7. Geschillen
+
+7.1 Op deze overeenkomst is uitsluitend Nederlands recht van toepassing.
+
+7.2 Geschillen die niet in onderling overleg kunnen worden opgelost, worden voorgelegd aan de bevoegde rechter in het arrondissement van de parochie.
+
+## 8. Slotbepalingen
+
+8.1 De parochie behoudt zich het recht voor deze voorwaarden te wijzigen. De versie geldend op het moment van reservering blijft van toepassing op die specifieke reservering.
+
+8.2 Door deze reservering te bevestigen verklaart u deze voorwaarden te hebben gelezen, begrepen en aanvaard.
+
+— Versie 1.0`;
+const defaultSettings={org:defaultOrg,types:defaultTypes,locations:defaultLocations,celebrants:defaultCelebrants,users:defaultUsers,templates:defaultTemplates,tags:defaultTags,terms:defaultTerms,depositPct:30,emails:{confirm:true,reminder7:true,reminder1:true,paid:false,cancel:false}};
 
 const state={
   step:1,eventType:null,location:null,
@@ -842,7 +928,7 @@ function clearDemoData(){
   state.blocked=(state.blocked||[]).filter(b=>b.reason!=='Mor Ephrem feestdag');
 }
 function loadAll(){try{const r=localStorage.getItem(STORAGE_KEY);if(r){const d=JSON.parse(r);state.bookings=d.bookings||[];state.blocked=d.blocked||[];state.waitlist=d.waitlist||[];state.audit=d.audit||[];state.parishes=d.parishes&&d.parishes.length?d.parishes:JSON.parse(JSON.stringify(defaultParishes));state.currentParishId=d.currentParishId||'glane';state.lang=d.lang||'nl';state.registers=d.registers||{baptism:[],marriage:[],family:[],deceased:[],divorce:[],convert:[]};['baptism','marriage','family','deceased','divorce','convert'].forEach(k=>{if(!state.registers[k])state.registers[k]=[];});state.settings=mergeSettings(d.settings||{});}else{state.parishes=JSON.parse(JSON.stringify(defaultParishes));}if(!localStorage.getItem(STORAGE_KEY+'_demoCleanupV1')){clearDemoData();localStorage.setItem(STORAGE_KEY+'_demoCleanupV1','1');saveAll();}}catch(e){console.error(e);state.parishes=JSON.parse(JSON.stringify(defaultParishes));}}
-function mergeSettings(s){const m=JSON.parse(JSON.stringify(defaultSettings));if(s.org)Object.assign(m.org,s.org);if(s.types)m.types=s.types;if(s.locations)m.locations=s.locations;if(s.celebrants)m.celebrants=s.celebrants;if(s.users)m.users=s.users.map(u=>({...u,perms:u.perms||ALL_PERMS.slice()}));if(s.templates){Object.keys(s.templates).forEach(k=>{if(m.templates[k])Object.assign(m.templates[k],s.templates[k]);else m.templates[k]=s.templates[k];});}if(s.tags)m.tags=s.tags;if(s.depositPct!=null)m.depositPct=s.depositPct;if(s.emails)Object.assign(m.emails,s.emails);return m;}
+function mergeSettings(s){const m=JSON.parse(JSON.stringify(defaultSettings));if(s.org)Object.assign(m.org,s.org);if(s.types)m.types=s.types;if(s.locations)m.locations=s.locations;if(s.celebrants)m.celebrants=s.celebrants;if(s.users)m.users=s.users.map(u=>({...u,perms:u.perms||ALL_PERMS.slice()}));if(s.templates){Object.keys(s.templates).forEach(k=>{if(m.templates[k])Object.assign(m.templates[k],s.templates[k]);else m.templates[k]=s.templates[k];});}if(s.tags)m.tags=s.tags;if(s.terms)m.terms=s.terms;if(s.depositPct!=null)m.depositPct=s.depositPct;if(s.emails)Object.assign(m.emails,s.emails);return m;}
 function getTag(k){return(state.settings.tags||defaultTags).find(t=>t.key===k);}
 function tagChips(tags,small){if(!tags||!tags.length)return'';return tags.map(k=>{const t=getTag(k);if(!t)return'';return'<span class="tag-chip'+(small?' sm':'')+'" style="background:'+t.bg+';color:'+t.color+';border:1px solid '+t.color+'33;">'+escapeHtml(t.label)+'</span>';}).join('');}
 function saveAll(){try{localStorage.setItem(STORAGE_KEY,JSON.stringify({bookings:state.bookings,blocked:state.blocked,waitlist:state.waitlist,audit:state.audit,parishes:state.parishes,currentParishId:state.currentParishId,lang:state.lang,registers:state.registers,settings:state.settings}));}catch(e){console.error(e);}}
@@ -1010,7 +1096,7 @@ function renderCelebrants(){
   state.settings.celebrants.forEach(c=>{const o=document.createElement('option');o.textContent=c;sel.appendChild(o);});
 }
 
-function goToStep(n){state.step=n;['step-1','step-2','step-3','step-4','step-done'].forEach(id=>{const el=$(id);if(el)el.style.display='none';});$(n===5?'step-done':'step-'+n).style.display='block';$$('.step').forEach(s=>{const num=parseInt(s.dataset.step);s.classList.remove('active','complete');if(n===5||num<n)s.classList.add('complete');else if(num===n)s.classList.add('active');});if(n===2){renderLocationPills();renderCalendar();}if(n===3)updateSummary('summary-3');if(n===4){updateSummary('summary-4');updatePayment();}window.scrollTo({top:0,behavior:'smooth'});}
+function goToStep(n){state.step=n;['step-1','step-2','step-3','step-4','step-done'].forEach(id=>{const el=$(id);if(el)el.style.display='none';});$(n===5?'step-done':'step-'+n).style.display='block';$$('.step').forEach(s=>{const num=parseInt(s.dataset.step);s.classList.remove('active','complete');if(n===5||num<n)s.classList.add('complete');else if(num===n)s.classList.add('active');});if(n===2){renderLocationPills();renderCalendar();}if(n===3){updateSummary('summary-3');renderTerms();}if(n===4){updateSummary('summary-4');updatePayment();}window.scrollTo({top:0,behavior:'smooth'});}
 
 function setupBookingWizard(){
   $$('[data-back]').forEach(b=>{b.addEventListener('click',()=>goToStep(parseInt(b.dataset.back)));});
@@ -1037,11 +1123,12 @@ function setupBookingWizard(){
     });
   }
   $('to-step-3').addEventListener('click',()=>{if(!state.selectedDate||!state.selectedTime)return;if(dateUnavailable(state.selectedDate)){showToast(state.eventType==='huwelijk'?'Op deze datum is al een huwelijk':'Datum net gereserveerd','error');state.selectedDate=null;state.selectedTime=null;renderCalendar();renderTimeSlots();checkStep2();return;}goToStep(3);});
+  $('agree-terms').addEventListener('change',e=>{$('to-step-4').disabled=!e.target.checked;});
   $('to-step-4').addEventListener('click',()=>{
     const fn=$('firstname').value.trim();const ln=$('lastname').value.trim();const em=$('email').value.trim();const ph=$('phone').value.trim();
     if(!fn||!ln||!em||!ph){showToast('Vul alle verplichte velden in','error');return;}
     if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)){showToast('Ongeldig e-mailadres','error');return;}
-    if(!$('agree-terms').checked){showToast('Akkoord vereist','error');return;}
+    if(!state.termsRead||!$('agree-terms').checked){showToast('Lees en accepteer eerst de voorwaarden','error');return;}
     goToStep(4);
   });
   $$('.pay-option').forEach(o=>{o.addEventListener('click',()=>{$$('.pay-option').forEach(x=>x.classList.remove('selected'));o.classList.add('selected');state.paymentMethod=o.dataset.method;});});
@@ -1129,6 +1216,43 @@ function renderCalendar(){
   }
 }
 function checkStep2(){$('to-step-3').disabled=!(state.selectedDate&&state.selectedTime);}
+function renderTerms(){
+  const box=$('terms-box');if(!box)return;
+  const md=state.settings.terms||defaultTerms;
+  // Mini markdown: # / ## / paragrafen
+  const html=md.split(/\n\n+/).map(block=>{
+    block=block.trim();if(!block)return'';
+    if(block.startsWith('## '))return'<h2>'+escapeHtml(block.slice(3))+'</h2>';
+    if(block.startsWith('# '))return'<h1>'+escapeHtml(block.slice(2))+'</h1>';
+    return'<p>'+escapeHtml(block).replace(/\n/g,'<br>')+'</p>';
+  }).join('');
+  box.innerHTML=html+'<div class="terms-progress"><div class="terms-progress-bar" id="terms-progress-bar"></div></div>';
+  // Reset state
+  box.classList.remove('read');
+  state.termsRead=false;
+  const cb=$('agree-terms');cb.checked=false;cb.disabled=true;
+  $('agree-terms-label').textContent='Lees eerst de voorwaarden helemaal door';
+  $('agree-terms-label').style.color='var(--ink-muted)';
+  $('agree-terms-label').style.cursor='not-allowed';
+  $('to-step-4').disabled=true;
+  // Scroll listener
+  function onScroll(){
+    const max=box.scrollHeight-box.clientHeight;
+    const cur=box.scrollTop;const pct=max>0?Math.min(100,Math.round(cur/max*100)):100;
+    const bar=$('terms-progress-bar');if(bar)bar.style.width=pct+'%';
+    if(pct>=98||max<=8){unlockTerms();}
+  }
+  box.addEventListener('scroll',onScroll);
+  // Bij heel kort document direct ontgrendelen
+  setTimeout(onScroll,30);
+}
+function unlockTerms(){
+  if(state.termsRead)return;
+  state.termsRead=true;
+  const box=$('terms-box');if(box)box.classList.add('read');
+  const cb=$('agree-terms');cb.disabled=false;
+  const lbl=$('agree-terms-label');lbl.textContent='Ik heb de voorwaarden gelezen en ga akkoord';lbl.style.color='var(--ink)';lbl.style.cursor='pointer';
+}
 function updateSummary(id){const el=$(id);if(!state.eventType||!state.selectedDate)return;el.innerHTML='<strong>'+typeLabel(state.eventType)+'</strong> · '+locLabel(state.location)+' · '+dateLabel(state.selectedDate)+(state.selectedTime?' om '+state.selectedTime:'');}
 function updatePayment(){const t=getType(state.eventType);const dep=Math.round(t.price*(state.settings.depositPct/100));$('pay-event').textContent=t.label;$('pay-loc').textContent=locLabel(state.location);$('pay-when').textContent=shortDateLabel(state.selectedDate)+(state.selectedTime?' om '+state.selectedTime:'');$('pay-name').textContent=$('firstname').value+' '+$('lastname').value;$('pay-total-line').textContent='€ '+t.price;$('pay-deposit-label').textContent='Voorschot ('+state.settings.depositPct+'%)';$('pay-deposit').textContent='€ '+dep;}
 
@@ -2305,6 +2429,10 @@ function renderSettings(){
     '<div class="checkbox-row"><input type="checkbox" id="email-cancel" '+(state.settings.emails.cancel?'checked':'')+'><label for="email-cancel" style="font-weight:400;margin:0;">Mail bij annulering</label></div>'+
     '<button class="btn btn-sm" id="save-emails">Opslaan</button></div>'+
 
+    '<div class="setting-card"><h4>Algemene voorwaarden &amp; huisregels</h4><p>Wat aanvragers moeten lezen voor ze in stap 3 verder kunnen. Markdown-light: <code># Titel</code>, <code>## Sectie</code>, lege regel = nieuwe alinea.</p>'+
+    '<div class="field"><textarea id="terms-edit" style="min-height:260px;font-family:var(--font-mono);font-size:12px;line-height:1.5;">'+escapeHtml(state.settings.terms||defaultTerms)+'</textarea></div>'+
+    '<div style="display:flex;gap:6px;flex-wrap:wrap;"><button class="btn btn-sm" id="save-terms">Opslaan</button><button class="btn btn-sm btn-ghost" id="reset-terms">Standaardtekst herstellen</button></div></div>'+
+
     '<div class="setting-card"><h4>Backup &amp; herstel</h4><p>Download of importeer alle data.</p>'+
     '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;">'+
     '<button class="btn btn-sm btn-ghost" id="backup-download">Backup downloaden</button>'+
@@ -2349,6 +2477,8 @@ function setupSettingsEvents(){
   $('save-org').addEventListener('click',()=>{state.settings.org.name=$('set-name').value.trim();state.settings.org.shortMark=$('set-mark').value.trim()||state.settings.org.name.slice(0,2).toUpperCase();state.settings.org.address=$('set-address').value.trim();state.settings.org.phone=$('set-phone').value.trim();state.settings.org.email=$('set-email').value.trim();state.settings.org.iban=$('set-iban').value.trim();state.settings.org.hours=$('set-hours').value.trim();saveAll();applyOrg();logAudit('Klooster gegevens gewijzigd');showToast('Opgeslagen','success');});
   $('save-deposit').addEventListener('click',()=>{state.settings.depositPct=Math.min(100,Math.max(0,parseInt($('deposit-pct').value)||30));saveAll();logAudit('Voorschot percentage gewijzigd',state.settings.depositPct+'%');showToast('Opgeslagen','success');});
   $('save-emails').addEventListener('click',()=>{state.settings.emails={confirm:$('email-confirm').checked,reminder7:$('email-reminder7').checked,reminder1:$('email-reminder1').checked,paid:$('email-paid').checked,cancel:$('email-cancel').checked};saveAll();logAudit('E-mail instellingen gewijzigd');showToast('Opgeslagen','success');});
+  $('save-terms')&&$('save-terms').addEventListener('click',()=>{state.settings.terms=$('terms-edit').value;saveAll();logAudit('Voorwaarden gewijzigd');showToast('Voorwaarden opgeslagen','success');});
+  $('reset-terms')&&$('reset-terms').addEventListener('click',()=>{showModal('Standaardtekst herstellen','De voorwaarden worden vervangen door de standaardtekst. Doorgaan?',()=>{state.settings.terms=defaultTerms;$('terms-edit').value=defaultTerms;saveAll();logAudit('Voorwaarden hersteld naar standaard');closeModal();showToast('Hersteld','success');});});
 
   $('add-type').addEventListener('click',()=>editTypeModal(-1));
   $('types-list').onclick=function(e){const ed=e.target.closest('[data-edit-type]');if(ed){editTypeModal(parseInt(ed.dataset.editType));return;}const dl=e.target.closest('[data-del-type]');if(dl){const i=parseInt(dl.dataset.delType);const t=state.settings.types[i];const inUse=state.bookings.some(b=>b.type===t.key);showModal('Type verwijderen',inUse?'Type is in gebruik door bestaande reserveringen. Toch verwijderen?':'Type "'+t.label+'" verwijderen?',()=>{state.settings.types.splice(i,1);saveAll();logAudit('Type verwijderd',t.label);closeModal();renderTypesList();renderEventGrid();showToast('Verwijderd');});}};
