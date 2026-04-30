@@ -1,0 +1,15 @@
+{
+  "name": "Parochie reserveringen",
+  "short_name": "Parochie",
+  "description": "Reserveringssysteem en kerkelijk register voor Syrisch-Orthodoxe parochies",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#ffffff",
+  "theme_color": "#1f4788",
+  "lang": "nl",
+  "icons": [
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}

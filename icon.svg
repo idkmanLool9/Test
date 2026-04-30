@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="96" fill="#1f4788"/>
+  <g fill="#ffffff" stroke="#ffffff" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="232" y="120" width="48" height="280" rx="6"/>
+    <rect x="160" y="216" width="192" height="48" rx="6"/>
+  </g>
+  <text x="256" y="464" font-family="Georgia,serif" font-size="56" font-weight="700" fill="#ffffff" text-anchor="middle" letter-spacing="6">PAROCHIE</text>
+</svg>
