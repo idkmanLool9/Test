@@ -1892,42 +1892,63 @@ function editDeceasedModal(id){
   },50);
 }
 
-async function scanIdCardForDeceased(r){
-  const status=$('d-scan-status');const btn=$('d-scan');
+// Generieke ID-kaart scanner — vult een aantal formuliervelden + slaat optioneel
+// de scan op als veld op het entry-object.
+// opts = {
+//   statusId, btnId,
+//   target (entry object), scanKey (optioneel, bv. 'idScan'), scanPreviewId (optioneel),
+//   fields: { firstnameId, lastnameId, birthDateId, idNumberId, idTypeId }
+// }
+async function scanIdCardInto(opts){
+  const status=$(opts.statusId);const btn=$(opts.btnId);
   const inp=document.createElement('input');
   inp.type='file';inp.accept='image/*';inp.capture='environment';
   inp.onchange=async()=>{
     const f=inp.files[0];if(!f)return;
-    btn.disabled=true;status.textContent='Foto verwerken...';
+    if(btn)btn.disabled=true;if(status)status.textContent='Foto verwerken...';
     try{
-      // Hogere resolutie voor OCR; de upload-veldversie blijft kleiner
       const ocrUrl=await readImageCompressed(f,2200,0.95);
-      // Sla ook op als idScan (kleinere versie voor opslag)
-      const stored=await readImageCompressed(f,1600,0.85);
-      r.idScan=stored;
-      const prev=$('d-idscan-prev');if(prev){prev.style.display='';prev.innerHTML='<img src="'+stored+'" style="max-width:160px;max-height:120px;border:1px solid var(--line);border-radius:var(--r);"> <button type="button" class="btn btn-sm btn-ghost" id="d-idscan-rm">Verwijder</button>';wireRemove('d-idscan',r,'idScan');}
-      status.textContent='Tekstherkenning... (eerste keer kan ~30 sec duren)';
-      const text=await ocrImage(ocrUrl,m=>{if(m&&m.status){const p=m.progress?Math.round(m.progress*100)+'% ':'';status.textContent=p+m.status;}});
+      if(opts.scanKey){
+        const stored=await readImageCompressed(f,1600,0.85);
+        opts.target[opts.scanKey]=stored;
+        if(opts.scanPreviewId){
+          const prev=$(opts.scanPreviewId);
+          if(prev){
+            const baseId=opts.scanPreviewId.replace(/-prev$/,'');
+            prev.style.display='';
+            prev.innerHTML='<img src="'+stored+'" style="max-width:160px;max-height:120px;border:1px solid var(--line);border-radius:var(--r);"> <button type="button" class="btn btn-sm btn-ghost" id="'+baseId+'-rm">Verwijder</button>';
+            wireRemove(baseId,opts.target,opts.scanKey);
+          }
+        }
+      }
+      if(status)status.textContent='Tekstherkenning... (eerste keer kan ~30 sec duren)';
+      const text=await ocrImage(ocrUrl,m=>{if(m&&m.status&&status){const p=m.progress?Math.round(m.progress*100)+'% ':'';status.textContent=p+m.status;}});
       const mrz=parseMRZ(text);
-      let filled=[];
+      const filled=[];
+      const fld=opts.fields||{};
       if(mrz){
-        if(mrz.givenNames){const v=mrz.givenNames.split(' ')[0];$('d-fn').value=v;filled.push('voornaam');}
-        if(mrz.surname){$('d-ln').value=mrz.surname;filled.push('achternaam');}
-        if(mrz.birthDate){$('d-bd').value=mrz.birthDate;filled.push('geboortedatum');}
-        if(mrz.docNumber){$('d-idn').value=mrz.docNumber;filled.push('nummer');}
-        if(mrz.format==='TD3')$('d-idt').value='paspoort';
-        else if(mrz.format==='TD1')$('d-idt').value='identiteitskaart';
-        status.innerHTML='<span style="color:#065f46;">✓ Herkend ('+mrz.format+'): '+filled.join(', ')+'. Controleer de gegevens.</span>';
+        if(fld.firstnameId&&mrz.givenNames){$(fld.firstnameId).value=mrz.givenNames.split(' ')[0];filled.push('voornaam');}
+        if(fld.lastnameId&&mrz.surname){$(fld.lastnameId).value=mrz.surname;filled.push('achternaam');}
+        if(fld.birthDateId&&mrz.birthDate){$(fld.birthDateId).value=mrz.birthDate;filled.push('geboortedatum');}
+        if(fld.idNumberId&&mrz.docNumber){$(fld.idNumberId).value=mrz.docNumber;filled.push('nummer');}
+        if(fld.idTypeId){if(mrz.format==='TD3')$(fld.idTypeId).value='paspoort';else if(mrz.format==='TD1')$(fld.idTypeId).value='identiteitskaart';}
+        if(status)status.innerHTML='<span style="color:#065f46;">✓ Herkend ('+mrz.format+'): '+filled.join(', ')+'. Controleer de gegevens.</span>';
         showToast('ID-kaart gelezen','success');
       }else{
-        status.innerHTML='<span style="color:#92400e;">⚠ Geen MRZ-zone gevonden. Probeer de achterkant van de kaart of een scherpere foto.</span>';
-        // Toon de OCR-tekst in een uitvouwbaar paneel zodat de gebruiker handmatig kan kopiëren
-        const txt=text&&text.trim().slice(0,400);if(txt)console.log('OCR tekst:',text);
+        if(status)status.innerHTML='<span style="color:#92400e;">⚠ Geen MRZ-zone gevonden. Probeer de achterkant of een scherpere foto.</span>';
+        if(text)console.log('OCR tekst (geen MRZ):',text);
       }
-    }catch(e){status.innerHTML='<span style="color:#991b1b;">OCR mislukt: '+escapeHtml(e.message||String(e))+'</span>';}
-    finally{btn.disabled=false;}
+    }catch(e){if(status)status.innerHTML='<span style="color:#991b1b;">OCR mislukt: '+escapeHtml(e.message||String(e))+'</span>';}
+    finally{if(btn)btn.disabled=false;}
   };
   inp.click();
+}
+async function scanIdCardForDeceased(r){
+  return scanIdCardInto({
+    statusId:'d-scan-status',btnId:'d-scan',
+    target:r,scanKey:'idScan',scanPreviewId:'d-idscan-prev',
+    fields:{firstnameId:'d-fn',lastnameId:'d-ln',birthDateId:'d-bd',idNumberId:'d-idn',idTypeId:'d-idt'}
+  });
 }
 
 function editDivorceModal(id){
@@ -1963,7 +1984,9 @@ function editConvertModal(id){
     '<div class="form-row"><div class="field"><label>Geboortedatum</label><input type="date" id="c-bd" value="'+r.birthDate+'"></div><div class="field"><label>Vorige geloofsgemeenschap</label><input type="text" id="c-pc" value="'+escapeHtml(r.previousChurch||'')+'"></div></div>'+
     '<div class="form-row"><div class="field"><label>Datum toetreding <span class="req">*</span></label><input type="date" id="c-d" value="'+r.date+'"></div><div class="field"><label>Plaats</label><input type="text" id="c-pl" value="'+escapeHtml(r.place||'')+'"></div></div>'+
     '<div class="form-row"><div class="field"><label>Bedienaar</label><select id="c-cel"><option value="">Kies</option>'+celOpts+'</select></div><div class="field"><label>Sponsor / getuige</label><input type="text" id="c-sp" value="'+escapeHtml(r.sponsor||'')+'"></div></div>'+
+    '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;"><button type="button" class="btn btn-sm" id="c-scan">📷 Scan ID-kaart</button><span id="c-scan-status" style="font-size:12px;color:var(--ink-muted);align-self:center;"></span></div>'+
     '<div class="field"><label>Doopinschrijving (indien herdoop)</label><select id="c-bref">'+baptismOpts+'</select></div>'+
+    uploadFieldHtml('Scan ID-kaart (optioneel)','c-idscan',r.idScan||'')+
     uploadFieldHtml('Portretfoto (optioneel)','c-photo',r.photo)+
     '<div class="field"><label>Aantekeningen</label><textarea id="c-notes">'+escapeHtml(r.notes||'')+'</textarea></div>'+
     (isNew?'':'<div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--line);display:flex;gap:6px;flex-wrap:wrap;"><button class="btn btn-sm btn-ghost" id="c-cert">Akte (PDF)</button><button class="btn btn-sm btn-danger" id="c-del">Verwijder</button></div>'),
@@ -1977,7 +2000,8 @@ function editConvertModal(id){
       saveAll();logAudit(isNew?'Bekeerling toegevoegd':'Bekeerling bewerkt',r.id);closeModal();renderRegister();showToast('Opgeslagen','success');
     },true);
   setTimeout(()=>{
-    wireUploadField('c-photo',r,'photo');
+    wireUploadField('c-photo',r,'photo');wireUploadField('c-idscan',r,'idScan');
+    const sc=$('c-scan');if(sc)sc.addEventListener('click',()=>scanIdCardInto({statusId:'c-scan-status',btnId:'c-scan',target:r,scanKey:'idScan',scanPreviewId:'c-idscan-prev',fields:{firstnameId:'c-fn',lastnameId:'c-ln',birthDateId:'c-bd'}}));
     if(!isNew){const cb=$('c-cert'),db=$('c-del');if(cb)cb.addEventListener('click',()=>openCertificate(r,'convert'));if(db)db.addEventListener('click',()=>{showModal('Verwijderen','Inschrijving '+r.id+' verwijderen?',()=>{state.registers.convert=arr.filter(x=>x.id!==r.id);saveAll();logAudit('Bekeerling verwijderd',r.id);closeModal();renderRegister();showToast('Verwijderd');});});}
   },50);
 }
@@ -2037,11 +2061,15 @@ function editMarriageModal(id){
   const baptismOpts='<option value="">Geen / extern</option>'+state.registers.baptism.map(b=>'<option value="'+b.id+'">'+escapeHtml(b.id+' — '+b.firstname+' '+b.lastname+' ('+b.baptismDate+')')+'</option>').join('');
   showModal(isNew?'Nieuwe huwelijksinschrijving':'Huwelijksinschrijving '+r.id,
     '<h4 style="font-size:13px;margin-bottom:8px;color:var(--ink-soft);">Bruidegom</h4>'+
+    '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;"><button type="button" class="btn btn-sm" id="m-scan-g">📷 Scan ID bruidegom</button><span id="m-scan-g-status" style="font-size:12px;color:var(--ink-muted);align-self:center;"></span></div>'+
     '<div class="form-row"><div class="field"><label>Voornaam</label><input type="text" id="m-gfn" value="'+escapeHtml(r.groomFirstname)+'"></div><div class="field"><label>Achternaam</label><input type="text" id="m-gln" value="'+escapeHtml(r.groomLastname)+'"></div></div>'+
     '<div class="form-row"><div class="field"><label>Geboortedatum</label><input type="date" id="m-gbd" value="'+r.groomBirthDate+'"></div><div class="field"><label>Doopinschrijving (kruisverwijzing)</label><select id="m-gref">'+baptismOpts.replace('value="'+r.groomBaptismRef+'"','value="'+r.groomBaptismRef+'" selected')+'</select></div></div>'+
+    uploadFieldHtml('Scan ID bruidegom (optioneel)','m-gidscan',r.groomIdScan||'')+
     '<h4 style="font-size:13px;margin:14px 0 8px;color:var(--ink-soft);">Bruid</h4>'+
+    '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;"><button type="button" class="btn btn-sm" id="m-scan-b">📷 Scan ID bruid</button><span id="m-scan-b-status" style="font-size:12px;color:var(--ink-muted);align-self:center;"></span></div>'+
     '<div class="form-row"><div class="field"><label>Voornaam</label><input type="text" id="m-bfn" value="'+escapeHtml(r.brideFirstname)+'"></div><div class="field"><label>Achternaam</label><input type="text" id="m-bln" value="'+escapeHtml(r.brideLastname)+'"></div></div>'+
     '<div class="form-row"><div class="field"><label>Geboortedatum</label><input type="date" id="m-bbd" value="'+r.brideBirthDate+'"></div><div class="field"><label>Doopinschrijving (kruisverwijzing)</label><select id="m-bref">'+baptismOpts.replace('value="'+r.brideBaptismRef+'"','value="'+r.brideBaptismRef+'" selected')+'</select></div></div>'+
+    uploadFieldHtml('Scan ID bruid (optioneel)','m-bidscan',r.brideIdScan||'')+
     '<h4 style="font-size:13px;margin:14px 0 8px;color:var(--ink-soft);">Plechtigheid</h4>'+
     '<div class="form-row"><div class="field"><label>Datum</label><input type="date" id="m-date" value="'+r.date+'"></div><div class="field"><label>Plaats</label><input type="text" id="m-place" value="'+escapeHtml(r.place)+'"></div></div>'+
     '<div class="field" style="margin-bottom:10px;"><label>Bedienaar</label><select id="m-cel"><option value="">Kies celebrant</option>'+celOpts+'</select></div>'+
@@ -2061,6 +2089,10 @@ function editMarriageModal(id){
     },true);
   setTimeout(()=>{
     wireUploadField('m-photo',r,'photo');
+    wireUploadField('m-gidscan',r,'groomIdScan');
+    wireUploadField('m-bidscan',r,'brideIdScan');
+    const sg=$('m-scan-g');if(sg)sg.addEventListener('click',()=>scanIdCardInto({statusId:'m-scan-g-status',btnId:'m-scan-g',target:r,scanKey:'groomIdScan',scanPreviewId:'m-gidscan-prev',fields:{firstnameId:'m-gfn',lastnameId:'m-gln',birthDateId:'m-gbd'}}));
+    const sb=$('m-scan-b');if(sb)sb.addEventListener('click',()=>scanIdCardInto({statusId:'m-scan-b-status',btnId:'m-scan-b',target:r,scanKey:'brideIdScan',scanPreviewId:'m-bidscan-prev',fields:{firstnameId:'m-bfn',lastnameId:'m-bln',birthDateId:'m-bbd'}}));
     if(!isNew){const cb=$('m-cert'),db=$('m-del');if(cb)cb.addEventListener('click',()=>openCertificate(r,'marriage'));if(db)db.addEventListener('click',()=>{showModal('Verwijderen','Inschrijving '+r.id+' verwijderen?',()=>{state.registers.marriage=arr.filter(x=>x.id!==r.id);saveAll();logAudit('Huwelijksinschrijving verwijderd',r.id);closeModal();renderRegister();showToast('Verwijderd');});});}
   },50);
 }
