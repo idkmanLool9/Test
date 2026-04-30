@@ -17,7 +17,7 @@ Online reserveringssysteem en kerkelijk register voor de Syrisch-Orthodoxe gemee
 
 Open `index.html` in je browser, of hosting via GitHub Pages / Netlify (zie hieronder).
 
-**Demo login:** gebruikersnaam `admin`, wachtwoord `admin`
+**Eerste login:** gebruikersnaam `admin`, wachtwoord `admin` — wijzig dit direct na de eerste keer inloggen via **Beheer → Gebruikers**.
 
 ## Online zetten
 
@@ -40,16 +40,25 @@ Vergelijkbaar met Netlify, gekoppeld aan GitHub.
 
 ## Status
 
-**Demo / prototype.** Dit is bedoeld om aan parochies en het bisdom te tonen hoe het systeem werkt. Voor productiegebruik door meerdere kerken is een echt backend (database, authenticatie, betalingen, e-mails) nodig — dat is werk voor een ontwikkelaar.
+**Bruikbaar voor één parochie / één computer per parochie.** Geschikt als digitale werkkopie naast een papieren register, of voor één secretariaat-pc. Voor multi-parochie productiegebruik met gedeelde database, echte betalingen en automatische e-mails is een server nodig — zie [TECHNISCH-PLAN.md](TECHNISCH-PLAN.md).
 
-## Beperkingen van deze demo
+## Belangrijk bij eerste gebruik
 
-- Data wordt opgeslagen in de browser (localStorage) — niet gedeeld tussen apparaten of gebruikers
-- Geen echte iDEAL/Mollie integratie — betaling is gesimuleerd
-- Geen automatische e-mails — sjablonen zijn wel in te stellen
-- Geen echte authenticatie — wachtwoorden staan in plain text in localStorage
+1. Open de site en ga naar **Beheer** → log in met `admin` / `admin`
+2. Ga direct naar **Beheer → Gebruikers** en wijzig het wachtwoord van het `admin`-account
+3. Maak voor elke medewerker een eigen account met alleen de rechten die ze nodig hebben
+4. Maak regelmatig een backup via **Beheer → Backup** — dit is een JSON-bestand met alle data
 
-Voor een productiesysteem zie [TECHNISCH-PLAN.md](TECHNISCH-PLAN.md).
+## Beperkingen op GitHub Pages
+
+GitHub Pages is statische hosting — er is geen server, dus:
+
+- **Data staat alleen in de browser** (localStorage). Wie het systeem op een andere computer of in een andere browser opent, ziet zijn eigen lege kopie. Gebruik backup/restore om data over te zetten.
+- **Geen echte iDEAL/Mollie betalingen** — betaalstatus is handmatig in te vullen door beheerder.
+- **Geen automatische e-mails** — sjablonen openen je eigen mailprogramma met ingevulde tekst.
+- **Wachtwoorden** worden gehashed (PBKDF2-SHA256, 200.000 rondes) en zo opgeslagen, niet meer in plaintext. Een sessie wordt automatisch beëindigd na 30 minuten inactiviteit. Na 5 mislukte login-pogingen wordt verder proberen 30s geblokkeerd.
+
+Voor een echt multi-parochie systeem met gedeelde database, echte betalingen en automatische e-mails: zie [TECHNISCH-PLAN.md](TECHNISCH-PLAN.md).
 
 ## Techniek
 

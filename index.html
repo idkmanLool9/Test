@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="nl"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Mor Ephrem Klooster · Reserveringen</title><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet"><script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script><style>
+<!DOCTYPE html><html lang="nl"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob:; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"><meta name="referrer" content="strict-origin-when-cross-origin"><meta name="robots" content="noindex,nofollow"><title>Mor Ephrem Klooster · Reserveringen</title><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet"><script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script><style>
 :root{--bg:#fff;--bg-alt:#f7f8fa;--bg-muted:#eef0f3;--bg-soft:#fafbfc;--ink:#0f172a;--ink-soft:#475569;--ink-muted:#64748b;--line:#e2e8f0;--line-strong:#cbd5e1;--accent:#1f4788;--accent-hover:#163461;--accent-soft:#eef2fb;--accent-soft-2:#dde6f4;--success-bg:#ecfdf5;--success-bg-strong:#d1fae5;--success-ink:#065f46;--warn-bg:#fffbeb;--warn-bg-strong:#fef3c7;--warn-ink:#92400e;--danger-bg:#fef2f2;--danger-ink:#991b1b;--info-bg:#eff6ff;--info-ink:#1e40af;--font:'IBM Plex Sans',-apple-system,sans-serif;--font-mono:'IBM Plex Mono',monospace;--r:6px;--rl:8px;--rxl:10px;--sh:0 1px 3px rgba(15,23,42,.08);--shl:0 4px 12px rgba(15,23,42,.08)}
 *{box-sizing:border-box;margin:0;padding:0}
 *:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
@@ -786,29 +786,80 @@ function setupNav(){
   $('login-user').addEventListener('keydown',e=>{if(e.key==='Enter')$('login-password').focus();});
   $('login-cancel').addEventListener('click',()=>{$('login-screen').classList.remove('show');$('login-password').value='';$('login-user').value='';});
 }
-function tryLogin(){
+// --- Web Crypto: PBKDF2-SHA256 password hashing ---
+const PBKDF2_ITER=200000;
+function _b64enc(buf){return btoa(String.fromCharCode(...new Uint8Array(buf)));}
+function _b64dec(s){return Uint8Array.from(atob(s),c=>c.charCodeAt(0));}
+async function hashPassword(password,saltB64){
+  const salt=saltB64?_b64dec(saltB64):crypto.getRandomValues(new Uint8Array(16));
+  const km=await crypto.subtle.importKey('raw',new TextEncoder().encode(password),'PBKDF2',false,['deriveBits']);
+  const bits=await crypto.subtle.deriveBits({name:'PBKDF2',salt,iterations:PBKDF2_ITER,hash:'SHA-256'},km,256);
+  return{salt:_b64enc(salt),hash:_b64enc(bits),iter:PBKDF2_ITER,algo:'PBKDF2-SHA256'};
+}
+async function verifyPassword(password,stored){
+  if(!stored||!stored.salt||!stored.hash)return false;
+  const c=await hashPassword(password,stored.salt);
+  if(c.hash.length!==stored.hash.length)return false;
+  let r=0;for(let i=0;i<c.hash.length;i++)r|=c.hash.charCodeAt(i)^stored.hash.charCodeAt(i);
+  return r===0;
+}
+async function migratePasswords(){
+  if(!state.settings||!state.settings.users)return;
+  let changed=false;
+  for(const u of state.settings.users){
+    if(u.password!=null&&!u.passwordHash){
+      u.passwordHash=await hashPassword(u.password);
+      delete u.password;changed=true;
+    }
+  }
+  if(changed)saveAll();
+}
+function _getLoginLock(){try{return JSON.parse(sessionStorage.getItem('login_lock')||'{"count":0,"until":0}');}catch(e){return{count:0,until:0};}}
+function _setLoginLock(v){try{sessionStorage.setItem('login_lock',JSON.stringify(v));}catch(e){}}
+async function tryLogin(){
   const u=$('login-user').value.trim();const p=$('login-password').value;
-  const user=state.settings.users.find(x=>x.username===u&&x.password===p);
+  const lock=_getLoginLock();
+  if(lock.until>Date.now()){
+    showToast('Te veel pogingen — wacht '+Math.ceil((lock.until-Date.now())/1000)+'s','error');return;
+  }
+  const user=state.settings.users.find(x=>x.username===u);
+  let ok=false;
   if(user){
-    state.adminAuth=true;state.currentUser=user;
-    $('login-screen').classList.remove('show');
-    $('login-password').value='';$('login-user').value='';
-    $$('.nav-tab').forEach(t=>t.classList.remove('active'));
-    $('admin-tab-btn').classList.add('active');
-    $$('.page').forEach(p=>p.classList.remove('active'));
-    $('page-admin').classList.add('active');
-    applyPermissions();
-    logAudit('Ingelogd');
-    // Find first tab user has access to
-    const firstAllowed=$$('.sidebar-item[data-perm]').forEach(()=>{});
-    let firstTab='dashboard';
-    for(const it of $$('.sidebar-item[data-perm]')){if(hasPerm(it.dataset.perm)){firstTab=it.dataset.subtab;break;}}
-    state.adminSubtab=firstTab;
-    $$('.sidebar-item').forEach(x=>x.classList.remove('active'));
-    document.querySelector('.sidebar-item[data-subtab="'+firstTab+'"]').classList.add('active');
-    renderAdmin();
-    showToast('Welkom '+user.name,'success');
-  } else showToast('Onjuiste gegevens','error');
+    if(user.passwordHash){
+      ok=await verifyPassword(p,user.passwordHash);
+    }else if(user.password!=null){
+      ok=(user.password===p);
+      if(ok){user.passwordHash=await hashPassword(p);delete user.password;saveAll();}
+    }
+  }
+  if(!ok){
+    const c=lock.count+1;
+    const next=c>=5?Date.now()+30000:0;
+    _setLoginLock({count:c>=5?0:c,until:next});
+    showToast(c>=5?'Te veel pogingen — 30s wachten':'Onjuiste gegevens','error');
+    return;
+  }
+  _setLoginLock({count:0,until:0});
+  state.adminAuth=true;state.currentUser=user;
+  _touchActivity();
+  $('login-screen').classList.remove('show');
+  $('login-password').value='';$('login-user').value='';
+  $$('.nav-tab').forEach(t=>t.classList.remove('active'));
+  $('admin-tab-btn').classList.add('active');
+  $$('.page').forEach(x=>x.classList.remove('active'));
+  $('page-admin').classList.add('active');
+  applyPermissions();
+  logAudit('Ingelogd');
+  let firstTab='dashboard';
+  for(const it of $$('.sidebar-item[data-perm]')){if(hasPerm(it.dataset.perm)){firstTab=it.dataset.subtab;break;}}
+  state.adminSubtab=firstTab;
+  $$('.sidebar-item').forEach(x=>x.classList.remove('active'));
+  document.querySelector('.sidebar-item[data-subtab="'+firstTab+'"]').classList.add('active');
+  renderAdmin();
+  showToast('Welkom '+user.name,'success');
+  if(p==='admin'&&user.username==='admin'){
+    setTimeout(()=>showToast('Wijzig het standaardwachtwoord direct via Beheer → Gebruikers','warn'),1500);
+  }
 }
 function applyPermissions(){
   const u=state.currentUser;if(!u)return;
@@ -1296,7 +1347,7 @@ function setupSettingsEvents(){
 
   $('backup-download').addEventListener('click',()=>{const data=JSON.stringify({bookings:state.bookings,blocked:state.blocked,waitlist:state.waitlist,audit:state.audit,settings:state.settings,exportedAt:new Date().toISOString()},null,2);const blob=new Blob([data],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='backup-'+fmtDateKey(today.getFullYear(),today.getMonth(),today.getDate())+'.json';a.click();logAudit('Backup gedownload');showToast('Backup gedownload','success');});
   $('backup-upload-btn').addEventListener('click',()=>$('backup-file').click());
-  $('backup-file').addEventListener('change',e=>{const f=e.target.files[0];if(!f)return;const reader=new FileReader();reader.onload=ev=>{try{const d=JSON.parse(ev.target.result);if(!d.bookings||!d.settings){showToast('Ongeldig backup-bestand','error');return;}showModal('Backup importeren','Dit overschrijft alle huidige data. Doorgaan?',()=>{state.bookings=d.bookings;state.blocked=d.blocked||[];state.waitlist=d.waitlist||[];state.audit=d.audit||[];state.settings=mergeSettings(d.settings);saveAll();applyOrg();renderEventGrid();renderCelebrants();logAudit('Backup geïmporteerd');closeModal();renderAdmin();showToast('Geïmporteerd','success');});}catch(err){showToast('Fout: '+err.message,'error');}};reader.readAsText(f);});
+  $('backup-file').addEventListener('change',e=>{const f=e.target.files[0];if(!f)return;const reader=new FileReader();reader.onload=ev=>{try{const d=JSON.parse(ev.target.result);if(!d.bookings||!d.settings){showToast('Ongeldig backup-bestand','error');return;}showModal('Backup importeren','Dit overschrijft alle huidige data. Doorgaan?',async()=>{state.bookings=d.bookings;state.blocked=d.blocked||[];state.waitlist=d.waitlist||[];state.audit=d.audit||[];state.settings=mergeSettings(d.settings);await migratePasswords();saveAll();applyOrg();renderEventGrid();renderCelebrants();logAudit('Backup geïmporteerd');closeModal();renderAdmin();showToast('Geïmporteerd','success');});}catch(err){showToast('Fout: '+err.message,'error');}};reader.readAsText(f);});
   $('reset-demo').addEventListener('click',()=>{showModal('Demo herstellen','Alle bestaande reserveringen worden vervangen. Doorgaan?',()=>{seedDemo();logAudit('Demo hersteld');closeModal();renderAdmin();showToast('Demo hersteld','success');});});
   $('reset-all').addEventListener('click',()=>{showModal('Alles wissen','Alle data wordt definitief verwijderd. Doorgaan?',()=>{state.bookings=[];state.blocked=[];state.waitlist=[];state.audit=[];state.settings=JSON.parse(JSON.stringify(defaultSettings));saveAll();applyOrg();renderEventGrid();renderCelebrants();logAudit('Alles gewist');closeModal();renderAdmin();showToast('Gewist');});});
 }
@@ -1307,9 +1358,27 @@ function editLocModal(idx){const isNew=idx<0;const l=isNew?{key:'',label:'',capa
 
 function editCelModal(idx){const isNew=idx<0;const c=isNew?'':state.settings.celebrants[idx];showModal(isNew?'Nieuwe celebrant':'Celebrant bewerken','<div class="field"><label>Naam (bv. "Pater Saït")</label><input type="text" id="c-name" value="'+escapeHtml(c)+'"></div>',()=>{const n=$('c-name').value.trim();if(!n){showToast('Naam vereist','error');return;}if(isNew)state.settings.celebrants.push(n);else state.settings.celebrants[idx]=n;saveAll();logAudit(isNew?'Celebrant toegevoegd':'Celebrant bewerkt',n);closeModal();renderCelsList();renderCelebrants();showToast('Opgeslagen','success');},true);}
 
-function editUserModal(idx){const isNew=idx<0;const u=isNew?{username:'',password:'',name:'',perms:ALL_PERMS.slice()}:state.settings.users[idx];const permsHtml=ALL_PERMS.map(p=>'<div class="perm-item"><input type="checkbox" id="u-perm-'+p+'" '+((u.perms||[]).includes(p)?'checked':'')+'><label for="u-perm-'+p+'" style="margin:0;font-weight:400;">'+PERM_LABELS[p]+'</label></div>').join('');showModal(isNew?'Nieuwe gebruiker':'Gebruiker bewerken','<div class="form-row"><div class="field"><label>Volledige naam</label><input type="text" id="u-name" value="'+escapeHtml(u.name)+'" placeholder="bv. Maria Yacoub"></div><div class="field"><label>Gebruikersnaam</label><input type="text" id="u-user" value="'+escapeHtml(u.username)+'"'+(isNew?'':' disabled')+'></div></div><div class="field" style="margin-bottom:14px;"><label>Wachtwoord '+(isNew?'':'(leeg laten = niet wijzigen)')+'</label><input type="text" id="u-pass" value="'+(isNew?'':'')+'" placeholder="'+(isNew?'minimum 4 tekens':'••••••')+'"></div><label style="font-size:13px;font-weight:500;display:block;margin-bottom:6px;">Toegangsrechten</label><div class="perm-grid">'+permsHtml+'</div><p style="font-size:11px;color:var(--ink-muted);margin-top:6px;">Vink aan welke onderdelen deze persoon mag bekijken en bewerken.</p>',()=>{const name=$('u-name').value.trim();const user=$('u-user').value.trim();const pass=$('u-pass').value;if(!name||!user){showToast('Naam en gebruikersnaam vereist','error');return;}if(isNew&&(!pass||pass.length<4)){showToast('Wachtwoord min. 4 tekens','error');return;}const perms=ALL_PERMS.filter(p=>$('u-perm-'+p).checked);if(!perms.length){showToast('Selecteer ten minste 1 recht','error');return;}if(isNew){if(state.settings.users.some(x=>x.username===user)){showToast('Gebruikersnaam bestaat al','error');return;}state.settings.users.push({username:user,password:pass,name,perms});}else{state.settings.users[idx].name=name;if(pass)state.settings.users[idx].password=pass;state.settings.users[idx].perms=perms;if(state.currentUser&&state.currentUser.username===user)state.currentUser=state.settings.users[idx];}saveAll();logAudit(isNew?'Gebruiker toegevoegd':'Gebruiker bewerkt',user);closeModal();renderUsersList();applyPermissions();showToast('Opgeslagen','success');},true);}
+function editUserModal(idx){const isNew=idx<0;const u=isNew?{username:'',name:'',perms:ALL_PERMS.slice()}:state.settings.users[idx];const permsHtml=ALL_PERMS.map(p=>'<div class="perm-item"><input type="checkbox" id="u-perm-'+p+'" '+((u.perms||[]).includes(p)?'checked':'')+'><label for="u-perm-'+p+'" style="margin:0;font-weight:400;">'+PERM_LABELS[p]+'</label></div>').join('');showModal(isNew?'Nieuwe gebruiker':'Gebruiker bewerken','<div class="form-row"><div class="field"><label>Volledige naam</label><input type="text" id="u-name" value="'+escapeHtml(u.name)+'" placeholder="bv. Maria Yacoub"></div><div class="field"><label>Gebruikersnaam</label><input type="text" id="u-user" value="'+escapeHtml(u.username)+'"'+(isNew?'':' disabled')+'></div></div><div class="field" style="margin-bottom:14px;"><label>Wachtwoord '+(isNew?'':'(leeg laten = niet wijzigen)')+'</label><input type="password" id="u-pass" autocomplete="new-password" placeholder="'+(isNew?'minimum 8 tekens':'••••••')+'"></div><label style="font-size:13px;font-weight:500;display:block;margin-bottom:6px;">Toegangsrechten</label><div class="perm-grid">'+permsHtml+'</div><p style="font-size:11px;color:var(--ink-muted);margin-top:6px;">Vink aan welke onderdelen deze persoon mag bekijken en bewerken.</p>',async()=>{const name=$('u-name').value.trim();const user=$('u-user').value.trim();const pass=$('u-pass').value;if(!name||!user){showToast('Naam en gebruikersnaam vereist','error');return;}if(isNew&&(!pass||pass.length<8)){showToast('Wachtwoord min. 8 tekens','error');return;}if(pass&&pass.length>0&&pass.length<8){showToast('Wachtwoord min. 8 tekens','error');return;}const perms=ALL_PERMS.filter(p=>$('u-perm-'+p).checked);if(!perms.length){showToast('Selecteer ten minste 1 recht','error');return;}if(isNew){if(state.settings.users.some(x=>x.username===user)){showToast('Gebruikersnaam bestaat al','error');return;}const passwordHash=await hashPassword(pass);state.settings.users.push({username:user,passwordHash,name,perms});}else{state.settings.users[idx].name=name;if(pass){state.settings.users[idx].passwordHash=await hashPassword(pass);delete state.settings.users[idx].password;}state.settings.users[idx].perms=perms;if(state.currentUser&&state.currentUser.username===user)state.currentUser=state.settings.users[idx];}saveAll();logAudit(isNew?'Gebruiker toegevoegd':'Gebruiker bewerkt',user);closeModal();renderUsersList();applyPermissions();showToast('Opgeslagen','success');},true);}
 
-function init(){loadAll();applyParish();applyOrg();renderEventGrid();renderCelebrants();setupNav();setupBookingWizard();setupAdmin();setupParishSwitcher();setupLangSwitcher();setupRegister();renderCalendar();if(state.lang!=='nl'){document.querySelectorAll('.lang-btn').forEach(b=>b.classList.toggle('active',b.dataset.lang===state.lang));applyI18n();}else applyI18n();}
+// --- Idle auto-logout (30 min) ---
+const IDLE_TIMEOUT_MS=30*60*1000;
+let _lastActivity=Date.now();
+function _touchActivity(){_lastActivity=Date.now();}
+function _startIdleWatch(){
+  ['mousemove','keydown','click','touchstart','scroll'].forEach(ev=>document.addEventListener(ev,_touchActivity,{passive:true}));
+  setInterval(()=>{
+    if(state.adminAuth&&Date.now()-_lastActivity>IDLE_TIMEOUT_MS){
+      logAudit('Automatisch uitgelogd (inactief)');
+      state.adminAuth=false;state.currentUser=null;
+      $$('.nav-tab').forEach(t=>t.classList.remove('active'));
+      const bk=document.querySelector('[data-page="booking"]');if(bk)bk.classList.add('active');
+      $$('.page').forEach(p=>p.classList.remove('active'));
+      $('page-booking').classList.add('active');
+      showToast('Sessie verlopen — opnieuw inloggen','warn');
+    }
+  },60*1000);
+}
+function init(){loadAll();applyParish();applyOrg();renderEventGrid();renderCelebrants();setupNav();setupBookingWizard();setupAdmin();setupParishSwitcher();setupLangSwitcher();setupRegister();renderCalendar();if(state.lang!=='nl'){document.querySelectorAll('.lang-btn').forEach(b=>b.classList.toggle('active',b.dataset.lang===state.lang));applyI18n();}else applyI18n();migratePasswords();_startIdleWatch();}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
 })();
 </script></body></html>
