@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="nl"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://unpkg.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://cdn.jsdelivr.net https://unpkg.com https://tessdata.projectnaptha.com; worker-src 'self' blob:; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"><meta name="referrer" content="strict-origin-when-cross-origin"><meta name="robots" content="noindex,nofollow"><title>Mor Ephrem Klooster · Reserveringen</title><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet"><script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script>window.SUPA_CONFIG={url:'https://hdezdfanhbqgfklfbcws.supabase.co',key:'sb_publishable_49qwZygGdY8cil-KO5wsTQ_Yk8O-LNu'};</script><style>
+<!DOCTYPE html><html lang="nl"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://unpkg.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://cdn.jsdelivr.net https://unpkg.com https://tessdata.projectnaptha.com; worker-src 'self' blob:; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"><meta name="referrer" content="strict-origin-when-cross-origin"><meta name="robots" content="noindex,nofollow"><title>Mor Ephrem Klooster · Reserveringen</title><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet"><script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script>window.SUPA_CONFIG={url:'https://hdezdfanhbqgfklfbcws.supabase.co',key:'sb_publishable_49qwZygGdY8cil-KO5wsTQ_Yk8O-LNu'};</script><style>
 :root{--bg:#fff;--bg-alt:#f7f8fa;--bg-muted:#eef0f3;--bg-soft:#fafbfc;--ink:#0f172a;--ink-soft:#475569;--ink-muted:#64748b;--line:#e2e8f0;--line-strong:#cbd5e1;--accent:#1f4788;--accent-hover:#163461;--accent-soft:#eef2fb;--accent-soft-2:#dde6f4;--success-bg:#ecfdf5;--success-bg-strong:#d1fae5;--success-ink:#065f46;--warn-bg:#fffbeb;--warn-bg-strong:#fef3c7;--warn-ink:#92400e;--danger-bg:#fef2f2;--danger-ink:#991b1b;--info-bg:#eff6ff;--info-ink:#1e40af;--font:'IBM Plex Sans',-apple-system,sans-serif;--font-mono:'IBM Plex Mono',monospace;--r:6px;--rl:8px;--rxl:10px;--sh:0 1px 3px rgba(15,23,42,.08);--shl:0 4px 12px rgba(15,23,42,.08)}
 *{box-sizing:border-box;margin:0;padding:0}
 *:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
@@ -1474,11 +1474,94 @@ function seedRegisterDemo(){
 
 let registerTab='baptism';
 
-// --- Lazy script loader ---
+// --- Lazy script + stylesheet loaders ---
 function loadScript(src){
   return new Promise((resolve,reject)=>{
     if(document.querySelector('script[src="'+src+'"]')){resolve();return;}
     const s=document.createElement('script');s.src=src;s.onload=resolve;s.onerror=()=>reject(new Error('Kon script niet laden: '+src));document.head.appendChild(s);
+  });
+}
+function loadStylesheet(href){
+  return new Promise((resolve,reject)=>{
+    if(document.querySelector('link[href="'+href+'"]')){resolve();return;}
+    const l=document.createElement('link');l.rel='stylesheet';l.href=href;l.onload=resolve;l.onerror=()=>reject(new Error('Kon stylesheet niet laden: '+href));document.head.appendChild(l);
+  });
+}
+
+// --- Crop & enhance helpers (lazy-loaded Cropper.js) ---
+const CROPPER_JS='https://cdn.jsdelivr.net/npm/cropperjs@1.5.13/dist/cropper.min.js';
+const CROPPER_CSS='https://cdn.jsdelivr.net/npm/cropperjs@1.5.13/dist/cropper.min.css';
+async function ensureCropper(){
+  if(window.Cropper)return;
+  await loadStylesheet(CROPPER_CSS);
+  await loadScript(CROPPER_JS);
+}
+function enhanceCanvas(canvas,opts){
+  opts=opts||{};const contrast=opts.contrast!=null?opts.contrast:1.18;const brightness=opts.brightness!=null?opts.brightness:6;const sat=opts.sat!=null?opts.sat:0.92;
+  const ctx=canvas.getContext('2d');
+  const id=ctx.getImageData(0,0,canvas.width,canvas.height);const d=id.data;
+  const intercept=128*(1-contrast);const cl=v=>v<0?0:v>255?255:v;
+  for(let i=0;i<d.length;i+=4){
+    let r=d[i],g=d[i+1],b=d[i+2];
+    // contrast + brightness
+    r=r*contrast+intercept+brightness;g=g*contrast+intercept+brightness;b=b*contrast+intercept+brightness;
+    // milde desaturatie voor "scanned" look
+    if(sat!==1){const grey=0.299*r+0.587*g+0.114*b;r=grey+(r-grey)*sat;g=grey+(g-grey)*sat;b=grey+(b-grey)*sat;}
+    d[i]=cl(r);d[i+1]=cl(g);d[i+2]=cl(b);
+  }
+  ctx.putImageData(id,0,0);return canvas;
+}
+function showCropModal(imageDataUrl){
+  return new Promise(async(resolve)=>{
+    try{await ensureCropper();}catch(e){showToast('Crop-tool kon niet laden: '+e.message,'error');resolve(null);return;}
+    const overlay=document.createElement('div');
+    overlay.id='crop-overlay';
+    overlay.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.92);display:flex;flex-direction:column;z-index:9999;font-family:'+`'IBM Plex Sans',-apple-system,sans-serif`+';';
+    overlay.innerHTML='<div style="padding:12px 16px;background:#0f172a;color:#fff;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">'+
+      '<div style="font-size:14px;">Sleep aan de hoeken om alleen de ID-kaart in de uitsnede te zetten.</div>'+
+      '<div style="display:flex;gap:6px;flex-wrap:wrap;">'+
+      '<button id="crop-aspect" style="padding:7px 12px;background:#334155;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:13px;">Vrij formaat</button>'+
+      '<button id="crop-rot-l" style="padding:7px 10px;background:#334155;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:13px;">↺</button>'+
+      '<button id="crop-rot-r" style="padding:7px 10px;background:#334155;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:13px;">↻</button>'+
+      '<button id="crop-reset" style="padding:7px 12px;background:#334155;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:13px;">Reset</button>'+
+      '<button id="crop-cancel" style="padding:7px 12px;background:#475569;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:13px;">Annuleer</button>'+
+      '<button id="crop-ok" style="padding:7px 16px;background:#1f4788;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:13px;font-weight:600;">Doorgaan →</button>'+
+      '</div></div>'+
+      '<div style="flex:1;overflow:hidden;display:flex;align-items:center;justify-content:center;padding:14px;min-height:0;">'+
+      '<div style="max-width:100%;max-height:100%;overflow:hidden;"><img id="crop-img" style="max-width:100%;display:block;"></div>'+
+      '</div>';
+    document.body.appendChild(overlay);
+    const img=overlay.querySelector('#crop-img');img.src=imageDataUrl;
+    const idAspect=85.6/53.98;let aspect=idAspect;
+    const cropper=new window.Cropper(img,{aspectRatio:aspect,viewMode:1,autoCropArea:0.85,background:false,zoomable:true,scalable:false,movable:true,toggleDragModeOnDblclick:false});
+    const aspectBtn=overlay.querySelector('#crop-aspect');
+    function setAspect(a,label){aspect=a;cropper.setAspectRatio(a||NaN);aspectBtn.textContent=label;}
+    setAspect(idAspect,'ID-kaart formaat');
+    aspectBtn.onclick=()=>{
+      if(aspect===idAspect)setAspect(0,'Vrij formaat');
+      else if(aspect===0)setAspect(1,'Vierkant');
+      else setAspect(idAspect,'ID-kaart formaat');
+    };
+    overlay.querySelector('#crop-rot-l').onclick=()=>cropper.rotate(-90);
+    overlay.querySelector('#crop-rot-r').onclick=()=>cropper.rotate(90);
+    overlay.querySelector('#crop-reset').onclick=()=>cropper.reset();
+    function done(result){try{cropper.destroy();}catch(e){}overlay.remove();resolve(result);}
+    overlay.querySelector('#crop-cancel').onclick=()=>done(null);
+    overlay.querySelector('#crop-ok').onclick=()=>{
+      const canvas=cropper.getCroppedCanvas({maxWidth:2400,maxHeight:2400,fillColor:'#fff',imageSmoothingQuality:'high'});
+      enhanceCanvas(canvas);
+      const fullDataUrl=canvas.toDataURL('image/jpeg',0.92);
+      // Kleinere variant voor opslag
+      const small=document.createElement('canvas');
+      const ratio=Math.min(1600/canvas.width,1600/canvas.height,1);
+      small.width=Math.round(canvas.width*ratio);small.height=Math.round(canvas.height*ratio);
+      small.getContext('2d').drawImage(canvas,0,0,small.width,small.height);
+      const storedUrl=small.toDataURL('image/jpeg',0.85);
+      done({ocr:fullDataUrl,stored:storedUrl});
+    };
+    // ESC sluit
+    function onKey(e){if(e.key==='Escape')done(null);}
+    document.addEventListener('keydown',onKey,{once:true});
   });
 }
 
@@ -1905,24 +1988,30 @@ async function scanIdCardInto(opts){
   inp.type='file';inp.accept='image/*';inp.capture='environment';
   inp.onchange=async()=>{
     const f=inp.files[0];if(!f)return;
-    if(btn)btn.disabled=true;if(status)status.textContent='Foto verwerken...';
+    if(btn)btn.disabled=true;if(status)status.textContent='Foto laden...';
     try{
-      const ocrUrl=await readImageCompressed(f,2200,0.95);
+      // 1. Lees raw foto in
+      const rawDataUrl=await new Promise((res,rej)=>{const r=new FileReader();r.onload=e=>res(e.target.result);r.onerror=()=>rej(new Error('Kon bestand niet lezen'));r.readAsDataURL(f);});
+      if(status)status.textContent='Crop-tool laden...';
+      // 2. Crop + verbeter via UI
+      const cropResult=await showCropModal(rawDataUrl);
+      if(!cropResult){if(status)status.textContent='';if(btn)btn.disabled=false;return;}
+      // 3. Sla bijgesneden versie op
       if(opts.scanKey){
-        const stored=await readImageCompressed(f,1600,0.85);
-        opts.target[opts.scanKey]=stored;
+        opts.target[opts.scanKey]=cropResult.stored;
         if(opts.scanPreviewId){
           const prev=$(opts.scanPreviewId);
           if(prev){
             const baseId=opts.scanPreviewId.replace(/-prev$/,'');
             prev.style.display='';
-            prev.innerHTML='<img src="'+stored+'" style="max-width:160px;max-height:120px;border:1px solid var(--line);border-radius:var(--r);"> <button type="button" class="btn btn-sm btn-ghost" id="'+baseId+'-rm">Verwijder</button>';
+            prev.innerHTML='<img src="'+cropResult.stored+'" style="max-width:160px;max-height:120px;border:1px solid var(--line);border-radius:var(--r);"> <button type="button" class="btn btn-sm btn-ghost" id="'+baseId+'-rm">Verwijder</button>';
             wireRemove(baseId,opts.target,opts.scanKey);
           }
         }
       }
+      // 4. OCR op de hi-res bijgesneden + verbeterde foto
       if(status)status.textContent='Tekstherkenning... (eerste keer kan ~30 sec duren)';
-      const text=await ocrImage(ocrUrl,m=>{if(m&&m.status&&status){const p=m.progress?Math.round(m.progress*100)+'% ':'';status.textContent=p+m.status;}});
+      const text=await ocrImage(cropResult.ocr,m=>{if(m&&m.status&&status){const p=m.progress?Math.round(m.progress*100)+'% ':'';status.textContent=p+m.status;}});
       const mrz=parseMRZ(text);
       const filled=[];
       const fld=opts.fields||{};
@@ -1935,10 +2024,10 @@ async function scanIdCardInto(opts){
         if(status)status.innerHTML='<span style="color:#065f46;">✓ Herkend ('+mrz.format+'): '+filled.join(', ')+'. Controleer de gegevens.</span>';
         showToast('ID-kaart gelezen','success');
       }else{
-        if(status)status.innerHTML='<span style="color:#92400e;">⚠ Geen MRZ-zone gevonden. Probeer de achterkant of een scherpere foto.</span>';
+        if(status)status.innerHTML='<span style="color:#92400e;">⚠ Geen MRZ-zone gevonden — scan is opgeslagen, vul handmatig in.</span>';
         if(text)console.log('OCR tekst (geen MRZ):',text);
       }
-    }catch(e){if(status)status.innerHTML='<span style="color:#991b1b;">OCR mislukt: '+escapeHtml(e.message||String(e))+'</span>';}
+    }catch(e){if(status)status.innerHTML='<span style="color:#991b1b;">Mislukt: '+escapeHtml(e.message||String(e))+'</span>';}
     finally{if(btn)btn.disabled=false;}
   };
   inp.click();
