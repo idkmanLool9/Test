@@ -95,6 +95,69 @@ Foutmeldingen die je kunt zien:
 - *"Geen profiel gevonden"* → de SQL is niet (helemaal) gelopen, of je hebt de gebruiker handmatig aangemaakt vóór het schema. Run `supabase/schema.sql` opnieuw.
 - *Niets gebeurt na "Inloggen"-knop* → check de browser console op rode errors. Vaak een CSP-probleem of verkeerde URL/key.
 
+## Mollie iDEAL koppelen (optioneel)
+
+Voor echte iDEAL-betalingen draait er server-side code op **Supabase Edge Functions**. Je hebt nodig: een Mollie-account met een API-key.
+
+### Stap 1: schema-update
+
+In **Supabase → SQL Editor → New query** plak de hele inhoud van `supabase/schema-mollie.sql` en klik **Run**. Dit voegt `time`, `mollie_payment_id` en `payment_status` toe aan `bookings`.
+
+### Stap 2: API-key als secret
+
+⚠️ **Plak de Mollie-key NIET in code of in git.** Zet hem als Supabase-secret:
+
+- **Via Dashboard:** Supabase → **Project Settings → Edge Functions → Secrets → Add new secret**
+  - Name: `MOLLIE_API_KEY` — Value: `test_xxx...` (jouw Mollie test- of live-key)
+- **Via CLI:** `supabase secrets set MOLLIE_API_KEY=test_xxx`
+
+### Stap 3: Edge Functions deployen
+
+Twee opties — kies wat het makkelijkst is.
+
+**Optie A — Supabase CLI (aanbevolen):**
+
+```bash
+# eenmalig: install + login
+npm i -g supabase
+supabase login
+supabase link --project-ref hdezdfanhbqgfklfbcws
+
+# deploy de drie functions
+supabase functions deploy create-payment --no-verify-jwt
+supabase functions deploy check-payment  --no-verify-jwt
+supabase functions deploy mollie-webhook --no-verify-jwt
+```
+
+`--no-verify-jwt` is nodig zodat de webhook (vanuit Mollie) en het publieke booking-formulier (van anonieme bezoekers) de functies kunnen aanroepen.
+
+**Optie B — Dashboard:**
+
+Supabase → **Edge Functions → Deploy a new function**, naam invullen (`create-payment`, daarna `check-payment`, daarna `mollie-webhook`), inhoud van `supabase/functions/<naam>/index.ts` plakken, **Deploy**.
+Bij iedere functie: zet **Verify JWT** uit.
+
+### Stap 4 (aanbevolen): webhook URL
+
+Zodra `mollie-webhook` is gedeployed, vind je de URL in Supabase → Edge Functions → mollie-webhook → bovenaan. Plaatst die ook als secret zodat `create-payment` hem meegeeft aan elke Mollie-call:
+
+- Name: `MOLLIE_WEBHOOK_URL`
+- Value: `https://hdezdfanhbqgfklfbcws.supabase.co/functions/v1/mollie-webhook`
+
+(zonder dit blijft betalen werken — alleen de status komt dan binnen via de return-pagina in plaats van direct via Mollie's webhook.)
+
+### Stap 5: testen
+
+Op de site: maak een reservering, kies **iDEAL** als betaalmethode, klik **Bevestig**. Je wordt doorgestuurd naar Mollie's testbank. Kies daar **Paid** in de simulator. Je komt terug op de site, ziet "Betaling geslaagd", en in de admin staat de reservering met `paid='partial'` (voorschot voldaan).
+
+In Mollie Dashboard → **Payments** zie je de testbetaling verschijnen.
+
+### Beveiliging
+
+- Mollie key staat alleen op Supabase als secret — niet in de frontend, niet in git
+- De Edge Functions valideren de booking server-side
+- Bij webhook-pings haalt de server de definitieve status op vanuit Mollie zelf (kan niet worden vervalst)
+- ⚠️ De test-key die je in chat hebt gedeeld: revoke en regenereer hem in [Mollie Dashboard → Developers → API keys](https://my.mollie.com/dashboard/developers/api-keys), zet de nieuwe als secret
+
 ## Wat zit waar (Fase 1)
 
 | Onderdeel | Opslag |

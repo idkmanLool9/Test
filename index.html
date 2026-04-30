@@ -949,10 +949,29 @@ function setupBookingWizard(){
     goToStep(4);
   });
   $$('.pay-option').forEach(o=>{o.addEventListener('click',()=>{$$('.pay-option').forEach(x=>x.classList.remove('selected'));o.classList.add('selected');state.paymentMethod=o.dataset.method;});});
-  $('confirm-booking').addEventListener('click',()=>{
+  $('confirm-booking').addEventListener('click',async()=>{
     if(dateUnavailable(state.selectedDate)){showToast(state.eventType==='huwelijk'?'Op deze datum is al een huwelijk':'Datum net gereserveerd','error');goToStep(2);return;}
     if(state.eventType!=='huwelijk'&&bookingAtSlot(state.selectedDate,state.location,state.selectedTime)){showToast('Dit tijdstip is net gereserveerd','error');goToStep(3);return;}
     const b=makeBooking({date:state.selectedDate,time:state.selectedTime,type:state.eventType,location:state.location,firstname:$('firstname').value.trim(),lastname:$('lastname').value.trim(),email:$('email').value.trim(),phone:$('phone').value.trim(),address:$('address').value.trim(),postcode:$('postcode').value.trim(),city:$('city').value.trim(),guests:parseInt($('guests').value)||0,celebrant:$('celebrant').value,notes:$('notes').value.trim(),status:'pending',paid:state.paymentMethod==='overschrijving'?'unpaid':'paid',method:state.paymentMethod});
+    if(state.paymentMethod==='ideal'){
+      if(!supa){showToast('Online betalen niet beschikbaar — kies overschrijving','error');return;}
+      const btn=$('confirm-booking');btn.disabled=true;const orig=btn.textContent;btn.textContent='Bezig...';
+      try{
+        b.paid='unpaid';
+        const{data:row,error:insErr}=await supa.from('bookings').insert({ref:b.ref,parish_id:b.parishId,date:b.date,time:b.time||null,type:b.type,location:b.location,firstname:b.firstname,lastname:b.lastname,name:b.name,email:b.email,phone:b.phone,address:b.address||null,postcode:b.postcode||null,city:b.city||null,guests:b.guests,celebrant:b.celebrant||null,notes:b.notes||null,status:'pending',paid:'unpaid',method:'ideal',total:b.total,deposit:b.deposit}).select().single();
+        if(insErr){showToast('Reservering opslaan mislukt: '+insErr.message,'error');return;}
+        b.supabaseId=row.id;
+        state.bookings.push(b);state.lastBookingRef=b.ref;saveAll();
+        const returnUrl=window.location.origin+window.location.pathname+'?paid_ref='+encodeURIComponent(b.ref);
+        const{data:pay,error:fnErr}=await supa.functions.invoke('create-payment',{body:{booking_id:row.id,return_url:returnUrl}});
+        if(fnErr){showToast('Betaling aanmaken mislukt: '+fnErr.message,'error');return;}
+        if(pay&&pay.error){showToast('Mollie: '+pay.error,'error');return;}
+        if(!pay||!pay.checkoutUrl){showToast('Geen checkout-URL ontvangen','error');return;}
+        window.location.href=pay.checkoutUrl;
+      }catch(e){console.error(e);showToast('Onverwachte fout: '+(e.message||e),'error');}
+      finally{btn.disabled=false;btn.textContent=orig;}
+      return;
+    }
     state.bookings.push(b);state.lastBookingRef=b.ref;saveAll();
     $('confirm-detail').textContent=typeLabel(state.eventType)+' op '+dateLabel(state.selectedDate)+' om '+(state.selectedTime||'—')+' is gereserveerd.';
     $('confirm-ref').textContent=b.ref;goToStep(5);
@@ -1496,6 +1515,27 @@ async function restoreSession(){
     });
   }catch(e){console.error('restoreSession',e);}
 }
+async function handleMollieReturn(){
+  const params=new URLSearchParams(window.location.search);
+  const ref=params.get('paid_ref');if(!ref)return;
+  window.history.replaceState({},'',window.location.pathname);
+  if(!supa)return;
+  const b=state.bookings.find(x=>x.ref===ref);
+  showToast('Betaalstatus controleren...');
+  try{
+    const{data,error}=await supa.functions.invoke('check-payment',{body:b&&b.supabaseId?{booking_id:b.supabaseId}:{ref}});
+    if(error){showToast('Status check mislukt: '+error.message,'error');return;}
+    if(data&&data.error){showToast('Mollie: '+data.error,'error');return;}
+    const status=data&&data.status;
+    if(b&&data&&data.booking){if(data.booking.paid)b.paid=data.booking.paid;if(data.booking.payment_status)b.paymentStatus=data.booking.payment_status;saveAll();}
+    if(status==='paid'){
+      showToast('Betaling geslaagd','success');
+      if(b){state.lastBookingRef=ref;state.eventType=b.type;state.selectedDate=b.date;state.selectedTime=b.time;state.location=b.location;$('confirm-detail').textContent=typeLabel(b.type)+' op '+dateLabel(b.date)+(b.time?' om '+b.time:'')+' is bevestigd.';$('confirm-ref').textContent=b.ref;goToStep(5);}
+    }else if(status==='canceled'){showToast('Betaling geannuleerd — reservering staat open','warn');}
+    else if(status==='failed'||status==='expired'){showToast('Betaling mislukt: '+status,'error');}
+    else{showToast('Betaalstatus: '+status,'');}
+  }catch(e){console.error(e);showToast('Fout bij status-check: '+(e.message||e),'error');}
+}
 async function init(){
   loadAll();applyParish();applyOrg();
   renderEventGrid();renderCelebrants();
@@ -1504,6 +1544,7 @@ async function init(){
   if(state.lang!=='nl'){document.querySelectorAll('.lang-btn').forEach(b=>b.classList.toggle('active',b.dataset.lang===state.lang));applyI18n();}else applyI18n();
   _startIdleWatch();
   await restoreSession();
+  handleMollieReturn();
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
 })();
