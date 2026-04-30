@@ -429,10 +429,20 @@ body.editing [data-edit]::before{content:'\270E';position:absolute;top:-10px;rig
   </div>
   <div id="step-2" style="display:none;">
     <h3 class="section-title">Kies locatie en datum</h3>
-    <p class="section-sub">Selecteer eerst een locatie, daarna een beschikbare datum.</p>
+    <p class="section-sub">Kies een locatie en prik een datum. Of bekijk de hele maand.</p>
     <label style="display:block;font-size:13px;font-weight:500;margin-bottom:8px;">Locatie</label>
     <div class="pill-row" id="locations"></div>
-    <div class="booking-grid"><div class="panel">
+    <div class="panel" style="margin-bottom:14px;">
+      <div style="display:flex;gap:14px;flex-wrap:wrap;align-items:flex-end;">
+        <div class="field" style="flex:1;min-width:200px;margin:0;">
+          <label style="display:block;font-size:13px;font-weight:500;margin-bottom:6px;">Datum prikken</label>
+          <input type="date" id="date-pick" style="width:100%;padding:10px 12px;border:1px solid var(--line-strong);border-radius:var(--r);font-family:var(--font);font-size:14px;background:var(--bg)">
+        </div>
+        <button type="button" class="btn btn-sm btn-ghost" id="toggle-month-view">Hele maand bekijken</button>
+      </div>
+      <div id="date-availability" style="margin-top:10px;font-size:13px;display:none;"></div>
+    </div>
+    <div id="month-view" class="panel" style="display:none;margin-bottom:14px;">
       <div class="panel-header">
         <button class="month-nav" id="prev-month">‹</button>
         <h4 class="panel-title" id="month-label"></h4>
@@ -441,7 +451,7 @@ body.editing [data-edit]::before{content:'\270E';position:absolute;top:-10px;rig
       <div class="weekdays"><div>ma</div><div>di</div><div>wo</div><div>do</div><div>vr</div><div>za</div><div>zo</div></div>
       <div class="cal-grid" id="cal-grid"></div>
       <div class="legend"><span><i class="l-free"></i>Beschikbaar</span><span><i class="l-full"></i>Niet beschikbaar</span></div>
-    </div></div>
+    </div>
     <div id="time-panel" class="panel" style="display:none;margin-top:14px;">
       <div class="panel-header"><h4 class="panel-title">Aanvangstijd kiezen</h4><span id="time-panel-date" style="font-size:13px;color:var(--ink-muted);"></span></div>
       <div id="time-slots" class="slot-grid"></div>
@@ -934,7 +944,7 @@ function renderEventGrid(){
 function renderLocationPills(){
   const c=$('locations');
   c.innerHTML=state.settings.locations.map(l=>('<button class="pill'+(l.key===state.location?' selected':'')+'" data-loc="'+l.key+'">'+escapeHtml(l.label)+(l.capacity?' · '+l.capacity+' personen':'')+'</button>')).join('');
-  c.querySelectorAll('.pill').forEach(p=>{p.addEventListener('click',()=>{state.location=p.dataset.loc;state.selectedDate=null;state.selectedTime=null;checkStep2();renderCalendar();renderTimeSlots();renderLocationPills();});});
+  c.querySelectorAll('.pill').forEach(p=>{p.addEventListener('click',()=>{state.location=p.dataset.loc;state.selectedDate=null;state.selectedTime=null;const dp=$('date-pick');if(dp)dp.value='';checkStep2();renderCalendar();renderTimeSlots();updateDateAvailability();renderLocationPills();});});
 }
 function renderCelebrants(){
   const sel=$('celebrant');sel.innerHTML='<option value="">Geen voorkeur</option>';
@@ -947,6 +957,26 @@ function setupBookingWizard(){
   $$('[data-back]').forEach(b=>{b.addEventListener('click',()=>goToStep(parseInt(b.dataset.back)));});
   $('prev-month').addEventListener('click',()=>{if(state.viewMonth===0){state.viewMonth=11;state.viewYear--;}else state.viewMonth--;renderCalendar();});
   $('next-month').addEventListener('click',()=>{if(state.viewMonth===11){state.viewMonth=0;state.viewYear++;}else state.viewMonth++;renderCalendar();});
+  const dp=$('date-pick');
+  if(dp){
+    const todayKey=fmtDateKey(today.getFullYear(),today.getMonth(),today.getDate());
+    dp.min=todayKey;
+    dp.addEventListener('change',()=>{
+      const v=dp.value;if(!v){state.selectedDate=null;updateDateAvailability();renderTimeSlots();checkStep2();return;}
+      const cd=new Date(v);if(cd<today){showToast('Datum in het verleden','error');dp.value='';return;}
+      if(isBlocked(v)){showToast('Datum is geblokkeerd: '+blockedReason(v),'error');dp.value='';state.selectedDate=null;updateDateAvailability();renderTimeSlots();checkStep2();return;}
+      state.selectedDate=v;state.selectedTime=null;updateDateAvailability();renderTimeSlots();renderCalendar();checkStep2();
+    });
+  }
+  const tm=$('toggle-month-view');
+  if(tm){
+    tm.addEventListener('click',()=>{
+      const mv=$('month-view');const open=mv.style.display!=='none';
+      mv.style.display=open?'none':'';
+      tm.textContent=open?'Hele maand bekijken':'Maand verbergen';
+      if(!open)renderCalendar();
+    });
+  }
   $('to-step-3').addEventListener('click',()=>{if(!state.selectedDate||!state.selectedTime)return;if(dateUnavailable(state.selectedDate)){showToast(state.eventType==='huwelijk'?'Op deze datum is al een huwelijk':'Datum net gereserveerd','error');state.selectedDate=null;state.selectedTime=null;renderCalendar();renderTimeSlots();checkStep2();return;}goToStep(3);});
   $('to-step-4').addEventListener('click',()=>{
     const fn=$('firstname').value.trim();const ln=$('lastname').value.trim();const em=$('email').value.trim();const ph=$('phone').value.trim();
@@ -985,9 +1015,21 @@ function setupBookingWizard(){
   });
   $('download-ics').addEventListener('click',()=>{const b=state.bookings.find(x=>x.ref===state.lastBookingRef);if(b)downloadIcs(b);});
   $('download-pdf').addEventListener('click',()=>{const b=state.bookings.find(x=>x.ref===state.lastBookingRef);if(b)downloadInvoice(b);});
-  $('new-booking').addEventListener('click',()=>{state.eventType=null;state.selectedDate=null;state.selectedTime=null;$$('.event-card').forEach(c=>c.classList.remove('selected'));['firstname','lastname','email','phone','guests','notes','address','postcode','city','time-custom'].forEach(id=>{const el=$(id);if(el)el.value='';});$('celebrant').selectedIndex=0;$('agree-terms').checked=false;const tp=$('time-panel');if(tp)tp.style.display='none';goToStep(1);});
+  $('new-booking').addEventListener('click',()=>{state.eventType=null;state.selectedDate=null;state.selectedTime=null;$$('.event-card').forEach(c=>c.classList.remove('selected'));['firstname','lastname','email','phone','guests','notes','address','postcode','city','time-custom','date-pick'].forEach(id=>{const el=$(id);if(el)el.value='';});$('celebrant').selectedIndex=0;$('agree-terms').checked=false;const tp=$('time-panel');if(tp)tp.style.display='none';const mv=$('month-view');if(mv)mv.style.display='none';const tmv=$('toggle-month-view');if(tmv)tmv.textContent='Hele maand bekijken';updateDateAvailability();goToStep(1);});
 }
 
+function updateDateAvailability(){
+  const el=$('date-availability');if(!el)return;
+  const dp=$('date-pick');if(dp&&state.selectedDate)dp.value=state.selectedDate;
+  if(!state.selectedDate){el.style.display='none';el.textContent='';return;}
+  el.style.display='';
+  if(isBlocked(state.selectedDate)){el.innerHTML='<span style="color:#991b1b;">✗ Geblokkeerd: '+escapeHtml(blockedReason(state.selectedDate))+'</span>';return;}
+  if(dateUnavailable(state.selectedDate)){
+    el.innerHTML='<span style="color:#991b1b;">✗ '+(state.eventType==='huwelijk'?'Op deze datum is al een huwelijk':'Locatie is op deze datum bezet')+'</span>';
+  }else{
+    el.innerHTML='<span style="color:#166534;">✓ Beschikbaar — '+dateLabel(state.selectedDate)+'</span>';
+  }
+}
 const DEFAULT_SLOTS=['09:00','10:00','11:00','12:00','13:00','14:00','15:00','16:00','17:00','18:00','19:00','20:00'];
 function renderTimeSlots(){
   const panel=$('time-panel');if(!panel)return;
@@ -1021,7 +1063,7 @@ function renderCalendar(){
       if(cd.toDateString()===today.toDateString())c.classList.add('today');
       if(dateUnavailable(ds)){c.classList.add('full');c.disabled=true;c.title=state.eventType==='huwelijk'?'Op deze datum is al een huwelijk':'Deze datum is al gereserveerd';}
       if(state.selectedDate===ds)c.classList.add('selected');
-      c.addEventListener('click',()=>{state.selectedDate=ds;state.selectedTime=null;renderCalendar();renderTimeSlots();checkStep2();});
+      c.addEventListener('click',()=>{state.selectedDate=ds;state.selectedTime=null;renderCalendar();renderTimeSlots();updateDateAvailability();checkStep2();});
     }
     g.appendChild(c);
   }
