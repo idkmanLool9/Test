@@ -18,7 +18,7 @@ Deno.serve(async (req) => {
   if (req.method !== "POST") return json({ error: "Method not allowed" }, 405);
 
   try {
-    const { to, subject, body, html, reply_to } = await req.json();
+    const { to, subject, body, html, reply_to, bcc } = await req.json();
     if (!to || !subject || (!body && !html)) {
       return json({ error: "to, subject and body/html zijn verplicht" }, 400);
     }
@@ -35,6 +35,7 @@ Deno.serve(async (req) => {
     if (html) payload.html = html;
     if (body) payload.text = body;
     if (reply_to) payload.reply_to = reply_to;
+    if (bcc) payload.bcc = Array.isArray(bcc) ? bcc : [bcc];
 
     const r = await fetch("https://api.resend.com/emails", {
       method: "POST",

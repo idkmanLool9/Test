@@ -438,6 +438,7 @@ body.editing [data-edit]::before{content:'\270E';position:absolute;top:-10px;rig
 <main>
 <section class="page active" id="page-booking">
   <div class="page-header"><div><h2>Plechtigheid reserveren</h2><p>Reserveer online een plechtigheid of zaalhuur. Voor huwelijken geldt: maximaal één per dag.</p></div></div>
+  <div id="welcome-msg" class="summary-bar" style="display:none;margin-bottom:18px;"></div>
   <div class="steps">
     <div class="step active" data-step="1"><span class="step-num"><span>1</span></span>Type</div>
     <div class="step" data-step="2"><span class="step-num"><span>2</span></span>Datum</div>
@@ -849,7 +850,15 @@ const defaultTerms=`# Algemene voorwaarden en huisregels
 8.2 Door deze reservering te bevestigen verklaart u deze voorwaarden te hebben gelezen, begrepen en aanvaard.
 
 — Versie 1.0`;
-const defaultSettings={org:defaultOrg,types:defaultTypes,locations:defaultLocations,celebrants:defaultCelebrants,users:defaultUsers,templates:defaultTemplates,tags:defaultTags,terms:defaultTerms,depositPct:30,emails:{confirm:true,reminder7:true,reminder1:true,paid:false,cancel:false}};
+const defaultBooking={
+  minDaysAdvance:3,
+  maxMonthsAhead:18,
+  timeSlots:['09:00','10:00','11:00','12:00','13:00','14:00','15:00','16:00','17:00','18:00','19:00','20:00'],
+  refPrefix:'',
+  welcomeMessage:'',
+  notificationBcc:''
+};
+const defaultSettings={org:defaultOrg,types:defaultTypes,locations:defaultLocations,celebrants:defaultCelebrants,users:defaultUsers,templates:defaultTemplates,tags:defaultTags,terms:defaultTerms,booking:defaultBooking,depositPct:30,emails:{confirm:true,reminder7:true,reminder1:true,paid:false,cancel:false}};
 
 const state={
   step:1,eventType:null,location:null,
@@ -874,7 +883,8 @@ function fmtDateKey(y,m,d){return y+'-'+String(m+1).padStart(2,'0')+'-'+String(d
 function dateLabel(s){const[y,m,d]=s.split('-').map(Number);const dt=new Date(y,m-1,d);return dayNames[dt.getDay()]+' '+d+' '+monthNames[m-1]+' '+y;}
 function shortDateLabel(s){const[y,m,d]=s.split('-').map(Number);return d+' '+monthNames[m-1]+' '+y;}
 function tinyDateLabel(s){const[y,m,d]=s.split('-').map(Number);return d+' '+monthShort[m-1]+' '+y;}
-function genRef(){const dt=new Date();return'ME-'+String(dt.getMonth()+1).padStart(2,'0')+String(dt.getFullYear()).slice(-2)+'-'+(Math.floor(Math.random()*9000)+1000);}
+function genRef(){const dt=new Date();const cfgPrefix=(state.settings.booking&&state.settings.booking.refPrefix||'').trim();const p=getParish(state.currentParishId)||{};const prefix=cfgPrefix||(p.shortMark||'ME').toUpperCase();return prefix+'-'+String(dt.getMonth()+1).padStart(2,'0')+String(dt.getFullYear()).slice(-2)+'-'+(Math.floor(Math.random()*9000)+1000);}
+function applyWelcomeMessage(){const el=$('welcome-msg');if(!el)return;const m=state.settings.booking&&state.settings.booking.welcomeMessage;if(m&&m.trim()){el.textContent=m;el.style.display='';}else{el.style.display='none';}}
 function bookingForDate(s,l){return state.bookings.find(b=>b.date===s&&b.location===l&&b.parishId===state.currentParishId&&b.status!=='cancelled');}
 function weddingForDate(s){return state.bookings.find(b=>b.date===s&&b.type==='huwelijk'&&b.parishId===state.currentParishId&&b.status!=='cancelled');}
 function bookingAtSlot(s,l,t){return state.bookings.find(b=>b.date===s&&b.location===l&&b.time===t&&b.parishId===state.currentParishId&&b.status!=='cancelled');}
@@ -903,8 +913,11 @@ async function sendMail(b,templateKey,opts){
   const subject=(opts&&opts.subject)||fillTemplate(tpl.subject,b);
   const body=(opts&&opts.body)||fillTemplate(tpl.body,b);
   const reply=(getParish(b.parishId||state.currentParishId)||{}).email||undefined;
+  const bcc=(state.settings.booking&&state.settings.booking.notificationBcc||'').trim();
   try{
-    const{data,error}=await supa.functions.invoke('send-email',{body:{to:b.email,subject,body,reply_to:reply}});
+    const payload={to:b.email,subject,body,reply_to:reply};
+    if(bcc)payload.bcc=bcc;
+    const{data,error}=await supa.functions.invoke('send-email',{body:payload});
     if(error)return{ok:false,error:error.message};
     if(data&&data.error)return{ok:false,error:data.error};
     const who=state.currentUser?state.currentUser.name:'systeem';
@@ -928,7 +941,7 @@ function clearDemoData(){
   state.blocked=(state.blocked||[]).filter(b=>b.reason!=='Mor Ephrem feestdag');
 }
 function loadAll(){try{const r=localStorage.getItem(STORAGE_KEY);if(r){const d=JSON.parse(r);state.bookings=d.bookings||[];state.blocked=d.blocked||[];state.waitlist=d.waitlist||[];state.audit=d.audit||[];state.parishes=d.parishes&&d.parishes.length?d.parishes:JSON.parse(JSON.stringify(defaultParishes));state.currentParishId=d.currentParishId||'glane';state.lang=d.lang||'nl';state.registers=d.registers||{baptism:[],marriage:[],family:[],deceased:[],divorce:[],convert:[]};['baptism','marriage','family','deceased','divorce','convert'].forEach(k=>{if(!state.registers[k])state.registers[k]=[];});state.settings=mergeSettings(d.settings||{});}else{state.parishes=JSON.parse(JSON.stringify(defaultParishes));}if(!localStorage.getItem(STORAGE_KEY+'_demoCleanupV1')){clearDemoData();localStorage.setItem(STORAGE_KEY+'_demoCleanupV1','1');saveAll();}}catch(e){console.error(e);state.parishes=JSON.parse(JSON.stringify(defaultParishes));}}
-function mergeSettings(s){const m=JSON.parse(JSON.stringify(defaultSettings));if(s.org)Object.assign(m.org,s.org);if(s.types)m.types=s.types;if(s.locations)m.locations=s.locations;if(s.celebrants)m.celebrants=s.celebrants;if(s.users)m.users=s.users.map(u=>({...u,perms:u.perms||ALL_PERMS.slice()}));if(s.templates){Object.keys(s.templates).forEach(k=>{if(m.templates[k])Object.assign(m.templates[k],s.templates[k]);else m.templates[k]=s.templates[k];});}if(s.tags)m.tags=s.tags;if(s.terms)m.terms=s.terms;if(s.depositPct!=null)m.depositPct=s.depositPct;if(s.emails)Object.assign(m.emails,s.emails);return m;}
+function mergeSettings(s){const m=JSON.parse(JSON.stringify(defaultSettings));if(s.org)Object.assign(m.org,s.org);if(s.types)m.types=s.types;if(s.locations)m.locations=s.locations;if(s.celebrants)m.celebrants=s.celebrants;if(s.users)m.users=s.users.map(u=>({...u,perms:u.perms||ALL_PERMS.slice()}));if(s.templates){Object.keys(s.templates).forEach(k=>{if(m.templates[k])Object.assign(m.templates[k],s.templates[k]);else m.templates[k]=s.templates[k];});}if(s.tags)m.tags=s.tags;if(s.terms)m.terms=s.terms;if(s.booking)Object.assign(m.booking,s.booking);if(s.depositPct!=null)m.depositPct=s.depositPct;if(s.emails)Object.assign(m.emails,s.emails);return m;}
 function getTag(k){return(state.settings.tags||defaultTags).find(t=>t.key===k);}
 function tagChips(tags,small){if(!tags||!tags.length)return'';return tags.map(k=>{const t=getTag(k);if(!t)return'';return'<span class="tag-chip'+(small?' sm':'')+'" style="background:'+t.bg+';color:'+t.color+';border:1px solid '+t.color+'33;">'+escapeHtml(t.label)+'</span>';}).join('');}
 function saveAll(){try{localStorage.setItem(STORAGE_KEY,JSON.stringify({bookings:state.bookings,blocked:state.blocked,waitlist:state.waitlist,audit:state.audit,parishes:state.parishes,currentParishId:state.currentParishId,lang:state.lang,registers:state.registers,settings:state.settings}));}catch(e){console.error(e);}}
@@ -1013,6 +1026,7 @@ async function applyAuthSession(session){
   if(profile.parish_id)state.currentParishId=profile.parish_id;
   _touchActivity();
   loadProfiles();
+  applyParishLock();
   supa.from('profiles').update({last_login:new Date().toISOString()}).eq('id',profile.id).then(()=>{});
   return true;
 }
@@ -1050,6 +1064,7 @@ async function doLogout(){
   try{await logAudit('Uitgelogd');}catch(e){}
   if(supa){try{await supa.auth.signOut();}catch(e){console.error(e);}}
   state.adminAuth=false;state.currentUser=null;
+  applyParishLock();
   $$('.nav-tab').forEach(t=>t.classList.remove('active'));
   const bk=document.querySelector('[data-page="booking"]');if(bk)bk.classList.add('active');
   $$('.page').forEach(p=>p.classList.remove('active'));
@@ -1104,11 +1119,17 @@ function setupBookingWizard(){
   $('next-month').addEventListener('click',()=>{if(state.viewMonth===11){state.viewMonth=0;state.viewYear++;}else state.viewMonth++;renderCalendar();});
   const dp=$('date-pick');
   if(dp){
-    const todayKey=fmtDateKey(today.getFullYear(),today.getMonth(),today.getDate());
-    dp.min=todayKey;
+    const bk=state.settings.booking||defaultBooking;
+    const minDays=bk.minDaysAdvance||0;const maxMonths=bk.maxMonthsAhead||24;
+    const minD=new Date(today.getTime()+minDays*86400000);
+    const maxD=new Date(today.getFullYear(),today.getMonth()+maxMonths,today.getDate());
+    dp.min=fmtDateKey(minD.getFullYear(),minD.getMonth(),minD.getDate());
+    dp.max=fmtDateKey(maxD.getFullYear(),maxD.getMonth(),maxD.getDate());
     dp.addEventListener('change',()=>{
       const v=dp.value;if(!v){state.selectedDate=null;updateDateAvailability();renderTimeSlots();checkStep2();return;}
-      const cd=new Date(v);if(cd<today){showToast('Datum in het verleden','error');dp.value='';return;}
+      const cd=new Date(v);
+      if(cd<minD){showToast('Reserveer minstens '+minDays+' dag(en) van tevoren','error');dp.value='';return;}
+      if(cd>maxD){showToast('Reserveer maximaal '+maxMonths+' maand(en) vooruit','error');dp.value='';return;}
       if(isBlocked(v)){showToast('Datum is geblokkeerd: '+blockedReason(v),'error');dp.value='';state.selectedDate=null;updateDateAvailability();renderTimeSlots();checkStep2();return;}
       state.selectedDate=v;state.selectedTime=null;updateDateAvailability();renderTimeSlots();renderCalendar();checkStep2();
     });
@@ -1177,20 +1198,21 @@ function updateDateAvailability(){
     el.innerHTML='<span style="color:#166534;">✓ Beschikbaar — '+dateLabel(state.selectedDate)+'</span>';
   }
 }
-const DEFAULT_SLOTS=['09:00','10:00','11:00','12:00','13:00','14:00','15:00','16:00','17:00','18:00','19:00','20:00'];
+function getTimeSlots(){return(state.settings.booking&&state.settings.booking.timeSlots)||defaultBooking.timeSlots;}
 function renderTimeSlots(){
   const panel=$('time-panel');if(!panel)return;
   if(!state.selectedDate){panel.style.display='none';return;}
   panel.style.display='';
   $('time-panel-date').textContent=dateLabel(state.selectedDate);
   const grid=$('time-slots');
-  grid.innerHTML=DEFAULT_SLOTS.map(t=>{
+  const slots=getTimeSlots();
+  grid.innerHTML=slots.map(t=>{
     const taken=state.eventType!=='huwelijk'&&!!bookingAtSlot(state.selectedDate,state.location,t);
     const sel=state.selectedTime===t;
     return'<button type="button" class="slot-btn'+(taken?' taken':'')+(sel?' selected':'')+'" data-slot="'+t+'"'+(taken?' disabled':'')+'>'+t+'</button>';
   }).join('');
   grid.onclick=function(e){const b=e.target.closest('[data-slot]');if(!b||b.disabled)return;state.selectedTime=b.dataset.slot;$('time-custom').value='';renderTimeSlots();checkStep2();};
-  const custom=$('time-custom');custom.value=state.selectedTime&&!DEFAULT_SLOTS.includes(state.selectedTime)?state.selectedTime:'';
+  const custom=$('time-custom');custom.value=state.selectedTime&&!slots.includes(state.selectedTime)?state.selectedTime:'';
   custom.oninput=function(){if(custom.value){if(state.eventType!=='huwelijk'&&bookingAtSlot(state.selectedDate,state.location,custom.value)){showToast('Dit tijdstip is al gereserveerd','error');custom.value='';return;}state.selectedTime=custom.value;renderTimeSlots();checkStep2();}};
 }
 function renderCalendar(){
@@ -1557,10 +1579,24 @@ const defaultParishes=[
 function getParish(id){return state.parishes.find(p=>p.id===id)||state.parishes[0];}
 function currentParish(){return getParish(state.currentParishId);}
 
-function applyParish(){const p=currentParish();if(!p)return;$('current-parish-name').textContent=p.name;$('brand-name').textContent=p.name;$('brand-mark').textContent=p.shortMark||p.name.slice(0,2).toUpperCase();$('footer-name').textContent=p.name;$('footer-address').textContent=p.address;$('footer-phone').textContent=p.phone;$('footer-hours').textContent=p.hours;document.title=p.name+' · Reserveringen';}
+function applyParish(){const p=currentParish();if(!p)return;$('current-parish-name').textContent=p.name;$('brand-name').textContent=p.name;$('brand-mark').textContent=p.shortMark||p.name.slice(0,2).toUpperCase();$('footer-name').textContent=p.name;$('footer-address').textContent=p.address;$('footer-phone').textContent=p.phone;$('footer-hours').textContent=p.hours;document.title=p.name+' · Reserveringen';applyWelcomeMessage();}
 
+function canSwitchParishes(){
+  if(!state.adminAuth)return true; // publieke bezoeker mag kiezen waar te boeken
+  if(!state.currentUser)return true;
+  return state.currentUser.role==='bisdom';
+}
+function applyParishLock(){
+  const sw=$('parish-switcher-btn');if(!sw)return;
+  if(canSwitchParishes()){
+    sw.style.display='';sw.removeAttribute('disabled');sw.title='Wissel parochie';
+  }else{
+    sw.style.display='none';
+  }
+}
 function setupParishSwitcher(){
   $('parish-switcher-btn').addEventListener('click',()=>{
+    if(!canSwitchParishes()){showToast('U bent toegewezen aan één parochie','warn');return;}
     const list=$('parish-list');
     list.innerHTML=state.parishes.map(p=>'<div class="parish-card'+(p.id===state.currentParishId?' active':'')+'" data-pid="'+p.id+'"><div class="parish-card-info"><strong>'+escapeHtml(p.name)+'</strong><small>'+escapeHtml(p.address)+'</small></div>'+(p.id===state.currentParishId?'<span class="parish-card-badge">Actief</span>':'')+'</div>').join('');
     list.onclick=function(e){const c=e.target.closest('[data-pid]');if(c){state.currentParishId=c.dataset.pid;saveAll();applyParish();renderEventGrid();renderCelebrants();renderCalendar();if(state.adminAuth)renderAdmin();$('parish-modal').classList.remove('show');showToast(t('toast_parish'),'success');}};
@@ -2429,6 +2465,13 @@ function renderSettings(){
     '<div class="checkbox-row"><input type="checkbox" id="email-cancel" '+(state.settings.emails.cancel?'checked':'')+'><label for="email-cancel" style="font-weight:400;margin:0;">Mail bij annulering</label></div>'+
     '<button class="btn btn-sm" id="save-emails">Opslaan</button></div>'+
 
+    '<div class="setting-card"><h4>Boekingsregels</h4><p>Algemene regels voor het publieke reserveringsformulier.</p>'+
+    '<div class="form-row"><div class="field"><label>Min. dagen vooraf reserveren</label><input type="number" id="bk-min" min="0" max="60" value="'+(state.settings.booking.minDaysAdvance||0)+'"></div><div class="field"><label>Max. maanden vooruit</label><input type="number" id="bk-max" min="1" max="60" value="'+(state.settings.booking.maxMonthsAhead||18)+'"></div></div>'+
+    '<div class="field"><label>Tijdvensters (één per regel, formaat HH:MM)</label><textarea id="bk-slots" style="min-height:90px;font-family:var(--font-mono);font-size:12px;">'+escapeHtml((state.settings.booking.timeSlots||defaultBooking.timeSlots).join('\n'))+'</textarea><div class="field-hint">Bezoeker ziet deze knoppen in stap 2.</div></div>'+
+    '<div class="form-row"><div class="field"><label>Referentie-prefix (leeg = parochie-afkorting)</label><input type="text" id="bk-prefix" maxlength="6" value="'+escapeHtml(state.settings.booking.refPrefix||'')+'" placeholder="bv. ME"></div><div class="field"><label>BCC e-mail bij elke bevestiging</label><input type="email" id="bk-bcc" value="'+escapeHtml(state.settings.booking.notificationBcc||'')+'" placeholder="secretariaat@..."></div></div>'+
+    '<div class="field"><label>Welkomsttekst bovenaan boekingspagina (optioneel)</label><textarea id="bk-welcome" style="min-height:60px;" placeholder="bv. Onze cathedraal is in onderhoud van 1 t/m 15 augustus.">'+escapeHtml(state.settings.booking.welcomeMessage||'')+'</textarea></div>'+
+    '<button class="btn btn-sm" id="save-booking">Opslaan</button></div>'+
+
     '<div class="setting-card"><h4>Algemene voorwaarden &amp; huisregels</h4><p>Wat aanvragers moeten lezen voor ze in stap 3 verder kunnen. Markdown-light: <code># Titel</code>, <code>## Sectie</code>, lege regel = nieuwe alinea.</p>'+
     '<div class="field"><textarea id="terms-edit" style="min-height:260px;font-family:var(--font-mono);font-size:12px;line-height:1.5;">'+escapeHtml(state.settings.terms||defaultTerms)+'</textarea></div>'+
     '<div style="display:flex;gap:6px;flex-wrap:wrap;"><button class="btn btn-sm" id="save-terms">Opslaan</button><button class="btn btn-sm btn-ghost" id="reset-terms">Standaardtekst herstellen</button></div></div>'+
@@ -2477,6 +2520,18 @@ function setupSettingsEvents(){
   $('save-org').addEventListener('click',()=>{state.settings.org.name=$('set-name').value.trim();state.settings.org.shortMark=$('set-mark').value.trim()||state.settings.org.name.slice(0,2).toUpperCase();state.settings.org.address=$('set-address').value.trim();state.settings.org.phone=$('set-phone').value.trim();state.settings.org.email=$('set-email').value.trim();state.settings.org.iban=$('set-iban').value.trim();state.settings.org.hours=$('set-hours').value.trim();saveAll();applyOrg();logAudit('Klooster gegevens gewijzigd');showToast('Opgeslagen','success');});
   $('save-deposit').addEventListener('click',()=>{state.settings.depositPct=Math.min(100,Math.max(0,parseInt($('deposit-pct').value)||30));saveAll();logAudit('Voorschot percentage gewijzigd',state.settings.depositPct+'%');showToast('Opgeslagen','success');});
   $('save-emails').addEventListener('click',()=>{state.settings.emails={confirm:$('email-confirm').checked,reminder7:$('email-reminder7').checked,reminder1:$('email-reminder1').checked,paid:$('email-paid').checked,cancel:$('email-cancel').checked};saveAll();logAudit('E-mail instellingen gewijzigd');showToast('Opgeslagen','success');});
+  $('save-booking')&&$('save-booking').addEventListener('click',()=>{
+    const slots=$('bk-slots').value.split(/\r?\n/).map(s=>s.trim()).filter(s=>/^\d{1,2}:\d{2}$/.test(s)).map(s=>{const[h,m]=s.split(':');return String(h).padStart(2,'0')+':'+m;});
+    state.settings.booking={
+      minDaysAdvance:Math.max(0,parseInt($('bk-min').value)||0),
+      maxMonthsAhead:Math.max(1,parseInt($('bk-max').value)||18),
+      timeSlots:slots.length?slots:defaultBooking.timeSlots,
+      refPrefix:$('bk-prefix').value.trim().toUpperCase(),
+      welcomeMessage:$('bk-welcome').value.trim(),
+      notificationBcc:$('bk-bcc').value.trim()
+    };
+    saveAll();applyWelcomeMessage();logAudit('Boekingsregels gewijzigd');showToast('Opgeslagen','success');
+  });
   $('save-terms')&&$('save-terms').addEventListener('click',()=>{state.settings.terms=$('terms-edit').value;saveAll();logAudit('Voorwaarden gewijzigd');showToast('Voorwaarden opgeslagen','success');});
   $('reset-terms')&&$('reset-terms').addEventListener('click',()=>{showModal('Standaardtekst herstellen','De voorwaarden worden vervangen door de standaardtekst. Doorgaan?',()=>{state.settings.terms=defaultTerms;$('terms-edit').value=defaultTerms;saveAll();logAudit('Voorwaarden hersteld naar standaard');closeModal();showToast('Hersteld','success');});});
 
