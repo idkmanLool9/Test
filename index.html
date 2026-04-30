@@ -746,7 +746,19 @@ function closeModal(){$('modal').classList.remove('show');state.modalCallback=nu
 function fillTemplate(tpl,b){const p=getParish(b.parishId||state.currentParishId);const t=getType(b.type);const r={naam:b.name,datum:dateLabel(b.date),type:t.label,locatie:locLabel(b.location),ref:b.ref,totaal:b.total,voorschot:b.deposit,rest:b.total-b.deposit,iban:p.iban,klooster:p.name};return tpl.replace(/\{(\w+)\}/g,(_,k)=>r[k]!=null?r[k]:'{'+k+'}');}
 function hasPerm(p){if(!state.currentUser)return false;return state.currentUser.perms&&state.currentUser.perms.includes(p);}
 
-function loadAll(){try{const r=localStorage.getItem(STORAGE_KEY);if(r){const d=JSON.parse(r);state.bookings=d.bookings||[];state.blocked=d.blocked||[];state.waitlist=d.waitlist||[];state.audit=d.audit||[];state.parishes=d.parishes&&d.parishes.length?d.parishes:JSON.parse(JSON.stringify(defaultParishes));state.currentParishId=d.currentParishId||'glane';state.lang=d.lang||'nl';state.registers=d.registers||{baptism:[],marriage:[],family:[]};if(!state.registers.baptism)state.registers.baptism=[];if(!state.registers.marriage)state.registers.marriage=[];if(!state.registers.family)state.registers.family=[];state.settings=mergeSettings(d.settings||{});if(state.bookings.length===0)seedDemo();if(state.registers.baptism.length===0)seedRegisterDemo();}else{state.parishes=JSON.parse(JSON.stringify(defaultParishes));seedDemo();seedRegisterDemo();}}catch(e){console.error(e);state.parishes=JSON.parse(JSON.stringify(defaultParishes));seedDemo();seedRegisterDemo();}}
+function clearDemoData(){
+  state.bookings=(state.bookings||[]).filter(b=>!(b.email||'').toLowerCase().endsWith('@example.nl'));
+  state.waitlist=(state.waitlist||[]).filter(w=>!(w.email||'').toLowerCase().endsWith('@example.nl'));
+  const demoBaptismIds=['B-001','B-002','B-003'];
+  const demoMarriageIds=['M-001','M-002'];
+  const demoFamilyIds=['F-001','F-002'];
+  if(!state.registers)state.registers={baptism:[],marriage:[],family:[]};
+  state.registers.baptism=(state.registers.baptism||[]).filter(r=>!demoBaptismIds.includes(r.id));
+  state.registers.marriage=(state.registers.marriage||[]).filter(r=>!demoMarriageIds.includes(r.id));
+  state.registers.family=(state.registers.family||[]).filter(r=>!demoFamilyIds.includes(r.id)&&!(r.email||'').toLowerCase().endsWith('@example.nl'));
+  state.blocked=(state.blocked||[]).filter(b=>b.reason!=='Mor Ephrem feestdag');
+}
+function loadAll(){try{const r=localStorage.getItem(STORAGE_KEY);if(r){const d=JSON.parse(r);state.bookings=d.bookings||[];state.blocked=d.blocked||[];state.waitlist=d.waitlist||[];state.audit=d.audit||[];state.parishes=d.parishes&&d.parishes.length?d.parishes:JSON.parse(JSON.stringify(defaultParishes));state.currentParishId=d.currentParishId||'glane';state.lang=d.lang||'nl';state.registers=d.registers||{baptism:[],marriage:[],family:[]};if(!state.registers.baptism)state.registers.baptism=[];if(!state.registers.marriage)state.registers.marriage=[];if(!state.registers.family)state.registers.family=[];state.settings=mergeSettings(d.settings||{});}else{state.parishes=JSON.parse(JSON.stringify(defaultParishes));}if(!localStorage.getItem(STORAGE_KEY+'_demoCleanupV1')){clearDemoData();localStorage.setItem(STORAGE_KEY+'_demoCleanupV1','1');saveAll();}}catch(e){console.error(e);state.parishes=JSON.parse(JSON.stringify(defaultParishes));}}
 function mergeSettings(s){const m=JSON.parse(JSON.stringify(defaultSettings));if(s.org)Object.assign(m.org,s.org);if(s.types)m.types=s.types;if(s.locations)m.locations=s.locations;if(s.celebrants)m.celebrants=s.celebrants;if(s.users)m.users=s.users.map(u=>({...u,perms:u.perms||ALL_PERMS.slice()}));if(s.templates){Object.keys(s.templates).forEach(k=>{if(m.templates[k])Object.assign(m.templates[k],s.templates[k]);else m.templates[k]=s.templates[k];});}if(s.depositPct!=null)m.depositPct=s.depositPct;if(s.emails)Object.assign(m.emails,s.emails);return m;}
 function saveAll(){try{localStorage.setItem(STORAGE_KEY,JSON.stringify({bookings:state.bookings,blocked:state.blocked,waitlist:state.waitlist,audit:state.audit,parishes:state.parishes,currentParishId:state.currentParishId,lang:state.lang,registers:state.registers,settings:state.settings}));}catch(e){console.error(e);}}
 function logAudit(action,detail){const entry={ts:new Date().toISOString(),who:state.currentUser?state.currentUser.name:'systeem',action,detail:detail||''};state.audit.unshift(entry);if(state.audit.length>500)state.audit=state.audit.slice(0,500);saveAll();if(supa&&state.currentUser){supa.from('audit_log').insert({user_id:state.currentUser.id,parish_id:state.currentUser.parish_id||state.currentParishId,who_name:state.currentUser.name,action,detail:detail||null}).then(({error})=>{if(error)console.warn('audit write failed',error);});}}
@@ -1334,9 +1346,8 @@ function renderSettings(){
     '<input type="file" id="backup-file" accept=".json" style="display:none;"></div>'+
     '<p style="font-size:11px;color:var(--ink-muted);">Tip: maak regelmatig een backup. Gegevens staan alleen lokaal in deze browser opgeslagen.</p></div>'+
 
-    '<div class="setting-card"><h4>Demo &amp; reset</h4><p>Reset of importeer demogegevens.</p>'+
+    '<div class="setting-card"><h4>Reset</h4><p>Wis alle reserveringen, registers en instellingen op deze computer.</p>'+
     '<div style="display:flex;gap:6px;flex-wrap:wrap;">'+
-    '<button class="btn btn-sm btn-ghost" id="reset-demo">Demogegevens herstellen</button>'+
     '<button class="btn btn-sm btn-danger" id="reset-all">Alles wissen</button></div></div>';
 
   renderTypesList();renderLocsList();renderCelsList();renderUsersList();
@@ -1396,7 +1407,6 @@ function setupSettingsEvents(){
   $('backup-download').addEventListener('click',()=>{const data=JSON.stringify({bookings:state.bookings,blocked:state.blocked,waitlist:state.waitlist,audit:state.audit,settings:state.settings,exportedAt:new Date().toISOString()},null,2);const blob=new Blob([data],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='backup-'+fmtDateKey(today.getFullYear(),today.getMonth(),today.getDate())+'.json';a.click();logAudit('Backup gedownload');showToast('Backup gedownload','success');});
   $('backup-upload-btn').addEventListener('click',()=>$('backup-file').click());
   $('backup-file').addEventListener('change',e=>{const f=e.target.files[0];if(!f)return;const reader=new FileReader();reader.onload=ev=>{try{const d=JSON.parse(ev.target.result);if(!d.bookings||!d.settings){showToast('Ongeldig backup-bestand','error');return;}showModal('Backup importeren','Dit overschrijft alle huidige data. Doorgaan?',async()=>{state.bookings=d.bookings;state.blocked=d.blocked||[];state.waitlist=d.waitlist||[];state.audit=d.audit||[];state.settings=mergeSettings(d.settings);await migratePasswords();saveAll();applyOrg();renderEventGrid();renderCelebrants();logAudit('Backup geïmporteerd');closeModal();renderAdmin();showToast('Geïmporteerd','success');});}catch(err){showToast('Fout: '+err.message,'error');}};reader.readAsText(f);});
-  $('reset-demo').addEventListener('click',()=>{showModal('Demo herstellen','Alle bestaande reserveringen worden vervangen. Doorgaan?',()=>{seedDemo();logAudit('Demo hersteld');closeModal();renderAdmin();showToast('Demo hersteld','success');});});
   $('reset-all').addEventListener('click',()=>{showModal('Alles wissen','Alle data wordt definitief verwijderd. Doorgaan?',()=>{state.bookings=[];state.blocked=[];state.waitlist=[];state.audit=[];state.settings=JSON.parse(JSON.stringify(defaultSettings));saveAll();applyOrg();renderEventGrid();renderCelebrants();logAudit('Alles gewist');closeModal();renderAdmin();showToast('Gewist');});});
 }
 
