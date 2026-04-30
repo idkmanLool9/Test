@@ -158,6 +158,63 @@ In Mollie Dashboard → **Payments** zie je de testbetaling verschijnen.
 - Bij webhook-pings haalt de server de definitieve status op vanuit Mollie zelf (kan niet worden vervalst)
 - ⚠️ De test-key die je in chat hebt gedeeld: revoke en regenereer hem in [Mollie Dashboard → Developers → API keys](https://my.mollie.com/dashboard/developers/api-keys), zet de nieuwe als secret
 
+## E-mails versturen via Resend (optioneel)
+
+Voor automatische bevestigings- / annuleringsmails draait er een Edge Function die [Resend](https://resend.com) aanroept. Resend heeft een gratis tier (100 mails/dag, 3000/maand) wat ruim genoeg is voor een parochie.
+
+### Stap 1: Resend account + API-key
+
+1. Ga naar [resend.com](https://resend.com) → **Sign up** (gratis)
+2. Bevestig je e-mailadres
+3. Dashboard → **API Keys** → **Create API Key** → naam bv. "Parochie productie", permissions: *Sending access* — kopieer de key (begint met `re_...`)
+4. ⚠️ Sla de key op — hij wordt na het sluiten van het popup niet meer getoond
+
+### Stap 2: API-key als Supabase Secret
+
+Supabase → **Project Settings → Edge Functions → Secrets → Add new secret**
+- Name: `RESEND_API_KEY` — Value: jouw `re_...` key
+- (optioneel) Name: `RESEND_FROM` — Value: `"Mor Ephrem <onboarding@resend.dev>"`
+
+Zonder `RESEND_FROM` wordt automatisch `onboarding@resend.dev` als afzender gebruikt — werkt direct, mails komen wel binnen, maar staan niet onder jouw eigen domein.
+
+### Stap 3: function deployen
+
+**Via Dashboard:** Supabase → **Edge Functions → Deploy a new function** → naam `send-email`, plak inhoud van `supabase/functions/send-email/index.ts`, **Verify JWT uit**, **Deploy**.
+
+**Via CLI:**
+```bash
+supabase functions deploy send-email --no-verify-jwt
+```
+
+### Stap 4 (productie): eigen domein verifiëren
+
+Voor mails vanaf `info@morephrem.nl` in plaats van `onboarding@resend.dev`:
+1. Resend Dashboard → **Domains → Add Domain** → `morephrem.nl`
+2. Resend toont DNS-records (SPF/DKIM/DMARC) — voeg die toe bij je domein-registrar (TransIP, Hostnet, enz.)
+3. Klik **Verify** in Resend zodra DNS is gepropageerd (kan 30-60 min duren)
+4. Update de `RESEND_FROM` secret in Supabase naar `"Mor Ephrem <info@morephrem.nl>"`
+
+### Wat er automatisch wordt verstuurd
+
+Mits aangevinkt onder **Beheer → E-mailsjablonen → Welke mails versturen**:
+
+| Trigger | Sjabloon | Wanneer |
+|---|---|---|
+| ✓ Reservering aangemaakt | `confirm` | Direct na publiek formulier of admin-quick-add |
+| ✓ Reservering bevestigd | `confirm` | Wanneer admin op "Bevestigen" klikt |
+| ✓ Betaling ontvangen | `paid` | Na succesvolle iDEAL-betaling |
+| ✓ Annulering | `cancel` | Wanneer admin annuleert |
+| ⏰ 7 dagen vooraf | `reminder7` | Vereist Postgres `pg_cron` — niet automatisch in deze fase |
+| ⏰ 1 dag vooraf | `reminder1` | Idem |
+
+De handmatige **Mail uit sjabloon**-knop in de drawer verstuurt nu direct via Resend in plaats van je e-mailprogramma te openen. Vink je *"Open in mailprogramma in plaats van direct versturen"* aan, dan valt-ie terug op het oude `mailto:`-gedrag.
+
+### Testen
+
+1. Maak een reservering aan via het publieke formulier met je eigen e-mailadres
+2. Check je inbox (en de spam-folder, vooral bij `onboarding@resend.dev`)
+3. Resend Dashboard → **Emails** — je ziet alle verzonden mails met status
+
 ## Wat zit waar (Fase 1)
 
 | Onderdeel | Opslag |
