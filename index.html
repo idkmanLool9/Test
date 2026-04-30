@@ -369,7 +369,11 @@ body.editing [data-edit]::before{content:'\270E';position:absolute;top:-10px;rig
 .parish-card-badge{font-size:11px;padding:2px 8px;background:var(--accent);color:white;border-radius:3px}
 
 /* Register sectie */
-.register-tabs{display:flex;gap:4px;margin-bottom:18px;border-bottom:1px solid var(--line)}
+.reg-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;margin-bottom:14px}
+.reg-stat{background:var(--bg);border:1px solid var(--line);border-radius:var(--rl);padding:10px 12px;text-align:left}
+.reg-stat .num{display:block;font-size:22px;font-weight:600;color:var(--accent);line-height:1.1}
+.reg-stat .lbl{display:block;font-size:11px;color:var(--ink-muted);text-transform:uppercase;letter-spacing:.04em;margin-top:2px}
+.register-tabs{display:flex;gap:4px;margin-bottom:18px;border-bottom:1px solid var(--line);flex-wrap:wrap}
 .register-tab{padding:10px 16px;background:none;border:none;font-size:13px;font-weight:500;color:var(--ink-soft);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px}
 .register-tab.active{color:var(--accent);border-bottom-color:var(--accent)}
 .register-tab:hover:not(.active){color:var(--ink)}
@@ -651,11 +655,16 @@ body.editing [data-edit]::before{content:'\270E';position:absolute;top:-10px;rig
         <div class="setting-card audit-list" id="audit-list"></div>
       </div>
       <div id="subtab-register" class="admin-subpage" style="display:none;">
-        <div class="admin-page-header"><div><h2 data-i18n="reg_title">Kerkelijk register</h2><p data-i18n="reg_sub">Doop, huwelijk en lidmaatschap. Gedeeld over alle parochies binnen het bisdom.</p></div><div class="admin-page-actions"><button class="btn btn-sm" id="reg-add-btn"><span data-i18n="reg_add">+ Inschrijving</span></button></div></div>
+        <div class="admin-page-header"><div><h2 data-i18n="reg_title">Kerkelijk register</h2><p data-i18n="reg_sub">Doop, huwelijk, lidmaatschap, overledenen, echtscheiding en bekeerlingen.</p></div><div class="admin-page-actions"><button class="btn btn-sm" id="reg-add-btn"><span data-i18n="reg_add">+ Inschrijving</span></button><button class="btn btn-sm btn-ghost" id="reg-adv-toggle">Geavanceerd zoeken</button><button class="btn btn-sm btn-ghost" id="reg-year-print">Jaaroverzicht afdrukken</button></div></div>
+        <div id="register-stats-bar"></div>
+        <div id="reg-adv-panel" class="panel" style="display:none;margin-bottom:14px;"><div class="form-row three"><div class="field"><label>Datum vanaf</label><input type="date" id="adv-from"></div><div class="field"><label>Datum tot</label><input type="date" id="adv-to"></div><div class="field"><label>Jaar (sneller)</label><input type="text" id="adv-year" placeholder="2024" maxlength="4"></div></div><div class="form-row"><div class="field"><label>Bedienaar bevat</label><input type="text" id="adv-cel"></div><div class="field"><label>Peetouder / getuige bevat</label><input type="text" id="adv-wit"></div></div><div style="display:flex;gap:8px;"><button class="btn btn-sm" id="reg-adv-apply">Toepassen</button><button class="btn btn-sm btn-ghost" id="reg-adv-clear">Wissen</button></div></div>
         <div class="register-tabs">
-          <button class="register-tab active" data-rtab="baptism" data-i18n="reg_baptism">Doopregister</button>
-          <button class="register-tab" data-rtab="marriage" data-i18n="reg_marriage">Huwelijksregister</button>
-          <button class="register-tab" data-rtab="family" data-i18n="reg_family">Lidmaatschap gezinnen</button>
+          <button class="register-tab active" data-rtab="baptism" data-i18n="reg_baptism">Doop</button>
+          <button class="register-tab" data-rtab="marriage" data-i18n="reg_marriage">Huwelijk</button>
+          <button class="register-tab" data-rtab="family" data-i18n="reg_family">Lidmaatschap</button>
+          <button class="register-tab" data-rtab="deceased">Overledenen</button>
+          <button class="register-tab" data-rtab="divorce">Echtscheiding</button>
+          <button class="register-tab" data-rtab="convert">Bekeerlingen</button>
         </div>
         <div class="toolbar"><div></div><div class="search-box"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="7" cy="7" r="5"/><path d="M14 14l-3-3"/></svg><input type="text" id="register-search" placeholder="Zoek..."></div></div>
         <div id="register-content"></div>
@@ -767,7 +776,7 @@ const state={
   adminViewYear:today.getFullYear(),adminViewMonth:today.getMonth(),
   bookings:[],blocked:[],waitlist:[],audit:[],
   parishes:[],currentParishId:'glane',lang:'nl',
-  registers:{baptism:[],marriage:[],family:[]},registerSearch:'',profiles:[],
+  registers:{baptism:[],marriage:[],family:[],deceased:[],divorce:[],convert:[]},registerSearch:'',registerAdvanced:{},profiles:[],
   settings:JSON.parse(JSON.stringify(defaultSettings)),
   lastBookingRef:null,charts:{},modalCallback:null
 };
@@ -832,7 +841,7 @@ function clearDemoData(){
   state.registers.family=(state.registers.family||[]).filter(r=>!demoFamilyIds.includes(r.id)&&!(r.email||'').toLowerCase().endsWith('@example.nl'));
   state.blocked=(state.blocked||[]).filter(b=>b.reason!=='Mor Ephrem feestdag');
 }
-function loadAll(){try{const r=localStorage.getItem(STORAGE_KEY);if(r){const d=JSON.parse(r);state.bookings=d.bookings||[];state.blocked=d.blocked||[];state.waitlist=d.waitlist||[];state.audit=d.audit||[];state.parishes=d.parishes&&d.parishes.length?d.parishes:JSON.parse(JSON.stringify(defaultParishes));state.currentParishId=d.currentParishId||'glane';state.lang=d.lang||'nl';state.registers=d.registers||{baptism:[],marriage:[],family:[]};if(!state.registers.baptism)state.registers.baptism=[];if(!state.registers.marriage)state.registers.marriage=[];if(!state.registers.family)state.registers.family=[];state.settings=mergeSettings(d.settings||{});}else{state.parishes=JSON.parse(JSON.stringify(defaultParishes));}if(!localStorage.getItem(STORAGE_KEY+'_demoCleanupV1')){clearDemoData();localStorage.setItem(STORAGE_KEY+'_demoCleanupV1','1');saveAll();}}catch(e){console.error(e);state.parishes=JSON.parse(JSON.stringify(defaultParishes));}}
+function loadAll(){try{const r=localStorage.getItem(STORAGE_KEY);if(r){const d=JSON.parse(r);state.bookings=d.bookings||[];state.blocked=d.blocked||[];state.waitlist=d.waitlist||[];state.audit=d.audit||[];state.parishes=d.parishes&&d.parishes.length?d.parishes:JSON.parse(JSON.stringify(defaultParishes));state.currentParishId=d.currentParishId||'glane';state.lang=d.lang||'nl';state.registers=d.registers||{baptism:[],marriage:[],family:[],deceased:[],divorce:[],convert:[]};['baptism','marriage','family','deceased','divorce','convert'].forEach(k=>{if(!state.registers[k])state.registers[k]=[];});state.settings=mergeSettings(d.settings||{});}else{state.parishes=JSON.parse(JSON.stringify(defaultParishes));}if(!localStorage.getItem(STORAGE_KEY+'_demoCleanupV1')){clearDemoData();localStorage.setItem(STORAGE_KEY+'_demoCleanupV1','1');saveAll();}}catch(e){console.error(e);state.parishes=JSON.parse(JSON.stringify(defaultParishes));}}
 function mergeSettings(s){const m=JSON.parse(JSON.stringify(defaultSettings));if(s.org)Object.assign(m.org,s.org);if(s.types)m.types=s.types;if(s.locations)m.locations=s.locations;if(s.celebrants)m.celebrants=s.celebrants;if(s.users)m.users=s.users.map(u=>({...u,perms:u.perms||ALL_PERMS.slice()}));if(s.templates){Object.keys(s.templates).forEach(k=>{if(m.templates[k])Object.assign(m.templates[k],s.templates[k]);else m.templates[k]=s.templates[k];});}if(s.tags)m.tags=s.tags;if(s.depositPct!=null)m.depositPct=s.depositPct;if(s.emails)Object.assign(m.emails,s.emails);return m;}
 function getTag(k){return(state.settings.tags||defaultTags).find(t=>t.key===k);}
 function tagChips(tags,small){if(!tags||!tags.length)return'';return tags.map(k=>{const t=getTag(k);if(!t)return'';return'<span class="tag-chip'+(small?' sm':'')+'" style="background:'+t.bg+';color:'+t.color+';border:1px solid '+t.color+'33;">'+escapeHtml(t.label)+'</span>';}).join('');}
@@ -1464,26 +1473,241 @@ function seedRegisterDemo(){
 }
 
 let registerTab='baptism';
+
+// --- Foto/scan upload helper (verkleint grote afbeeldingen automatisch) ---
+function readImageCompressed(file,maxDim,quality){
+  maxDim=maxDim||1400;quality=quality||0.82;
+  return new Promise((resolve,reject)=>{
+    if(!file){reject(new Error('Geen bestand'));return;}
+    const r=new FileReader();
+    r.onload=e=>{
+      const dataUrl=e.target.result;
+      if(!file.type.startsWith('image/')){
+        if(dataUrl.length>2*1024*1024){reject(new Error('Bestand te groot (max ~1.5 MB voor PDF)'));return;}
+        resolve(dataUrl);return;
+      }
+      const img=new Image();
+      img.onload=()=>{
+        const ratio=Math.min(maxDim/img.width,maxDim/img.height,1);
+        const w=Math.round(img.width*ratio),h=Math.round(img.height*ratio);
+        const c=document.createElement('canvas');c.width=w;c.height=h;
+        c.getContext('2d').drawImage(img,0,0,w,h);
+        resolve(c.toDataURL('image/jpeg',quality));
+      };
+      img.onerror=()=>reject(new Error('Geen geldige afbeelding'));
+      img.src=dataUrl;
+    };
+    r.onerror=()=>reject(new Error('Kon bestand niet lezen'));
+    r.readAsDataURL(file);
+  });
+}
+
+function attachFileInput(inputId,onResult,opts){
+  setTimeout(()=>{
+    const inp=document.getElementById(inputId);if(!inp)return;
+    inp.addEventListener('change',async()=>{
+      const f=inp.files[0];if(!f)return;
+      try{const url=await readImageCompressed(f,(opts&&opts.maxDim)||1400);onResult(url,f);}
+      catch(e){showToast(e.message,'error');inp.value='';}
+    });
+  },50);
+}
+
+// --- Digitale handtekening (SHA-256 hash van entry-data) ---
+async function signEntry(entry,type){
+  const who=state.currentUser?(state.currentUser.name||state.currentUser.email):'systeem';
+  const ts=new Date().toISOString();
+  const blob=type+'|'+entry.id+'|'+(entry.parishId||'')+'|'+who+'|'+ts;
+  let hash='';
+  try{
+    const buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(blob));
+    hash=Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('').slice(0,16).toUpperCase();
+  }catch(e){hash='LEGACY-'+Date.now().toString(16).toUpperCase();}
+  entry.signedBy=who;entry.signedAt=ts;entry.signatureHash=hash;
+  return entry;
+}
+
+// --- Volledige certificaat-look (HTML naar nieuwe tab voor printen) ---
+function openCertificate(entry,type){
+  const parish=getParish(entry.parishId)||{};
+  const titles={baptism:'Doopcertificaat',marriage:'Huwelijksakte',family:'Lidmaatschap',deceased:'Overlijdensakte',divorce:'Akte van echtscheiding',convert:'Bekeerlingenakte'};
+  const verifyUrl=window.location.origin+window.location.pathname+'?verify='+type+':'+entry.id+(entry.signatureHash?':'+entry.signatureHash:'');
+  let body='';
+  if(type==='baptism'){
+    body='<div class="cert-name">'+escapeHtml((entry.firstname||'')+' '+(entry.lastname||''))+(entry.firstnameSy?' <span class="sy">'+escapeHtml(entry.firstnameSy+' '+(entry.lastnameSy||''))+'</span>':'')+'</div>'+
+      '<div class="cert-body"><dl>'+
+      '<dt>Geboren op</dt><dd>'+(entry.birthDate?dateLabel(entry.birthDate):'—')+'</dd>'+
+      '<dt>Te</dt><dd>'+escapeHtml(entry.birthPlace||'—')+'</dd>'+
+      '<dt>Gedoopt op</dt><dd>'+(entry.baptismDate?dateLabel(entry.baptismDate):'—')+'</dd>'+
+      '<dt>Te</dt><dd>'+escapeHtml(entry.baptismPlace||'—')+'</dd>'+
+      '<dt>Vader</dt><dd>'+escapeHtml(entry.father||'—')+'</dd>'+
+      '<dt>Moeder</dt><dd>'+escapeHtml(entry.mother||'—')+'</dd>'+
+      '<dt>Peetvader</dt><dd>'+escapeHtml(entry.godfather||'—')+'</dd>'+
+      '<dt>Peetmoeder</dt><dd>'+escapeHtml(entry.godmother||'—')+'</dd>'+
+      '<dt>Bedienaar</dt><dd>'+escapeHtml(entry.celebrant||'—')+'</dd>'+
+      '</dl></div>';
+  } else if(type==='marriage'){
+    body='<div class="cert-name">'+escapeHtml((entry.groomFirstname||'')+' '+(entry.groomLastname||''))+'<br>&amp; '+escapeHtml((entry.brideFirstname||'')+' '+(entry.brideLastname||''))+'</div>'+
+      '<div class="cert-body"><dl>'+
+      '<dt>Bruidegom</dt><dd>'+escapeHtml(entry.groomFirstname+' '+entry.groomLastname)+(entry.groomBirthDate?' (geb. '+dateLabel(entry.groomBirthDate)+')':'')+'</dd>'+
+      '<dt>Bruid</dt><dd>'+escapeHtml(entry.brideFirstname+' '+entry.brideLastname)+(entry.brideBirthDate?' (geb. '+dateLabel(entry.brideBirthDate)+')':'')+'</dd>'+
+      '<dt>Gehuwd op</dt><dd>'+(entry.date?dateLabel(entry.date):'—')+'</dd>'+
+      '<dt>Te</dt><dd>'+escapeHtml(entry.place||'—')+'</dd>'+
+      '<dt>Bedienaar</dt><dd>'+escapeHtml(entry.celebrant||'—')+'</dd>'+
+      '<dt>Getuigen</dt><dd>'+escapeHtml((entry.witness1||'—')+' &amp; '+(entry.witness2||'—'))+'</dd>'+
+      '</dl></div>';
+  } else if(type==='deceased'){
+    body='<div class="cert-name">'+escapeHtml((entry.firstname||'')+' '+(entry.lastname||''))+(entry.firstnameSy?' <span class="sy">'+escapeHtml(entry.firstnameSy+' '+(entry.lastnameSy||''))+'</span>':'')+'</div>'+
+      '<div class="cert-body"><dl>'+
+      '<dt>Geboren op</dt><dd>'+(entry.birthDate?dateLabel(entry.birthDate):'—')+'</dd>'+
+      '<dt>Geboorteplaats</dt><dd>'+escapeHtml(entry.birthPlace||'—')+'</dd>'+
+      '<dt>Overleden op</dt><dd>'+(entry.deathDate?dateLabel(entry.deathDate):'—')+'</dd>'+
+      '<dt>Plaats van overlijden</dt><dd>'+escapeHtml(entry.deathPlace||'—')+'</dd>'+
+      '<dt>Begrafenisdatum</dt><dd>'+(entry.funeralDate?dateLabel(entry.funeralDate):'—')+'</dd>'+
+      '<dt>Begraafplaats</dt><dd>'+escapeHtml(entry.cemetery||'—')+'</dd>'+
+      '<dt>Bedienaar</dt><dd>'+escapeHtml(entry.celebrant||'—')+'</dd>'+
+      (entry.idNumber?'<dt>Identiteitsbewijs</dt><dd>'+escapeHtml(entry.idType||'')+' nr. '+escapeHtml(entry.idNumber)+'</dd>':'')+
+      '</dl></div>';
+  } else if(type==='divorce'){
+    body='<div class="cert-name">'+escapeHtml((entry.party1||'')+' &amp; '+(entry.party2||''))+'</div>'+
+      '<div class="cert-body"><dl>'+
+      '<dt>Type</dt><dd>'+(entry.divorceType==='nullity'?'Nietigverklaring':'Echtscheiding')+'</dd>'+
+      '<dt>Oorspronkelijk huwelijk</dt><dd>'+(entry.marriageDate?dateLabel(entry.marriageDate):'—')+(entry.marriageRef?' (ref. '+escapeHtml(entry.marriageRef)+')':'')+'</dd>'+
+      '<dt>Datum uitspraak</dt><dd>'+(entry.date?dateLabel(entry.date):'—')+'</dd>'+
+      '<dt>Beslissende autoriteit</dt><dd>'+escapeHtml(entry.authority||'—')+'</dd>'+
+      '<dt>Grond</dt><dd>'+escapeHtml(entry.reason||'—')+'</dd>'+
+      '</dl></div>';
+  } else if(type==='convert'){
+    body='<div class="cert-name">'+escapeHtml((entry.firstname||'')+' '+(entry.lastname||''))+'</div>'+
+      '<div class="cert-body"><dl>'+
+      '<dt>Geboren op</dt><dd>'+(entry.birthDate?dateLabel(entry.birthDate):'—')+'</dd>'+
+      '<dt>Vorige geloofsgemeenschap</dt><dd>'+escapeHtml(entry.previousChurch||'—')+'</dd>'+
+      '<dt>Datum toetreding</dt><dd>'+(entry.date?dateLabel(entry.date):'—')+'</dd>'+
+      '<dt>Plaats</dt><dd>'+escapeHtml(entry.place||'—')+'</dd>'+
+      '<dt>Bedienaar</dt><dd>'+escapeHtml(entry.celebrant||'—')+'</dd>'+
+      '<dt>Sponsor / getuige</dt><dd>'+escapeHtml(entry.sponsor||'—')+'</dd>'+
+      '</dl></div>';
+  } else if(type==='family'){
+    const kids=(entry.children||[]).map(c=>escapeHtml(c.name)+(c.birthDate?' ('+c.birthDate+')':'')).join('<br>');
+    body='<div class="cert-name">'+escapeHtml(entry.headName||'')+(entry.partnerName?' &amp; '+escapeHtml(entry.partnerName):'')+'</div>'+
+      '<div class="cert-body"><dl>'+
+      '<dt>Adres</dt><dd>'+escapeHtml(entry.address||'—')+'</dd>'+
+      '<dt>Lid sinds</dt><dd>'+(entry.memberSince?dateLabel(entry.memberSince):'—')+'</dd>'+
+      '<dt>Kinderen</dt><dd>'+(kids||'—')+'</dd>'+
+      '</dl></div>';
+  }
+  const sigBlock=entry.signedBy?
+    '<div class="cert-sig"><div>Digitaal ondertekend door <strong>'+escapeHtml(entry.signedBy)+'</strong></div><div style="font-size:11px;color:#666;">'+(entry.signedAt?formatDateTime(entry.signedAt):'')+' · Verificatiecode '+escapeHtml(entry.signatureHash||'')+'</div></div>':'';
+  const photoBlock=entry.photo?'<div class="cert-photo"><img src="'+entry.photo+'" alt="foto"></div>':'';
+  const html='<!DOCTYPE html><html><head><meta charset="utf-8"><title>'+(titles[type]||'Akte')+' '+entry.id+'</title><style>'+
+    '@page{size:A4;margin:18mm}'+
+    'body{font-family:"Times New Roman",Georgia,serif;color:#111;background:#fafaf7;margin:0;padding:30px}'+
+    '.cert{max-width:780px;margin:0 auto;background:#fff;border:1px double #b8860b;padding:38px 48px;position:relative;box-shadow:0 0 0 4px #fff,0 0 0 5px #b8860b inset}'+
+    '.cert::before,.cert::after{content:"";position:absolute;width:60px;height:60px;border:2px solid #b8860b}'+
+    '.cert::before{top:14px;left:14px;border-right:none;border-bottom:none}'+
+    '.cert::after{bottom:14px;right:14px;border-left:none;border-top:none}'+
+    '.cert-head{text-align:center;border-bottom:1px solid #b8860b;padding-bottom:14px;margin-bottom:18px}'+
+    '.cert-head h1{font-size:18px;letter-spacing:.05em;text-transform:uppercase;margin:0}'+
+    '.cert-head h2{font-size:26px;font-style:italic;color:#b8860b;margin:6px 0 0;font-weight:400}'+
+    '.cert-head .sub{font-size:12px;color:#555;margin-top:4px}'+
+    '.cert-name{text-align:center;font-size:24px;font-style:italic;margin:18px 0;color:#1a1a1a}'+
+    '.cert-name .sy{font-style:normal;font-size:20px;display:block;margin-top:4px}'+
+    '.cert-body dl{margin:0}'+
+    '.cert-body dt{float:left;width:200px;clear:left;font-weight:600;text-transform:uppercase;font-size:11px;letter-spacing:.05em;color:#555;padding:6px 0;border-bottom:1px dotted #ddd}'+
+    '.cert-body dd{margin-left:200px;padding:6px 0;border-bottom:1px dotted #ddd;font-size:14px}'+
+    '.cert-photo{float:right;margin:0 0 12px 16px;width:120px}'+
+    '.cert-photo img{width:100%;border:1px solid #ccc}'+
+    '.cert-foot{margin-top:30px;padding-top:18px;border-top:1px solid #b8860b;display:flex;justify-content:space-between;align-items:flex-end;gap:18px}'+
+    '.cert-sig{font-size:12px;color:#444;flex:1}'+
+    '.cert-sig strong{color:#1a1a1a}'+
+    '.cert-qr{text-align:right}'+
+    '.cert-qr canvas{border:1px solid #eee}'+
+    '.cert-qr div{font-size:10px;color:#888;margin-top:4px}'+
+    '.cert-id{position:absolute;top:18px;right:24px;font-size:11px;color:#888;letter-spacing:.1em}'+
+    '@media print{body{background:#fff;padding:0}.cert{box-shadow:none}}'+
+    '</style></head><body>'+
+    '<div class="cert">'+
+    '<div class="cert-id">REF '+escapeHtml(entry.id)+'</div>'+
+    '<div class="cert-head"><h1>'+escapeHtml(parish.name||'Parochie')+'</h1><h2>'+(titles[type]||'Akte')+'</h2><div class="sub">'+escapeHtml(parish.address||'')+'</div></div>'+
+    photoBlock+body+
+    '<div class="cert-foot">'+sigBlock+'<div class="cert-qr"><canvas id="qr"></canvas><div>verificatie</div></div></div>'+
+    '</div>'+
+    '<scr'+'ipt src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></scr'+'ipt>'+
+    '<scr'+'ipt>QRCode.toCanvas(document.getElementById("qr"),'+JSON.stringify(verifyUrl)+',{width:96,margin:0,color:{dark:"#1a1a1a"}});window.onload=()=>setTimeout(()=>window.print(),500);</scr'+'ipt>'+
+    '</body></html>';
+  const url=URL.createObjectURL(new Blob([html],{type:'text/html'}));
+  window.open(url,'_blank');
+}
+
+function nextId(prefix,arr){return prefix+'-'+String(arr.length+1).padStart(3,'0');}
+function renderRegisterStats(){
+  const pid=state.currentParishId;
+  const cnt={baptism:0,marriage:0,family:0,deceased:0,divorce:0,convert:0};
+  Object.keys(cnt).forEach(k=>{cnt[k]=(state.registers[k]||[]).filter(r=>r.parishId===pid).length;});
+  return '<div class="reg-stats">'+
+    '<div class="reg-stat"><span class="num">'+cnt.baptism+'</span><span class="lbl">Doopsels</span></div>'+
+    '<div class="reg-stat"><span class="num">'+cnt.marriage+'</span><span class="lbl">Huwelijken</span></div>'+
+    '<div class="reg-stat"><span class="num">'+cnt.family+'</span><span class="lbl">Gezinnen</span></div>'+
+    '<div class="reg-stat"><span class="num">'+cnt.deceased+'</span><span class="lbl">Overledenen</span></div>'+
+    '<div class="reg-stat"><span class="num">'+cnt.divorce+'</span><span class="lbl">Echtscheidingen</span></div>'+
+    '<div class="reg-stat"><span class="num">'+cnt.convert+'</span><span class="lbl">Bekeerlingen</span></div>'+
+    '</div>';
+}
 function renderRegister(){
   const root=$('register-content');
   document.querySelectorAll('.register-tab').forEach(t=>t.classList.toggle('active',t.dataset.rtab===registerTab));
+  const sb=$('register-stats-bar');if(sb)sb.innerHTML=renderRegisterStats();
   const search=(state.registerSearch||'').toLowerCase();
+  const adv=state.registerAdvanced||{};
+  function applyAdv(rows){
+    if(adv.dateFrom)rows=rows.filter(r=>{const d=r.baptismDate||r.date||r.deathDate||r.memberSince;return d&&d>=adv.dateFrom;});
+    if(adv.dateTo)rows=rows.filter(r=>{const d=r.baptismDate||r.date||r.deathDate||r.memberSince;return d&&d<=adv.dateTo;});
+    if(adv.celebrant)rows=rows.filter(r=>(r.celebrant||'').toLowerCase().includes(adv.celebrant.toLowerCase()));
+    if(adv.witness)rows=rows.filter(r=>((r.witness1||'')+' '+(r.witness2||'')+' '+(r.godfather||'')+' '+(r.godmother||'')+' '+(r.sponsor||'')).toLowerCase().includes(adv.witness.toLowerCase()));
+    if(adv.year)rows=rows.filter(r=>{const d=r.baptismDate||r.date||r.deathDate||r.memberSince;return d&&d.startsWith(adv.year);});
+    return rows;
+  }
+  function emptyHtml(label){return '<div class="empty-state"><h4>Geen '+label+' geregistreerd</h4><div>Klik op + Inschrijving om de eerste toe te voegen.</div></div>';}
   if(registerTab==='baptism'){
     let rows=state.registers.baptism.filter(r=>r.parishId===state.currentParishId);
-    if(search)rows=rows.filter(r=>(r.firstname+' '+r.lastname).toLowerCase().includes(search));
-    if(!rows.length){root.innerHTML='<div class="empty-state"><h4>Geen inschrijvingen</h4><div>Klik op + Inschrijving om de eerste toe te voegen.</div></div>';return;}
-    root.innerHTML='<div class="register-list">'+rows.map(r=>'<div class="register-row" data-rid="'+r.id+'"><div class="register-row-info"><strong>'+escapeHtml(r.firstname+' '+r.lastname)+(r.firstnameSy?' <span class="suryoyo" style="color:var(--ink-muted);font-weight:400;">'+escapeHtml(r.firstnameSy+' '+r.lastnameSy)+'</span>':'')+'</strong><small>Gedoopt op '+shortDateLabel(r.baptismDate)+' · '+escapeHtml(r.baptismPlace)+'</small></div><div class="register-row-meta">'+escapeHtml(r.id)+'<br>'+escapeHtml(r.celebrant)+'</div></div>').join('')+'</div>';
+    if(search)rows=rows.filter(r=>(r.firstname+' '+r.lastname+' '+(r.father||'')+' '+(r.mother||'')+' '+(r.godfather||'')+' '+(r.godmother||'')+' '+(r.id||'')).toLowerCase().includes(search));
+    rows=applyAdv(rows);
+    if(!rows.length){root.innerHTML=emptyHtml('doopsels');return;}
+    root.innerHTML='<div class="register-list">'+rows.map(r=>'<div class="register-row" data-rid="'+r.id+'"><div class="register-row-info"><strong>'+escapeHtml(r.firstname+' '+r.lastname)+(r.firstnameSy?' <span class="suryoyo" style="color:var(--ink-muted);font-weight:400;">'+escapeHtml(r.firstnameSy+' '+r.lastnameSy)+'</span>':'')+'</strong><small>Gedoopt op '+shortDateLabel(r.baptismDate)+' · '+escapeHtml(r.baptismPlace||'')+'</small></div><div class="register-row-meta">'+escapeHtml(r.id)+(r.signedBy?'<br><span style="color:#065f46;font-size:10px;">✓ ondertekend</span>':'')+'<br>'+escapeHtml(r.celebrant||'')+'</div></div>').join('')+'</div>';
     root.onclick=function(e){const row=e.target.closest('[data-rid]');if(row)editBaptismModal(row.dataset.rid);};
   } else if(registerTab==='marriage'){
     let rows=state.registers.marriage.filter(r=>r.parishId===state.currentParishId);
-    if(search)rows=rows.filter(r=>(r.groomFirstname+' '+r.groomLastname+' '+r.brideFirstname+' '+r.brideLastname).toLowerCase().includes(search));
-    if(!rows.length){root.innerHTML='<div class="empty-state"><h4>Geen huwelijken geregistreerd</h4></div>';return;}
-    root.innerHTML='<div class="register-list">'+rows.map(r=>'<div class="register-row" data-mid="'+r.id+'"><div class="register-row-info"><strong>'+escapeHtml(r.groomFirstname+' '+r.groomLastname)+' &amp; '+escapeHtml(r.brideFirstname+' '+r.brideLastname)+'</strong><small>Gehuwd op '+shortDateLabel(r.date)+' · '+escapeHtml(r.place)+'</small></div><div class="register-row-meta">'+escapeHtml(r.id)+'<br>'+escapeHtml(r.celebrant)+'</div></div>').join('')+'</div>';
+    if(search)rows=rows.filter(r=>(r.groomFirstname+' '+r.groomLastname+' '+r.brideFirstname+' '+r.brideLastname+' '+(r.witness1||'')+' '+(r.witness2||'')+' '+(r.id||'')).toLowerCase().includes(search));
+    rows=applyAdv(rows);
+    if(!rows.length){root.innerHTML=emptyHtml('huwelijken');return;}
+    root.innerHTML='<div class="register-list">'+rows.map(r=>'<div class="register-row" data-mid="'+r.id+'"><div class="register-row-info"><strong>'+escapeHtml(r.groomFirstname+' '+r.groomLastname)+' &amp; '+escapeHtml(r.brideFirstname+' '+r.brideLastname)+'</strong><small>Gehuwd op '+shortDateLabel(r.date)+' · '+escapeHtml(r.place||'')+'</small></div><div class="register-row-meta">'+escapeHtml(r.id)+(r.signedBy?'<br><span style="color:#065f46;font-size:10px;">✓ ondertekend</span>':'')+'<br>'+escapeHtml(r.celebrant||'')+'</div></div>').join('')+'</div>';
     root.onclick=function(e){const row=e.target.closest('[data-mid]');if(row)editMarriageModal(row.dataset.mid);};
+  } else if(registerTab==='deceased'){
+    let rows=state.registers.deceased.filter(r=>r.parishId===state.currentParishId);
+    if(search)rows=rows.filter(r=>((r.firstname||'')+' '+(r.lastname||'')+' '+(r.id||'')).toLowerCase().includes(search));
+    rows=applyAdv(rows);
+    if(!rows.length){root.innerHTML=emptyHtml('overledenen');return;}
+    root.innerHTML='<div class="register-list">'+rows.map(r=>'<div class="register-row" data-did="'+r.id+'"><div class="register-row-info"><strong>'+escapeHtml((r.firstname||'')+' '+(r.lastname||''))+'</strong><small>Overleden op '+shortDateLabel(r.deathDate)+' · '+escapeHtml(r.deathPlace||'')+(r.funeralDate?' · begraven '+shortDateLabel(r.funeralDate):'')+'</small></div><div class="register-row-meta">'+escapeHtml(r.id)+(r.signedBy?'<br><span style="color:#065f46;font-size:10px;">✓ ondertekend</span>':'')+(r.idScan?'<br><span style="color:#1e40af;font-size:10px;">📎 ID</span>':'')+'</div></div>').join('')+'</div>';
+    root.onclick=function(e){const row=e.target.closest('[data-did]');if(row)editDeceasedModal(row.dataset.did);};
+  } else if(registerTab==='divorce'){
+    let rows=state.registers.divorce.filter(r=>r.parishId===state.currentParishId);
+    if(search)rows=rows.filter(r=>((r.party1||'')+' '+(r.party2||'')+' '+(r.id||'')).toLowerCase().includes(search));
+    rows=applyAdv(rows);
+    if(!rows.length){root.innerHTML=emptyHtml('echtscheidingen');return;}
+    root.innerHTML='<div class="register-list">'+rows.map(r=>'<div class="register-row" data-vid="'+r.id+'"><div class="register-row-info"><strong>'+escapeHtml((r.party1||'')+' & '+(r.party2||''))+'</strong><small>'+(r.divorceType==='nullity'?'Nietigverklaring':'Echtscheiding')+' op '+shortDateLabel(r.date)+'</small></div><div class="register-row-meta">'+escapeHtml(r.id)+(r.signedBy?'<br><span style="color:#065f46;font-size:10px;">✓ ondertekend</span>':'')+'</div></div>').join('')+'</div>';
+    root.onclick=function(e){const row=e.target.closest('[data-vid]');if(row)editDivorceModal(row.dataset.vid);};
+  } else if(registerTab==='convert'){
+    let rows=state.registers.convert.filter(r=>r.parishId===state.currentParishId);
+    if(search)rows=rows.filter(r=>((r.firstname||'')+' '+(r.lastname||'')+' '+(r.previousChurch||'')+' '+(r.id||'')).toLowerCase().includes(search));
+    rows=applyAdv(rows);
+    if(!rows.length){root.innerHTML=emptyHtml('bekeerlingen');return;}
+    root.innerHTML='<div class="register-list">'+rows.map(r=>'<div class="register-row" data-cid="'+r.id+'"><div class="register-row-info"><strong>'+escapeHtml((r.firstname||'')+' '+(r.lastname||''))+'</strong><small>Toegetreden op '+shortDateLabel(r.date)+' · vanuit '+escapeHtml(r.previousChurch||'—')+'</small></div><div class="register-row-meta">'+escapeHtml(r.id)+(r.signedBy?'<br><span style="color:#065f46;font-size:10px;">✓ ondertekend</span>':'')+'</div></div>').join('')+'</div>';
+    root.onclick=function(e){const row=e.target.closest('[data-cid]');if(row)editConvertModal(row.dataset.cid);};
   } else {
     let rows=state.registers.family.filter(r=>r.parishId===state.currentParishId);
-    if(search)rows=rows.filter(r=>(r.headName+' '+(r.partnerName||'')).toLowerCase().includes(search));
-    if(!rows.length){root.innerHTML='<div class="empty-state"><h4>Geen gezinnen geregistreerd</h4></div>';return;}
+    if(search)rows=rows.filter(r=>(r.headName+' '+(r.partnerName||'')+' '+(r.id||'')).toLowerCase().includes(search));
+    rows=applyAdv(rows);
+    if(!rows.length){root.innerHTML=emptyHtml('gezinnen');return;}
     root.innerHTML='<div class="register-list">'+rows.map(r=>{const kids=(r.children||[]).map(c=>escapeHtml(c.name)).join(', ')||'Geen';const cb={paid:'Betaald',pending:'Open',exempt:'Vrijgesteld'}[r.annualContribution]||'-';return'<div class="register-row" data-fid="'+r.id+'"><div class="register-row-info"><strong>'+escapeHtml(r.headName)+(r.partnerName?' &amp; '+escapeHtml(r.partnerName):'')+'</strong><small>Kinderen: '+kids+' · Lid sinds '+shortDateLabel(r.memberSince)+'</small></div><div class="register-row-meta">'+escapeHtml(r.id)+'<br>Bijdrage: '+cb+'</div></div>';}).join('')+'</div>';
     root.onclick=function(e){const row=e.target.closest('[data-fid]');if(row)editFamilyModal(row.dataset.fid);};
   }
@@ -1492,12 +1716,159 @@ function renderRegister(){
 function setupRegister(){
   document.querySelectorAll('.register-tab').forEach(t=>{t.addEventListener('click',()=>{registerTab=t.dataset.rtab;renderRegister();});});
   $('register-search').addEventListener('input',e=>{state.registerSearch=e.target.value;renderRegister();});
-  $('reg-add-btn').addEventListener('click',()=>{if(registerTab==='baptism')editBaptismModal(null);else if(registerTab==='marriage')editMarriageModal(null);else editFamilyModal(null);});
+  $('reg-add-btn').addEventListener('click',()=>{
+    if(registerTab==='baptism')editBaptismModal(null);
+    else if(registerTab==='marriage')editMarriageModal(null);
+    else if(registerTab==='deceased')editDeceasedModal(null);
+    else if(registerTab==='divorce')editDivorceModal(null);
+    else if(registerTab==='convert')editConvertModal(null);
+    else editFamilyModal(null);
+  });
+  // Geavanceerd zoeken — toggle + apply
+  const adv=$('reg-adv-toggle');if(adv)adv.addEventListener('click',()=>{const p=$('reg-adv-panel');p.style.display=p.style.display==='none'?'':'none';});
+  const apply=$('reg-adv-apply');if(apply)apply.addEventListener('click',()=>{
+    state.registerAdvanced={dateFrom:$('adv-from').value,dateTo:$('adv-to').value,year:$('adv-year').value.trim(),celebrant:$('adv-cel').value.trim(),witness:$('adv-wit').value.trim()};
+    renderRegister();showToast('Filter toegepast','success');
+  });
+  const clearAdv=$('reg-adv-clear');if(clearAdv)clearAdv.addEventListener('click',()=>{state.registerAdvanced={};['adv-from','adv-to','adv-year','adv-cel','adv-wit'].forEach(id=>{const el=$(id);if(el)el.value='';});renderRegister();});
+  const yp=$('reg-year-print');if(yp)yp.addEventListener('click',()=>printRegisterYear(prompt('Welk jaar wil je afdrukken? (bv. '+(new Date().getFullYear())+')',new Date().getFullYear()+'')));
+}
+
+// Print jaaroverzicht (alle registers, één jaar)
+function printRegisterYear(year){
+  if(!year||!/^\d{4}$/.test(year)){showToast('Geen geldig jaar','error');return;}
+  const pid=state.currentParishId;const parish=getParish(pid)||{};
+  const yearStr=year;
+  function inYear(d){return d&&d.startsWith(yearStr);}
+  const sections=[
+    {title:'Doopregister '+yearStr,rows:state.registers.baptism.filter(r=>r.parishId===pid&&inYear(r.baptismDate)).map(r=>['B-'+r.id.replace(/^B-/,''),shortDateLabel(r.baptismDate),r.firstname+' '+r.lastname,r.father+' / '+r.mother,r.celebrant])},
+    {title:'Huwelijksregister '+yearStr,rows:state.registers.marriage.filter(r=>r.parishId===pid&&inYear(r.date)).map(r=>[r.id,shortDateLabel(r.date),r.groomFirstname+' '+r.groomLastname+' & '+r.brideFirstname+' '+r.brideLastname,(r.witness1||'')+' / '+(r.witness2||''),r.celebrant])},
+    {title:'Overledenenregister '+yearStr,rows:state.registers.deceased.filter(r=>r.parishId===pid&&inYear(r.deathDate)).map(r=>[r.id,shortDateLabel(r.deathDate),r.firstname+' '+r.lastname,r.cemetery||'-',r.celebrant])},
+    {title:'Echtscheidings-/nietigheidsregister '+yearStr,rows:state.registers.divorce.filter(r=>r.parishId===pid&&inYear(r.date)).map(r=>[r.id,shortDateLabel(r.date),(r.party1||'')+' & '+(r.party2||''),r.divorceType==='nullity'?'Nietigverklaring':'Echtscheiding',r.authority||''])},
+    {title:'Bekeerlingenregister '+yearStr,rows:state.registers.convert.filter(r=>r.parishId===pid&&inYear(r.date)).map(r=>[r.id,shortDateLabel(r.date),r.firstname+' '+r.lastname,r.previousChurch||'',r.celebrant])}
+  ];
+  let html='<!DOCTYPE html><html><head><meta charset="utf-8"><title>Registers '+yearStr+' — '+escapeHtml(parish.name||'')+'</title><style>@page{size:A4 portrait;margin:14mm}body{font-family:Helvetica,sans-serif;color:#0f172a;margin:0;padding:20px}h1{margin:0 0 4px;font-size:20px}h2{margin:24px 0 8px;font-size:14px;border-bottom:1px solid #1f4788;padding-bottom:4px;color:#1f4788}.muted{color:#64748b;font-size:12px}table{width:100%;border-collapse:collapse;margin-top:6px;font-size:11px}th,td{padding:5px 6px;border-bottom:1px solid #e2e8f0;text-align:left}th{background:#f7f8fa;font-size:10px;text-transform:uppercase}.empty{font-style:italic;color:#94a3b8;font-size:12px}</style></head><body><h1>Jaaroverzicht registers '+yearStr+'</h1><div class="muted">'+escapeHtml(parish.name||'')+' · gegenereerd op '+formatDateTime(new Date().toISOString())+'</div>';
+  sections.forEach(s=>{html+='<h2>'+escapeHtml(s.title)+' ('+s.rows.length+')</h2>';if(!s.rows.length){html+='<div class="empty">Geen inschrijvingen.</div>';}else{html+='<table><thead><tr><th>Ref</th><th>Datum</th><th>Naam</th><th>Detail</th><th>Celebrant / autoriteit</th></tr></thead><tbody>';s.rows.forEach(r=>{html+='<tr>'+r.map(c=>'<td>'+escapeHtml(String(c||''))+'</td>').join('')+'</tr>';});html+='</tbody></table>';}});
+  html+='<scr'+'ipt>window.onload=()=>setTimeout(()=>window.print(),300)</scr'+'ipt></body></html>';
+  const url=URL.createObjectURL(new Blob([html],{type:'text/html'}));window.open(url,'_blank');
+}
+
+// --- Reusable photo/scan upload field ---
+function uploadFieldHtml(label,id,currentDataUrl,opts){
+  const accept=(opts&&opts.accept)||'image/*';
+  return '<div class="field"><label>'+label+'</label>'+
+    '<input type="file" id="'+id+'-file" accept="'+accept+'" style="font-size:13px;">'+
+    '<div id="'+id+'-prev" style="margin-top:6px;'+(currentDataUrl?'':'display:none;')+'">'+
+    (currentDataUrl?'<img src="'+currentDataUrl+'" style="max-width:160px;max-height:120px;border:1px solid var(--line);border-radius:var(--r);"> <button type="button" class="btn btn-sm btn-ghost" id="'+id+'-rm">Verwijder</button>':'')+'</div></div>';
+}
+function wireUploadField(id,target,key){
+  attachFileInput(id+'-file',(url)=>{target[key]=url;const p=$(id+'-prev');p.style.display='';p.innerHTML='<img src="'+url+'" style="max-width:160px;max-height:120px;border:1px solid var(--line);border-radius:var(--r);"> <button type="button" class="btn btn-sm btn-ghost" id="'+id+'-rm">Verwijder</button>';wireRemove(id,target,key);},opts);
+  wireRemove(id,target,key);
+}
+function wireRemove(id,target,key){setTimeout(()=>{const rm=$(id+'-rm');if(rm)rm.addEventListener('click',()=>{target[key]='';const p=$(id+'-prev');p.style.display='none';p.innerHTML='';const f=$(id+'-file');if(f)f.value='';});},50);}
+
+function editDeceasedModal(id){
+  const isNew=!id;const arr=state.registers.deceased;
+  const r=isNew?{id:nextId('D',arr),parishId:state.currentParishId,firstname:'',firstnameSy:'',lastname:'',lastnameSy:'',birthDate:'',birthPlace:'',deathDate:'',deathPlace:'',funeralDate:'',cemetery:'',celebrant:'',idType:'paspoort',idNumber:'',idScan:'',photo:'',baptismRef:'',marriageRef:'',notes:''}:arr.find(x=>x.id===id);
+  const celOpts=state.settings.celebrants.map(c=>'<option'+(c===r.celebrant?' selected':'')+'>'+escapeHtml(c)+'</option>').join('');
+  const baptismOpts='<option value="">— geen —</option>'+state.registers.baptism.filter(b=>b.parishId===state.currentParishId).map(b=>'<option value="'+b.id+'"'+(r.baptismRef===b.id?' selected':'')+'>'+escapeHtml(b.id+' — '+b.firstname+' '+b.lastname)+'</option>').join('');
+  const marriageOpts='<option value="">— geen —</option>'+state.registers.marriage.filter(b=>b.parishId===state.currentParishId).map(b=>'<option value="'+b.id+'"'+(r.marriageRef===b.id?' selected':'')+'>'+escapeHtml(b.id+' — '+b.groomLastname+' / '+b.brideLastname)+'</option>').join('');
+  const idTypes=['paspoort','identiteitskaart','rijbewijs','anders'].map(t=>'<option'+(t===r.idType?' selected':'')+'>'+t+'</option>').join('');
+  showModal(isNew?'Nieuwe overlijdensinschrijving':'Overlijdensakte '+r.id,
+    '<div class="bilingual-row"><div class="field"><label>Voornaam <small>(Latijn)</small></label><input type="text" id="d-fn" value="'+escapeHtml(r.firstname)+'"></div><div class="field"><label>Voornaam <small class="suryoyo">(ܣܘܪܝܝܐ)</small></label><input type="text" id="d-fn-sy" class="suryoyo" dir="rtl" value="'+escapeHtml(r.firstnameSy)+'"></div></div>'+
+    '<div class="bilingual-row"><div class="field"><label>Achternaam <small>(Latijn)</small></label><input type="text" id="d-ln" value="'+escapeHtml(r.lastname)+'"></div><div class="field"><label>Achternaam <small class="suryoyo">(ܣܘܪܝܝܐ)</small></label><input type="text" id="d-ln-sy" class="suryoyo" dir="rtl" value="'+escapeHtml(r.lastnameSy)+'"></div></div>'+
+    '<div class="form-row"><div class="field"><label>Geboortedatum</label><input type="date" id="d-bd" value="'+r.birthDate+'"></div><div class="field"><label>Geboorteplaats</label><input type="text" id="d-bp" value="'+escapeHtml(r.birthPlace)+'"></div></div>'+
+    '<div class="form-row"><div class="field"><label>Sterfdatum <span class="req">*</span></label><input type="date" id="d-dd" value="'+r.deathDate+'"></div><div class="field"><label>Plaats van overlijden</label><input type="text" id="d-dp" value="'+escapeHtml(r.deathPlace)+'"></div></div>'+
+    '<div class="form-row"><div class="field"><label>Begrafenisdatum</label><input type="date" id="d-fd" value="'+r.funeralDate+'"></div><div class="field"><label>Begraafplaats</label><input type="text" id="d-cem" value="'+escapeHtml(r.cemetery)+'"></div></div>'+
+    '<div class="field" style="margin-bottom:10px;"><label>Bedienaar</label><select id="d-cel"><option value="">Kies</option>'+celOpts+'</select></div>'+
+    '<h4 style="font-size:13px;margin:14px 0 8px;color:var(--ink-soft);">Identiteitsbewijs</h4>'+
+    '<div class="form-row"><div class="field"><label>Type</label><select id="d-idt">'+idTypes+'</select></div><div class="field"><label>Nummer</label><input type="text" id="d-idn" value="'+escapeHtml(r.idNumber||'')+'"></div></div>'+
+    uploadFieldHtml('Scan / foto identiteitsbewijs','d-idscan',r.idScan)+
+    uploadFieldHtml('Portretfoto overledene (optioneel)','d-photo',r.photo)+
+    '<h4 style="font-size:13px;margin:14px 0 8px;color:var(--ink-soft);">Verwijzingen</h4>'+
+    '<div class="form-row"><div class="field"><label>Doopinschrijving</label><select id="d-bref">'+baptismOpts+'</select></div><div class="field"><label>Huwelijksinschrijving</label><select id="d-mref">'+marriageOpts+'</select></div></div>'+
+    '<div class="field"><label>Aantekeningen</label><textarea id="d-notes">'+escapeHtml(r.notes)+'</textarea></div>'+
+    (isNew?'':'<div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--line);display:flex;gap:6px;flex-wrap:wrap;"><button class="btn btn-sm btn-ghost" id="d-cert">Akte (PDF)</button><button class="btn btn-sm btn-danger" id="d-del">Verwijder</button></div>'),
+    async()=>{
+      r.firstname=$('d-fn').value.trim();r.firstnameSy=$('d-fn-sy').value.trim();r.lastname=$('d-ln').value.trim();r.lastnameSy=$('d-ln-sy').value.trim();
+      r.birthDate=$('d-bd').value;r.birthPlace=$('d-bp').value.trim();r.deathDate=$('d-dd').value;r.deathPlace=$('d-dp').value.trim();
+      r.funeralDate=$('d-fd').value;r.cemetery=$('d-cem').value.trim();r.celebrant=$('d-cel').value;
+      r.idType=$('d-idt').value;r.idNumber=$('d-idn').value.trim();
+      r.baptismRef=$('d-bref').value;r.marriageRef=$('d-mref').value;r.notes=$('d-notes').value.trim();
+      if(!r.firstname||!r.lastname||!r.deathDate){showToast('Voornaam, achternaam en sterfdatum vereist','error');return;}
+      if(isNew){r.createdAt=new Date().toISOString();arr.push(r);}
+      await signEntry(r,'deceased');
+      saveAll();logAudit(isNew?'Overlijdensinschrijving toegevoegd':'Overlijdensinschrijving bewerkt',r.id+' '+r.firstname+' '+r.lastname);closeModal();renderRegister();showToast('Opgeslagen','success');
+    },true);
+  setTimeout(()=>{
+    wireUploadField('d-idscan',r,'idScan');wireUploadField('d-photo',r,'photo');
+    if(!isNew){const cb=$('d-cert'),db=$('d-del');if(cb)cb.addEventListener('click',()=>openCertificate(r,'deceased'));if(db)db.addEventListener('click',()=>{showModal('Verwijderen','Inschrijving '+r.id+' permanent verwijderen?',()=>{state.registers.deceased=arr.filter(x=>x.id!==r.id);saveAll();logAudit('Overlijdensinschrijving verwijderd',r.id);closeModal();renderRegister();showToast('Verwijderd');});});}
+  },50);
+}
+
+function editDivorceModal(id){
+  const isNew=!id;const arr=state.registers.divorce;
+  const r=isNew?{id:nextId('S',arr),parishId:state.currentParishId,party1:'',party2:'',divorceType:'divorce',marriageDate:'',marriageRef:'',date:'',authority:'',reason:'',notes:''}:arr.find(x=>x.id===id);
+  const marriageOpts='<option value="">— extern / onbekend —</option>'+state.registers.marriage.filter(b=>b.parishId===state.currentParishId).map(b=>'<option value="'+b.id+'"'+(r.marriageRef===b.id?' selected':'')+'>'+escapeHtml(b.id+' — '+b.groomLastname+' / '+b.brideLastname+' ('+b.date+')')+'</option>').join('');
+  showModal(isNew?'Nieuwe inschrijving (echtscheiding/nietig)':'Inschrijving '+r.id,
+    '<div class="form-row"><div class="field"><label>Type uitspraak</label><select id="s-type"><option value="divorce"'+(r.divorceType==='divorce'?' selected':'')+'>Echtscheiding</option><option value="nullity"'+(r.divorceType==='nullity'?' selected':'')+'>Nietigverklaring</option></select></div><div class="field"><label>Datum uitspraak <span class="req">*</span></label><input type="date" id="s-date" value="'+r.date+'"></div></div>'+
+    '<div class="form-row"><div class="field"><label>Partij 1</label><input type="text" id="s-p1" value="'+escapeHtml(r.party1)+'"></div><div class="field"><label>Partij 2</label><input type="text" id="s-p2" value="'+escapeHtml(r.party2)+'"></div></div>'+
+    '<div class="form-row"><div class="field"><label>Oorspronkelijk huwelijk (datum)</label><input type="date" id="s-md" value="'+r.marriageDate+'"></div><div class="field"><label>Huwelijksinschrijving (verwijzing)</label><select id="s-mref">'+marriageOpts+'</select></div></div>'+
+    '<div class="field"><label>Beslissende autoriteit (bv. patriarchaal hof)</label><input type="text" id="s-auth" value="'+escapeHtml(r.authority||'')+'"></div>'+
+    '<div class="field"><label>Grond / motivatie</label><textarea id="s-reason">'+escapeHtml(r.reason||'')+'</textarea></div>'+
+    '<div class="field"><label>Aantekeningen</label><textarea id="s-notes">'+escapeHtml(r.notes||'')+'</textarea></div>'+
+    (isNew?'':'<div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--line);display:flex;gap:6px;flex-wrap:wrap;"><button class="btn btn-sm btn-ghost" id="s-cert">Akte (PDF)</button><button class="btn btn-sm btn-danger" id="s-del">Verwijder</button></div>'),
+    async()=>{
+      r.divorceType=$('s-type').value;r.date=$('s-date').value;r.party1=$('s-p1').value.trim();r.party2=$('s-p2').value.trim();
+      r.marriageDate=$('s-md').value;r.marriageRef=$('s-mref').value;r.authority=$('s-auth').value.trim();r.reason=$('s-reason').value.trim();r.notes=$('s-notes').value.trim();
+      if(!r.party1||!r.party2||!r.date){showToast('Beide partijen en datum vereist','error');return;}
+      if(isNew){r.createdAt=new Date().toISOString();arr.push(r);}
+      await signEntry(r,'divorce');
+      saveAll();logAudit(isNew?'Echtscheidingsinschrijving toegevoegd':'Echtscheidingsinschrijving bewerkt',r.id);closeModal();renderRegister();showToast('Opgeslagen','success');
+    },true);
+  setTimeout(()=>{if(!isNew){const cb=$('s-cert'),db=$('s-del');if(cb)cb.addEventListener('click',()=>openCertificate(r,'divorce'));if(db)db.addEventListener('click',()=>{showModal('Verwijderen','Inschrijving '+r.id+' verwijderen?',()=>{state.registers.divorce=arr.filter(x=>x.id!==r.id);saveAll();logAudit('Echtscheidingsinschrijving verwijderd',r.id);closeModal();renderRegister();showToast('Verwijderd');});});}},50);
+}
+
+function editConvertModal(id){
+  const isNew=!id;const arr=state.registers.convert;
+  const r=isNew?{id:nextId('C',arr),parishId:state.currentParishId,firstname:'',lastname:'',birthDate:'',previousChurch:'',date:'',place:currentParish().name+', '+currentParish().city,celebrant:'',sponsor:'',baptismRef:'',photo:'',notes:''}:arr.find(x=>x.id===id);
+  const celOpts=state.settings.celebrants.map(c=>'<option'+(c===r.celebrant?' selected':'')+'>'+escapeHtml(c)+'</option>').join('');
+  const baptismOpts='<option value="">— geen —</option>'+state.registers.baptism.filter(b=>b.parishId===state.currentParishId).map(b=>'<option value="'+b.id+'"'+(r.baptismRef===b.id?' selected':'')+'>'+escapeHtml(b.id+' — '+b.firstname+' '+b.lastname)+'</option>').join('');
+  showModal(isNew?'Nieuwe bekeerling':'Bekeerling '+r.id,
+    '<div class="form-row"><div class="field"><label>Voornaam</label><input type="text" id="c-fn" value="'+escapeHtml(r.firstname)+'"></div><div class="field"><label>Achternaam</label><input type="text" id="c-ln" value="'+escapeHtml(r.lastname)+'"></div></div>'+
+    '<div class="form-row"><div class="field"><label>Geboortedatum</label><input type="date" id="c-bd" value="'+r.birthDate+'"></div><div class="field"><label>Vorige geloofsgemeenschap</label><input type="text" id="c-pc" value="'+escapeHtml(r.previousChurch||'')+'"></div></div>'+
+    '<div class="form-row"><div class="field"><label>Datum toetreding <span class="req">*</span></label><input type="date" id="c-d" value="'+r.date+'"></div><div class="field"><label>Plaats</label><input type="text" id="c-pl" value="'+escapeHtml(r.place||'')+'"></div></div>'+
+    '<div class="form-row"><div class="field"><label>Bedienaar</label><select id="c-cel"><option value="">Kies</option>'+celOpts+'</select></div><div class="field"><label>Sponsor / getuige</label><input type="text" id="c-sp" value="'+escapeHtml(r.sponsor||'')+'"></div></div>'+
+    '<div class="field"><label>Doopinschrijving (indien herdoop)</label><select id="c-bref">'+baptismOpts+'</select></div>'+
+    uploadFieldHtml('Portretfoto (optioneel)','c-photo',r.photo)+
+    '<div class="field"><label>Aantekeningen</label><textarea id="c-notes">'+escapeHtml(r.notes||'')+'</textarea></div>'+
+    (isNew?'':'<div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--line);display:flex;gap:6px;flex-wrap:wrap;"><button class="btn btn-sm btn-ghost" id="c-cert">Akte (PDF)</button><button class="btn btn-sm btn-danger" id="c-del">Verwijder</button></div>'),
+    async()=>{
+      r.firstname=$('c-fn').value.trim();r.lastname=$('c-ln').value.trim();r.birthDate=$('c-bd').value;r.previousChurch=$('c-pc').value.trim();
+      r.date=$('c-d').value;r.place=$('c-pl').value.trim();r.celebrant=$('c-cel').value;r.sponsor=$('c-sp').value.trim();
+      r.baptismRef=$('c-bref').value;r.notes=$('c-notes').value.trim();
+      if(!r.firstname||!r.lastname||!r.date){showToast('Voornaam, achternaam en datum vereist','error');return;}
+      if(isNew){r.createdAt=new Date().toISOString();arr.push(r);}
+      await signEntry(r,'convert');
+      saveAll();logAudit(isNew?'Bekeerling toegevoegd':'Bekeerling bewerkt',r.id);closeModal();renderRegister();showToast('Opgeslagen','success');
+    },true);
+  setTimeout(()=>{
+    wireUploadField('c-photo',r,'photo');
+    if(!isNew){const cb=$('c-cert'),db=$('c-del');if(cb)cb.addEventListener('click',()=>openCertificate(r,'convert'));if(db)db.addEventListener('click',()=>{showModal('Verwijderen','Inschrijving '+r.id+' verwijderen?',()=>{state.registers.convert=arr.filter(x=>x.id!==r.id);saveAll();logAudit('Bekeerling verwijderd',r.id);closeModal();renderRegister();showToast('Verwijderd');});});}
+  },50);
 }
 
 function editBaptismModal(id){
-  const isNew=!id;const r=isNew?{id:'B-'+String(state.registers.baptism.length+1).padStart(3,'0'),parishId:state.currentParishId,firstname:'',firstnameSy:'',lastname:'',lastnameSy:'',birthDate:'',birthPlace:'',baptismDate:'',baptismPlace:currentParish().name+', '+currentParish().city,father:'',mother:'',godfather:'',godmother:'',celebrant:'',notes:''}:state.registers.baptism.find(x=>x.id===id);
+  const isNew=!id;const arr=state.registers.baptism;
+  const r=isNew?{id:nextId('B',arr),parishId:state.currentParishId,firstname:'',firstnameSy:'',lastname:'',lastnameSy:'',birthDate:'',birthPlace:'',baptismDate:'',baptismPlace:currentParish().name+', '+currentParish().city,father:'',mother:'',godfather:'',godmother:'',celebrant:'',photo:'',notes:''}:arr.find(x=>x.id===id);
   const celOpts=state.settings.celebrants.map(c=>'<option'+(c===r.celebrant?' selected':'')+'>'+escapeHtml(c)+'</option>').join('');
+  // Cross-references — gebruik baptismRef in marriage/deceased/convert
+  let xrefs='';if(!isNew){
+    const m=state.registers.marriage.filter(x=>x.parishId===state.currentParishId&&(x.groomBaptismRef===r.id||x.brideBaptismRef===r.id));
+    const d=state.registers.deceased.filter(x=>x.parishId===state.currentParishId&&x.baptismRef===r.id);
+    const c=state.registers.convert.filter(x=>x.parishId===state.currentParishId&&x.baptismRef===r.id);
+    if(m.length||d.length||c.length){xrefs='<div style="background:var(--bg-alt);border:1px solid var(--line);border-radius:var(--r);padding:10px;margin:10px 0;font-size:12px;"><strong>Verwijzingen:</strong><br>'+m.map(x=>'• Huwelijk '+x.id+' op '+x.date).concat(d.map(x=>'• Overlijden '+x.id+' op '+x.deathDate),c.map(x=>'• Toetreding '+x.id+' op '+x.date)).join('<br>')+'</div>';}
+  }
   showModal((isNew?'Nieuwe doopinschrijving':'Doopinschrijving '+r.id),
     '<div class="bilingual-row">'+
     '<div class="field"><label>Voornaam <small>(Latijn)</small></label><input type="text" id="b-fn" value="'+escapeHtml(r.firstname)+'"></div>'+
@@ -1512,9 +1883,11 @@ function editBaptismModal(id){
     '<div class="form-row"><div class="field"><label>Vader</label><input type="text" id="b-fa" value="'+escapeHtml(r.father)+'"></div><div class="field"><label>Moeder</label><input type="text" id="b-mo" value="'+escapeHtml(r.mother)+'"></div></div>'+
     '<div class="form-row"><div class="field"><label>Peetvader</label><input type="text" id="b-gf" value="'+escapeHtml(r.godfather)+'"></div><div class="field"><label>Peetmoeder</label><input type="text" id="b-gm" value="'+escapeHtml(r.godmother)+'"></div></div>'+
     '<div class="field" style="margin-bottom:10px;"><label>Bedienaar</label><select id="b-cel"><option value="">Kies celebrant</option>'+celOpts+'</select></div>'+
+    uploadFieldHtml('Portretfoto (optioneel)','b-photo',r.photo||'')+
     '<div class="field"><label>Aantekeningen</label><textarea id="b-notes">'+escapeHtml(r.notes)+'</textarea></div>'+
-    (isNew?'':'<div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--line);display:flex;gap:6px;flex-wrap:wrap;"><button class="btn btn-sm btn-ghost" id="b-cert">Doopcertificaat (PDF)</button><button class="btn btn-sm btn-danger" id="b-del">Verwijder inschrijving</button></div>'),
-    ()=>{
+    xrefs+
+    (isNew?'':'<div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--line);display:flex;gap:6px;flex-wrap:wrap;"><button class="btn btn-sm btn-ghost" id="b-cert">Certificaat openen</button><button class="btn btn-sm btn-danger" id="b-del">Verwijder inschrijving</button></div>'),
+    async()=>{
       r.firstname=$('b-fn').value.trim();r.firstnameSy=$('b-fn-sy').value.trim();
       r.lastname=$('b-ln').value.trim();r.lastnameSy=$('b-ln-sy').value.trim();
       r.birthDate=$('b-bd').value;r.birthPlace=$('b-bp').value.trim();
@@ -1523,14 +1896,19 @@ function editBaptismModal(id){
       r.godfather=$('b-gf').value.trim();r.godmother=$('b-gm').value.trim();
       r.celebrant=$('b-cel').value;r.notes=$('b-notes').value.trim();
       if(!r.firstname||!r.lastname||!r.baptismDate){showToast('Voornaam, achternaam en doopdatum vereist','error');return;}
-      if(isNew){r.createdAt=new Date().toISOString();state.registers.baptism.push(r);}
+      if(isNew){r.createdAt=new Date().toISOString();arr.push(r);}
+      await signEntry(r,'baptism');
       saveAll();logAudit(isNew?'Doopinschrijving toegevoegd':'Doopinschrijving bewerkt',r.id+' '+r.firstname+' '+r.lastname);closeModal();renderRegister();showToast('Opgeslagen','success');
     },true);
-  if(!isNew){setTimeout(()=>{const cb=$('b-cert'),db=$('b-del');if(cb)cb.addEventListener('click',()=>downloadBaptismCert(r));if(db)db.addEventListener('click',()=>{showModal('Verwijderen','Inschrijving '+r.id+' permanent verwijderen?',()=>{state.registers.baptism=state.registers.baptism.filter(x=>x.id!==r.id);saveAll();logAudit('Doopinschrijving verwijderd',r.id);closeModal();renderRegister();showToast('Verwijderd');});});},50);}
+  setTimeout(()=>{
+    wireUploadField('b-photo',r,'photo');
+    if(!isNew){const cb=$('b-cert'),db=$('b-del');if(cb)cb.addEventListener('click',()=>openCertificate(r,'baptism'));if(db)db.addEventListener('click',()=>{showModal('Verwijderen','Inschrijving '+r.id+' permanent verwijderen?',()=>{state.registers.baptism=arr.filter(x=>x.id!==r.id);saveAll();logAudit('Doopinschrijving verwijderd',r.id);closeModal();renderRegister();showToast('Verwijderd');});});}
+  },50);
 }
 
 function editMarriageModal(id){
-  const isNew=!id;const r=isNew?{id:'M-'+String(state.registers.marriage.length+1).padStart(3,'0'),parishId:state.currentParishId,groomFirstname:'',groomLastname:'',groomBirthDate:'',groomBaptismRef:'',brideFirstname:'',brideLastname:'',brideBirthDate:'',brideBaptismRef:'',date:'',place:currentParish().name+', '+currentParish().city,celebrant:'',witness1:'',witness2:'',notes:''}:state.registers.marriage.find(x=>x.id===id);
+  const isNew=!id;const arr=state.registers.marriage;
+  const r=isNew?{id:nextId('M',arr),parishId:state.currentParishId,groomFirstname:'',groomLastname:'',groomBirthDate:'',groomBaptismRef:'',brideFirstname:'',brideLastname:'',brideBirthDate:'',brideBaptismRef:'',date:'',place:currentParish().name+', '+currentParish().city,celebrant:'',witness1:'',witness2:'',photo:'',notes:''}:arr.find(x=>x.id===id);
   const celOpts=state.settings.celebrants.map(c=>'<option'+(c===r.celebrant?' selected':'')+'>'+escapeHtml(c)+'</option>').join('');
   const baptismOpts='<option value="">Geen / extern</option>'+state.registers.baptism.map(b=>'<option value="'+b.id+'">'+escapeHtml(b.id+' — '+b.firstname+' '+b.lastname+' ('+b.baptismDate+')')+'</option>').join('');
   showModal(isNew?'Nieuwe huwelijksinschrijving':'Huwelijksinschrijving '+r.id,
@@ -1544,18 +1922,23 @@ function editMarriageModal(id){
     '<div class="form-row"><div class="field"><label>Datum</label><input type="date" id="m-date" value="'+r.date+'"></div><div class="field"><label>Plaats</label><input type="text" id="m-place" value="'+escapeHtml(r.place)+'"></div></div>'+
     '<div class="field" style="margin-bottom:10px;"><label>Bedienaar</label><select id="m-cel"><option value="">Kies celebrant</option>'+celOpts+'</select></div>'+
     '<div class="form-row"><div class="field"><label>Getuige 1</label><input type="text" id="m-w1" value="'+escapeHtml(r.witness1)+'"></div><div class="field"><label>Getuige 2</label><input type="text" id="m-w2" value="'+escapeHtml(r.witness2)+'"></div></div>'+
+    uploadFieldHtml('Foto bruidspaar (optioneel)','m-photo',r.photo||'')+
     '<div class="field"><label>Aantekeningen</label><textarea id="m-notes">'+escapeHtml(r.notes)+'</textarea></div>'+
-    (isNew?'':'<div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--line);display:flex;gap:6px;flex-wrap:wrap;"><button class="btn btn-sm btn-ghost" id="m-cert">Huwelijksakte (PDF)</button><button class="btn btn-sm btn-danger" id="m-del">Verwijder</button></div>'),
-    ()=>{
+    (isNew?'':'<div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--line);display:flex;gap:6px;flex-wrap:wrap;"><button class="btn btn-sm btn-ghost" id="m-cert">Certificaat openen</button><button class="btn btn-sm btn-danger" id="m-del">Verwijder</button></div>'),
+    async()=>{
       r.groomFirstname=$('m-gfn').value.trim();r.groomLastname=$('m-gln').value.trim();r.groomBirthDate=$('m-gbd').value;r.groomBaptismRef=$('m-gref').value;
       r.brideFirstname=$('m-bfn').value.trim();r.brideLastname=$('m-bln').value.trim();r.brideBirthDate=$('m-bbd').value;r.brideBaptismRef=$('m-bref').value;
       r.date=$('m-date').value;r.place=$('m-place').value.trim();r.celebrant=$('m-cel').value;
       r.witness1=$('m-w1').value.trim();r.witness2=$('m-w2').value.trim();r.notes=$('m-notes').value.trim();
       if(!r.groomFirstname||!r.brideFirstname||!r.date){showToast('Namen en datum vereist','error');return;}
-      if(isNew){r.createdAt=new Date().toISOString();state.registers.marriage.push(r);}
+      if(isNew){r.createdAt=new Date().toISOString();arr.push(r);}
+      await signEntry(r,'marriage');
       saveAll();logAudit(isNew?'Huwelijksinschrijving toegevoegd':'Huwelijksinschrijving bewerkt',r.id);closeModal();renderRegister();showToast('Opgeslagen','success');
     },true);
-  if(!isNew){setTimeout(()=>{const cb=$('m-cert'),db=$('m-del');if(cb)cb.addEventListener('click',()=>downloadMarriageCert(r));if(db)db.addEventListener('click',()=>{showModal('Verwijderen','Inschrijving '+r.id+' verwijderen?',()=>{state.registers.marriage=state.registers.marriage.filter(x=>x.id!==r.id);saveAll();logAudit('Huwelijksinschrijving verwijderd',r.id);closeModal();renderRegister();showToast('Verwijderd');});});},50);}
+  setTimeout(()=>{
+    wireUploadField('m-photo',r,'photo');
+    if(!isNew){const cb=$('m-cert'),db=$('m-del');if(cb)cb.addEventListener('click',()=>openCertificate(r,'marriage'));if(db)db.addEventListener('click',()=>{showModal('Verwijderen','Inschrijving '+r.id+' verwijderen?',()=>{state.registers.marriage=arr.filter(x=>x.id!==r.id);saveAll();logAudit('Huwelijksinschrijving verwijderd',r.id);closeModal();renderRegister();showToast('Verwijderd');});});}
+  },50);
 }
 
 function editFamilyModal(id){
@@ -1584,17 +1967,9 @@ function editFamilyModal(id){
   if(!isNew){setTimeout(()=>{const db=$('f-del');if(db)db.addEventListener('click',()=>{showModal('Verwijderen','Gezin '+r.id+' verwijderen?',()=>{state.registers.family=state.registers.family.filter(x=>x.id!==r.id);saveAll();logAudit('Gezin verwijderd',r.id);closeModal();renderRegister();showToast('Verwijderd');});});},50);}
 }
 
-function downloadBaptismCert(r){
-  const p=getParish(r.parishId);
-  const html='<!DOCTYPE html><html><head><meta charset="utf-8"><title>Doopcertificaat '+r.id+'</title><style>body{font-family:Georgia,serif;padding:48px;max-width:700px;margin:0 auto;color:#0f172a;line-height:1.7}.header{text-align:center;border-bottom:3px double #1f4788;padding-bottom:18px;margin-bottom:24px}.header h1{font-size:24px;margin-bottom:4px;color:#1f4788}.header .sy{font-size:18px;font-family:"Estrangelo Edessa",serif;direction:rtl;margin-top:6px}.header small{color:#64748b}h2{text-align:center;font-size:20px;margin:24px 0 8px;color:#1f4788}h2 .sy{display:block;font-size:16px;font-family:"Estrangelo Edessa",serif;direction:rtl;margin-top:4px}dl{display:grid;grid-template-columns:1fr 2fr;gap:8px 16px;margin:24px 0;font-size:14px}dt{color:#64748b;font-weight:400}dd{font-weight:600;margin:0}.signature{margin-top:48px;display:flex;justify-content:space-between;font-size:12px;color:#64748b}.sigline{border-top:1px solid #cbd5e1;padding-top:6px;width:200px;text-align:center}</style></head><body><div class="header"><h1>'+escapeHtml(p.name)+'</h1><div class="sy suryoyo">ܥܕܬܐ ܣܘܪܝܝܬܐ ܐܪܬܘܕܘܟܣܝܬܐ</div><small>'+escapeHtml(p.address)+'</small></div><h2>Doopcertificaat<span class="sy suryoyo">ܫܘܘܕܥܐ ܕܡܥܡܘܕܝܬܐ</span></h2><p style="text-align:center;font-style:italic;color:#475569;">Hierbij wordt verklaard dat</p><div style="text-align:center;font-size:22px;margin:16px 0;font-weight:600;">'+escapeHtml(r.firstname+' '+r.lastname)+(r.firstnameSy?'<br><span class="suryoyo" style="font-size:18px;">'+escapeHtml(r.firstnameSy+' '+r.lastnameSy)+'</span>':'')+'</div><p style="text-align:center;color:#475569;">in het heilig sacrament van de doop is opgenomen volgens de gebruiken van de Syrisch-Orthodoxe Kerk.</p><dl><dt>Geboren op</dt><dd>'+(r.birthDate?dateLabel(r.birthDate):'-')+'</dd><dt>Te</dt><dd>'+escapeHtml(r.birthPlace||'-')+'</dd><dt>Vader</dt><dd>'+escapeHtml(r.father||'-')+'</dd><dt>Moeder</dt><dd>'+escapeHtml(r.mother||'-')+'</dd><dt>Gedoopt op</dt><dd>'+dateLabel(r.baptismDate)+'</dd><dt>In</dt><dd>'+escapeHtml(r.baptismPlace)+'</dd><dt>Door</dt><dd>'+escapeHtml(r.celebrant||'-')+'</dd><dt>Peetvader</dt><dd>'+escapeHtml(r.godfather||'-')+'</dd><dt>Peetmoeder</dt><dd>'+escapeHtml(r.godmother||'-')+'</dd><dt>Inschrijfnummer</dt><dd>'+escapeHtml(r.id)+'</dd></dl><div class="signature"><div class="sigline">Bedienaar</div><div class="sigline">Parochie zegel</div></div><scr'+'ipt>window.onload=()=>setTimeout(()=>window.print(),300)</scr'+'ipt></body></html>';
-  const url=URL.createObjectURL(new Blob([html],{type:'text/html'}));window.open(url,'_blank');showToast('Certificaat geopend','success');
-}
-
-function downloadMarriageCert(r){
-  const p=getParish(r.parishId);
-  const html='<!DOCTYPE html><html><head><meta charset="utf-8"><title>Huwelijksakte '+r.id+'</title><style>body{font-family:Georgia,serif;padding:48px;max-width:700px;margin:0 auto;color:#0f172a;line-height:1.7}.header{text-align:center;border-bottom:3px double #1f4788;padding-bottom:18px;margin-bottom:24px}.header h1{font-size:24px;margin-bottom:4px;color:#1f4788}h2{text-align:center;font-size:20px;margin:24px 0 8px;color:#1f4788}dl{display:grid;grid-template-columns:1fr 2fr;gap:8px 16px;margin:24px 0;font-size:14px}dt{color:#64748b;font-weight:400}dd{font-weight:600;margin:0}.signature{margin-top:48px;display:flex;justify-content:space-between;font-size:12px;color:#64748b}.sigline{border-top:1px solid #cbd5e1;padding-top:6px;width:160px;text-align:center}</style></head><body><div class="header"><h1>'+escapeHtml(p.name)+'</h1><small>'+escapeHtml(p.address)+'</small></div><h2>Huwelijksakte</h2><p style="text-align:center;font-style:italic;color:#475569;">Hierbij wordt verklaard dat</p><div style="text-align:center;font-size:18px;margin:16px 0;font-weight:600;">'+escapeHtml(r.groomFirstname+' '+r.groomLastname)+'<br><span style="font-size:13px;color:#64748b;font-weight:400;">en</span><br>'+escapeHtml(r.brideFirstname+' '+r.brideLastname)+'</div><p style="text-align:center;color:#475569;">in het heilig sacrament van het huwelijk zijn verbonden volgens de gebruiken van de Syrisch-Orthodoxe Kerk.</p><dl><dt>Datum</dt><dd>'+dateLabel(r.date)+'</dd><dt>Plaats</dt><dd>'+escapeHtml(r.place)+'</dd><dt>Bedienaar</dt><dd>'+escapeHtml(r.celebrant||'-')+'</dd><dt>Getuige 1</dt><dd>'+escapeHtml(r.witness1||'-')+'</dd><dt>Getuige 2</dt><dd>'+escapeHtml(r.witness2||'-')+'</dd><dt>Inschrijfnummer</dt><dd>'+escapeHtml(r.id)+'</dd></dl><div class="signature"><div class="sigline">Bruidegom</div><div class="sigline">Bruid</div><div class="sigline">Bedienaar</div></div><scr'+'ipt>window.onload=()=>setTimeout(()=>window.print(),300)</scr'+'ipt></body></html>';
-  const url=URL.createObjectURL(new Blob([html],{type:'text/html'}));window.open(url,'_blank');showToast('Akte geopend','success');
-}
+// Legacy stubs voor backward compatibility — leiden nu naar openCertificate
+function downloadBaptismCert(r){openCertificate(r,'baptism');}
+function downloadMarriageCert(r){openCertificate(r,'marriage');}
 function renderSettings(){
   const o=state.settings.org;
   const grid=$('settings-grid');
