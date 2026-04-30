@@ -1845,7 +1845,7 @@ function uploadFieldHtml(label,id,currentDataUrl,opts){
     '<div id="'+id+'-prev" style="margin-top:6px;'+(currentDataUrl?'':'display:none;')+'">'+
     (currentDataUrl?'<img src="'+currentDataUrl+'" style="max-width:160px;max-height:120px;border:1px solid var(--line);border-radius:var(--r);"> <button type="button" class="btn btn-sm btn-ghost" id="'+id+'-rm">Verwijder</button>':'')+'</div></div>';
 }
-function wireUploadField(id,target,key){
+function wireUploadField(id,target,key,opts){
   attachFileInput(id+'-file',(url)=>{target[key]=url;const p=$(id+'-prev');p.style.display='';p.innerHTML='<img src="'+url+'" style="max-width:160px;max-height:120px;border:1px solid var(--line);border-radius:var(--r);"> <button type="button" class="btn btn-sm btn-ghost" id="'+id+'-rm">Verwijder</button>';wireRemove(id,target,key);},opts);
   wireRemove(id,target,key);
 }
